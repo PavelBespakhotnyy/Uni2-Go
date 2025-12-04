@@ -9,9 +9,9 @@ export default defineConfig({
     outDir: 'dist',
     rollupOptions: {
       input: {
-        initial: resolve(__dirname, 'index.html'),
-        initial: resolve(__dirname, 'pages/initial_page.html')
-
+        main: resolve(__dirname, 'index.html'),
+        login: resolve(__dirname, 'pages/login.html'),
+        registration: resolve(__dirname, 'pages/registration.html'),
       }
     }
   }
