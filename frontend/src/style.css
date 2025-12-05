@@ -3,3 +3,7 @@
 @theme {
   --font-sans: "Sarala", sans-serif;
 }
+
+input {
+  border: 1px solid black;
+}
