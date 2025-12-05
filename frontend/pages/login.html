@@ -18,22 +18,22 @@
         <a href="/">
             <img src="/images/flecha 1.svg">
         </a>
-        <div>
+        <form>
             <a>
                 <img src="/images/logo Uni2 Go.svg">
             </a>
             <h1>Inicia Sesión</h1>
             <div>
-                <p>Correo electronico o nombre de usuario</p>
-                <input>
+                <label>Correo electronico o nombre de usuario</label></br>
+                <input type="text" name="correoUsuario">
             </div>
             <div>
-                <p>Contraseña</p>
-                <input>
+                <label>Contraseña</label></br>
+                <input type="password" name="contrasena">
             </div>
-            <a href="/pages/recover_password.html">Has olvidado tu contraseña?</a>
-            <button>Iniciar Sesión</button>
-        </div>
+            <p>Has olvidado tu contraseña?</p>
+            <input type="submit" name="enviar" valor="Iniciar Sesion">
+        </form>
     </div>
 
     <script type="module" src="/src/components/preloader/preloader.js"></script>
