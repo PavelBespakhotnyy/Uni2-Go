@@ -21,7 +21,7 @@
         <a href="/">
             <img src="/images/flecha 1.svg">
         </a>
-        <form method="post" action="/Uni2 Go/frontend/pages/registration.html" id="registroForm">
+        <form method="post" action="/Uni2-Go/backend/PHP/registro.php" id="registroForm">
         <img src="/images/logo Uni2 Go.svg" alt="Logo Uni2 Go">
         <h1>Regístrate</h1>
         
@@ -59,43 +59,33 @@
             <label>Confirmar Contraseña</label><br>
             <input type="password" name="confcontrasena" id="confcontrasena" required>
         </div>
-        
+        <input type="hidden" name="activo" value="1">
         <input type="submit" name="enviar" value="Registrarse">
     </form>
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Seleccionamos el formulario por su ID
-        const form = document.getElementById('registroForm');
+    const form = document.getElementById('registroForm');
 
-        // Escuchamos el evento de envío del formulario
-        form.addEventListener('submit', function(event) {
+    form.addEventListener('submit', function(event) {
+        const contrasena = document.getElementById('contrasena').value;
+        const confContrasena = document.getElementById('confcontrasena').value;
+
+        // Verificamos si las contraseñas no coinciden
+        if (contrasena !== confContrasena) {
             
-            // Obtenemos los valores de los campos de contraseña
-            const contrasena = document.getElementById('contrasena').value;
-            const confContrasena = document.getElementById('confcontrasena').value;
-
-            // Verificamos si las contraseñas no coinciden
-            if (contrasena !== confContrasena) {
-                
-                // 1. Detenemos el envío del formulario a la página de acción
-                event.preventDefault(); 
-                
-                // 2. Alertamos al usuario del error
-                alert('Error: Las contraseñas no coinciden. Por favor, verifícalas.');
-                
-                // 3. Limpiamos el campo de confirmación para que el usuario reintente
-                document.getElementById('confcontrasena').value = ''; 
-            } else {
-               event.preventDefault(); 
-    
-                // Y redirigimos manualmente al usuario a la página de login
-                // Ajusta la ruta a tu estructura de archivos correcta:
-                window.location.href = '/Uni2_Go/frontend/pages/login.html';
-            }
-           
-        });
+            // 1. Detenemos el envío del formulario SOLO si hay error
+            event.preventDefault(); 
+            
+            // 2. Alertamos y limpiamos
+            alert('Error: Las contraseñas no coinciden. Por favor, verifícalas.');
+            document.getElementById('confcontrasena').value = ''; 
+        } 
+        
+        // Si las contraseñas COINCIDEN, el código simplemente termina, 
+        // y el formulario se envía por POST a 'registro.php' de forma automática.
     });
+});
     </script>
     </div>
 
