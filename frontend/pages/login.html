@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="icon" href="../public/images/calendar.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="../public/images/calendar.ico">
+    <title>Iniciar session</title>
     <link rel="stylesheet" href="/src/components/preloader/preloader.css">
 
 </head>
@@ -18,13 +21,13 @@
         <a href="/">
             <img src="/images/flecha 1.svg">
         </a>
-        <form>
+        <form method="post" action="/Uni2-Go/backend/PHP/login.php">
             <a>
                 <img src="/images/logo Uni2 Go.svg">
             </a>
             <h1>Inicia Sesión</h1>
             <div>
-                <label>Correo electronico o nombre de usuario</label></br>
+                <label>Correo electronico</label></br>
                 <input type="text" name="correoUsuario">
             </div>
             <div>
@@ -32,10 +35,11 @@
                 <input type="password" name="contrasena">
             </div>
             <a href="/pages/recover_password.html">Has olvidado tu contraseña?</a>
-            <input type="submit" name="enviar" valor="Iniciar Sesion">
+            <input type="submit" name="enviar" value="Iniciar_Sesion">
         </form>
     </div>
 
+    <script type="module" src="/src/main.js"></script>
     <script type="module" src="/src/components/preloader/preloader.js"></script>
 
 </body>
