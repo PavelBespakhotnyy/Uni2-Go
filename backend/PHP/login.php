@@ -18,7 +18,7 @@ if (isset($_POST['enviar']) && $_POST['enviar'] == 'Iniciar_Sesion') {
             </script>
             <?php
         } else{
-            $sql2 = "UPDATE `users` SET `updated_at`='$fecha_actualizada' WHERE email = '$correo'  AND password_hash = '$contrasena'";
+            $sql2 = "UPDATE `users` SET `updated_at`='$fecha_actualizada' WHERE email = '$correo'";
             $result2 = $con->query($sql2);
             ?>
             <script>
