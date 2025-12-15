@@ -12,7 +12,6 @@ form.addEventListener("submit", async (e) => {
     );
 
     console.log("Logged in:", user.uid);
-    // тут редирект или загрузка профиля
   } catch (err) {
     alert(err.message);
   }
