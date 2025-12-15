@@ -21,76 +21,55 @@
         <a href="/">
             <img src="/images/flecha 1.svg">
         </a>
-        <form method="post" action="/Uni2-Go/backend/PHP/registro.php" id="registroForm">
+
+    <form id="registroForm">
         <img src="/images/logo_Uni2_Go.svg" alt="Logo Uni2 Go">
         <h1>Regístrate</h1>
         
         <div>
             <label>Nombre de usuario</label><br>
-            <input type="text" name="usuarioNombre" required>
+            <input type="text" name="name" required>
         </div>
 
         <div>
             <label>Apellido de usuario</label><br>
-            <input type="text" name="usuarioApellido" required>
+            <input type="text" name="surname" required>
         </div>
         
         <div>
             <label>Fecha de nacimiento</label><br>
-            <input type="date" name="nacimiento" required>
+            <input type="date" name="dateOfBirth" required>
         </div>
         
         <div>
             <label>Correo Electrónico</label><br>
-            <input type="text" name="Correo" required>
+            <input type="email" name="email" require>
         </div>
         
         <div>
             <label>Teléfono</label><br>
-            <input type="number" name="Telefono" required>
+            <input type="number" name="phone" required>
         </div>
         
         <div>
             <label>Contraseña</label><br>
-            <input type="password" name="contrasena" id="contrasena" required>
+            <input type="password" name="password" id="contrasena" required>
         </div>
         
         <div>
             <label>Confirmar Contraseña</label><br>
-            <input type="password" name="confcontrasena" id="confcontrasena" required>
+            <input type="password" name="confirmPassword" id="confcontrasena" required>
         </div>
         <input type="hidden" name="activo" value="1">
         <input type="submit" name="enviar" value="Registrarse">
     </form>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('registroForm');
+   
 
-    form.addEventListener('submit', function(event) {
-        const contrasena = document.getElementById('contrasena').value;
-        const confContrasena = document.getElementById('confcontrasena').value;
+    <script type="module" src="../src/main.js"></script>
+    <script type="module" src="../src/components/preloader/preloader.js"></script>
+    <script type="module" src="../src/components/registration/registration.js"></script>
 
-        // Verificamos si las contraseñas no coinciden
-        if (contrasena !== confContrasena) {
-            
-            // 1. Detenemos el envío del formulario SOLO si hay error
-            event.preventDefault(); 
-            
-            // 2. Alertamos y limpiamos
-            alert('Error: Las contraseñas no coinciden. Por favor, verifícalas.');
-            document.getElementById('confcontrasena').value = ''; 
-        } 
-        
-        // Si las contraseñas COINCIDEN, el código simplemente termina, 
-        // y el formulario se envía por POST a 'registro.php' de forma automática.
-    });
-});
-    </script>
-    </div>
-
-    <script type="module" src="/src/main.js"></script>
-    <script type="module" src="/src/components/preloader/preloader.js"></script>
 
 </body>
 </html>
