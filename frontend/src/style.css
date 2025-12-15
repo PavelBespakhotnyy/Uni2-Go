@@ -11,7 +11,7 @@
 body {
     margin: 0;
     padding: 0;
-    font-family: Arial, sans-serif;
+    font-family: "Sarala", Arial, sans-serif;
     background-color: #ffffff;
 }
 
@@ -92,7 +92,10 @@ form label {
 /* ENTRADA (INPUTS) */
 /* Estilo del texto y contraseña */
 form input[type="text"],
-form input[type="password"] {
+form input[type="password"],
+form input[type="email"],
+form input[type="date"],
+form input[type="tel"] {
     width: 100%;
     padding: 12px 15px;
     font-size: 16px;
