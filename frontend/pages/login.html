@@ -29,11 +29,11 @@
             <h1>Inicia Sesión</h1>
             <div>
                 <label>Correo electronico</label></br>
-                <input type="text" name="correoUsuario">
+                <input type="email" name="correoUsuario" required pattern="[a-z0-9._%+-]+@[a-z0-9._%-]+\.[a-z]{2,}">
             </div>
             <div>
                 <label>Contraseña</label></br>
-                <input type="password" name="contrasena" id="contrasena">
+                <input type="password" name="contrasena" id="contrasena" required pattern="{6,}">
             </div>
 
             <a href="/Uni2-Go/frontend/pages/recover_password.html">Has olvidado tu contraseña?</a>

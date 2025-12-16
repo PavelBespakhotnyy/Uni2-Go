@@ -44,9 +44,10 @@
                     <input type="date" name="nacimiento" required>
                 </div>
         
+
                 <div>
                     <label>Correo Electrónico</label><br>
-                    <input type="text" name="Correo" required>
+                    <input type="email" name="Correo" required pattern="[a-z0-9._%+-]+@[a-z0-9._%-]+\.[a-z]{2,}">
                 </div>
         
                 <div>
@@ -56,7 +57,7 @@
         
                 <div>
                     <label>Contraseña</label><br>
-                    <input type="password" name="contrasena" id="contrasena" required>
+                    <input type="password" name="contrasena" id="contrasena" required pattern="[0-9]{6,}">
                 </div>
         
                 <div>
