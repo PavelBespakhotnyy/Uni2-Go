@@ -1,97 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <link rel="icon" href="../public/images/calendar.ico" type="image/x-icon">
-    <link rel="apple-touch-icon" href="../public/images/calendar.ico">
-    <title>Registrarse</title>
-    <link rel="stylesheet" href="/Uni2-Go/frontend/src/components/preloader/preloader.css">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <link rel="icon" href="/Uni2-Go/frontend/public/images/calendar.ico" type="image/x-icon">
+        <link rel="apple-touch-icon" href="/Uni2-Go/frontend/public/images/calendar.ico">
+        <title>Registrarse</title>
+        <link rel="stylesheet" href="/Uni2-Go/frontend/src/components/preloader/preloader.css">
+        <link rel="stylesheet" href="/Uni2-Go/frontend/src/style.css">
 
-</head>
-<body>
+    </head>
+    <body>
 
-    <div id="preloader">
-        <div class="loader"></div>
-    </div>
+        <div id="preloader">
+            <div class="loader"></div>
+        </div>
 
-    <div id="content">
+        <div id="content">
 
-        <a href="/">
-            <img src="/Uni2-Go/frontend/public/images/flecha 1.svg">
-        </a>
-        <form method="post" action="/Uni2-Go/backend/PHP/registro.php" id="registroForm">
+            <a href="/Uni2-Go/frontend/index.html">
+                <img src="/Uni2-Go/frontend/public/images/flecha 1.svg">
+            </a>
+            <form method="post" action="/Uni2-Go/backend/PHP/registro.php" id="registroForm">
 
-        <img src="/Uni2-Go/frontend/public/images/logo Uni2 Go.svg" alt="Logo Uni2 Go">
+                <img src="/Uni2-Go/frontend/public/images/logo_Uni2_Go.svg" alt="Logo Uni2 Go">
 
 
-        <h1>Regístrate</h1>
+                <h1>Regístrate</h1>
         
-        <div>
-            <label>Nombre de usuario</label><br>
-            <input type="text" name="usuarioNombre" required>
-        </div>
+                <div>
+                    <label>Nombre de usuario</label><br>
+                    <input type="text" name="usuarioNombre" required>
+                </div>
 
-        <div>
-            <label>Apellido de usuario</label><br>
-            <input type="text" name="usuarioApellido" required>
-        </div>
+                <div>
+                    <label>Apellido de usuario</label><br>
+                    <input type="text" name="usuarioApellido" required>
+                </div>
         
-        <div>
-            <label>Fecha de nacimiento</label><br>
-            <input type="date" name="nacimiento" required>
-        </div>
+                <div>
+                    <label>Fecha de nacimiento</label><br>
+                    <input type="date" name="nacimiento" required>
+                </div>
         
-        <div>
-            <label>Correo Electrónico</label><br>
-            <input type="text" name="Correo" required>
-        </div>
+                <div>
+                    <label>Correo Electrónico</label><br>
+                    <input type="text" name="Correo" required>
+                </div>
         
-        <div>
-            <label>Teléfono</label><br>
-            <input type="number" name="Telefono" required>
-        </div>
+                <div>
+                    <label>Teléfono</label><br>
+                    <input type="number" name="Telefono" required>
+                </div>
         
-        <div>
-            <label>Contraseña</label><br>
-            <input type="password" name="contrasena" id="contrasena" required>
-        </div>
+                <div>
+                    <label>Contraseña</label><br>
+                    <input type="password" name="contrasena" id="contrasena" required>
+                </div>
         
-        <div>
-            <label>Confirmar Contraseña</label><br>
-            <input type="password" name="confcontrasena" id="confcontrasena" required>
-        </div>
-        <input type="hidden" name="activo" value="1">
-        <input type="submit" name="enviar" value="Registrarse">
-    </form>
+                <div>
+                    <label>Confirmar Contraseña</label><br>
+                    <input type="password" name="confcontrasena" id="confcontrasena" required>
+                </div>
+                <input type="hidden" name="activo" value="1">
+                <input type="submit" name="enviar" value="Registrarse">
+            </form>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('registroForm');
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const form = document.getElementById('registroForm');
 
-    form.addEventListener('submit', function(event) {
-        const contrasena = document.getElementById('contrasena').value;
-        const confContrasena = document.getElementById('confcontrasena').value;
+                    form.addEventListener('submit', function(event) {
+                        const contrasena = document.getElementById('contrasena').value;
+                        const confContrasena = document.getElementById('confcontrasena').value;
 
-        // Verificamos si las contraseñas no coinciden
-        if (contrasena !== confContrasena) {
+                        // Verificamos si las contraseñas no coinciden
+                        if (contrasena !== confContrasena) {
             
-            // 1. Detenemos el envío del formulario SOLO si hay error
-            event.preventDefault(); 
+                            // 1. Detenemos el envío del formulario SOLO si hay error
+                            event.preventDefault(); 
             
-            // 2. Alertamos y limpiamos
-            alert('Error: Las contraseñas no coinciden. Por favor, verifícalas.');
-            document.getElementById('confcontrasena').value = ''; 
-        } 
+                            // 2. Alertamos y limpiamos
+                            alert('Error: Las contraseñas no coinciden. Por favor, verifícalas.');
+                            document.getElementById('confcontrasena').value = ''; 
+                        } 
        
-    });
-});
-    </script>
-    </div>
+                    });
+                });
+            </script>
+        </div>
 
-    <script type="module" src="/Uni2-Go/frontend/src/main.js"></script>
-    <script type="module" src="/Uni2-Go/frontend/src/components/preloader/preloader.js"></script>
+        <script type="module" src="/Uni2-Go/frontend/src/main.js"></script>
+        <script type="module" src="/Uni2-Go/frontend/src/components/preloader/preloader.js"></script>
 
-</body>
+    </body>
 </html>
