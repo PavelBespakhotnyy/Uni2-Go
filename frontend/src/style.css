@@ -63,6 +63,7 @@ form > a img {
     height: auto;
 }
 
+/* ----------------------------------------------------------------------------------------*/
 /* "INICIA SESIÓN" */
 /* Estilo del título */
 form h1 {
@@ -112,6 +113,7 @@ form input[type="password"]:focus {
     border-color: #5b7db1;
 }
 
+/* ----------------------------------------------------------------------------------------*/
 /* "HAS OLVIDADO TU CONTRASEÑA" */
 /* Estilo del enlace */
 form p {
@@ -168,4 +170,256 @@ form input[type="submit"]:hover {
         width: 30px;
         height: 30px;
     }
+}
+
+/* ----------------------------------------------------------------------------------------*/
+/* ESTILOS GENERALES */
+/* Quita márgenes y pone la fuente en toda la web */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Sarala", Arial, sans-serif;
+    background-color: #ffffff;
+}
+
+/* CONTENEDOR PRINCIPAL */
+/* Hace que todo el contenido quede centrado y con un ancho máximo */
+#content{
+    width: 100%;
+    max-width: 980px;   /* para que no se estire demasiado en pantallas grandes */
+    margin: 0 auto;     /* centra horizontalmente */
+    padding: 18px;      /* espacio alrededor */
+}
+
+/* ----------------------------------------------------------------------------------------*/
+/* HEADER */
+/* Coloca el logo arriba a la izquierda */
+header{
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 8px 0 14px 0;
+}
+
+/* Tamaño del logo */
+header img{
+    width: 90px;
+    height: auto;
+}
+
+/* ----------------------------------------------------------------------------------------*/
+/* HERO (LA TARJETA GRANDE LILA DE ARRIBA) */
+/* Esto selecciona el primer <div> después del <header> (tu .mx-auto) */
+#content > div:nth-of-type(1){
+    background-color: #d9d7f2;     /* lila claro */
+    border-radius: 46px;          /* bordes redondeados grandes */
+    padding: 38px 28px;
+
+    /* Coloca texto a la izquierda e imagen a la derecha */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 22px;
+
+    margin-bottom: 34px;
+}
+
+/* TITULO "Uni2Go" */
+#content > div:nth-of-type(1) h1{
+    margin: 0;
+    font-size: 56px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+/* TEXTO DEBAJO DEL TITULO */
+#content > div:nth-of-type(1) h3{
+    margin: 12px 0 18px 0;
+    max-width: 360px;
+    font-size: 18px;
+    font-weight: normal;
+    line-height: 1.35;
+}
+
+/* BOTONES (los 2 <a>) */
+/* Esto da estilo base a los dos botones */
+#content > div:nth-of-type(1) a{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 42px;
+    padding: 0 18px;
+    margin-right: 10px;
+
+    border-radius: 999px; /* forma de “pastilla” */
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: bold;
+
+    transition: 0.2s; /* suaviza el hover */
+}
+
+/* BOTÓN 1: REGISTRARTE (naranja) */
+#content > div:nth-of-type(1) a:nth-of-type(1){
+    background-color: #f28c18;
+    color: white;
+    border: 2px solid #f28c18;
+}
+
+/* BOTÓN 2: INICIAR SESIÓN (blanco con borde naranja) */
+#content > div:nth-of-type(1) a:nth-of-type(2){
+    background-color: white;
+    color: #f28c18;
+    border: 2px solid #f28c18;
+}
+
+/* EFECTO AL PASAR EL RATÓN POR ENCIMA */
+#content > div:nth-of-type(1) a:hover{
+    transform: translateY(-1px);
+}
+
+/* IMAGEN DEL CALENDARIO (derecha) */
+#content > div:nth-of-type(1) img{
+    width: 260px;
+    height: auto;
+}
+
+/* ----------------------------------------------------------------------------------------*/
+/* SECCIÓN "Gestione su tiempo" (icono izq + texto dcha) */
+/* Este es el segundo <div> después del hero */
+#content > div:nth-of-type(2){
+    display: grid;
+    grid-template-columns: 220px 1fr; /* 220px icono | resto texto */
+    gap: 26px;
+    align-items: center;
+    margin-bottom: 36px;
+}
+
+/* ICONO con fondo lila y borde redondeado */
+#content > div:nth-of-type(2) img{
+    width: 210px;
+    background-color: #d9d7f2;
+    border-radius: 32px;
+    padding: 28px;
+}
+
+/* TÍTULO de esta sección */
+#content > div:nth-of-type(2) h2{
+    margin: 0 0 8px 0;
+    font-size: 34px;
+    font-weight: bold;
+}
+
+/* TEXTO de esta sección */
+#content > div:nth-of-type(2) h3{
+    margin: 0;
+    font-size: 18px;
+    font-weight: normal;
+    line-height: 1.45;
+    max-width: 520px;
+}
+
+/* ----------------------------------------------------------------------------------------*/
+/* SECCIÓN "Comparte tus eventos" (texto izq + icono dcha) */
+/* Este es el tercer <div> */
+#content > div:nth-of-type(3){
+    display: grid;
+    grid-template-columns: 1fr 220px; /* texto | icono */
+    gap: 26px;
+    align-items: center;
+    margin-bottom: 34px;
+}
+
+/* TÍTULO */
+#content > div:nth-of-type(3) h2{
+    margin: 0 0 8px 0;
+    font-size: 34px;
+    font-weight: bold;
+}
+
+/* TEXTO */
+#content > div:nth-of-type(3) h3{
+    margin: 0;
+    font-size: 18px;
+    font-weight: normal;
+    line-height: 1.45;
+    max-width: 520px;
+}
+
+/* ICONO */
+#content > div:nth-of-type(3) img{
+    width: 210px;
+    background-color: #d9d7f2;
+    border-radius: 32px;
+    padding: 28px;
+}
+
+/* ----------------------------------------------------------------------------------------*/
+/* SECCIÓN DE 3 ICONOS (Chatea / Compra / Eventos) */
+/* Este es el cuarto <div> grande */
+#content > div:nth-of-type(4){
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 columnas iguales */
+    gap: 34px;
+    text-align: center;
+    margin-bottom: 42px;
+}
+
+/* TÍTULO de cada mini-bloque */
+#content > div:nth-of-type(4) > div h3{
+    margin: 0 0 14px 0;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* ICONO con fondo lila */
+#content > div:nth-of-type(4) > div img{
+    width: 170px;
+    margin: 0 auto;
+    background-color: #d9d7f2;
+    border-radius: 32px;
+    padding: 26px;
+}
+
+/* ----------------------------------------------------------------------------------------*/
+/* PREGUNTAS Y RESPUESTAS (FAQ) */
+/* Este es el quinto <div> */
+#content > div:nth-of-type(5) h2{
+    text-align: center;
+    font-size: 40px;
+    font-weight: bold;
+    margin: 10px 0 18px 0;
+}
+
+/* Cada pregunta: línea abajo y flecha a la derecha */
+#content > div:nth-of-type(5) > div{
+    position: relative;
+    max-width: 740px;
+    margin: 0 auto;
+
+    padding: 18px 44px 18px 0;
+    border-bottom: 2px solid #111111;
+}
+
+/* Texto de la pregunta */
+#content > div:nth-of-type(5) > div h3{
+    margin: 0;
+    font-size: 18px;
+    font-weight: normal;
+}
+
+/* Flecha decorativa (parece desplegable) */
+#content > div:nth-of-type(5) > div::after{
+    content: "▾";
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 22px;
+}
+
+/* Oculta los <p> vacíos para que no ocupen espacio */
+#content > div:nth-of-type(5) p:empty{
+    display: none;
 }

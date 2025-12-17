@@ -17,7 +17,8 @@ form.addEventListener("submit", async (e) => {
 
   try {
     await registerUser(formData);
-    alert("Registro completado");
+    window.location.href = "./login.html"; 
+    console.log("Registro completado");
   } catch (err) {
     alert(err.message);
   }
