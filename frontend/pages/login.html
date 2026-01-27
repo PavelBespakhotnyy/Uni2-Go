@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="icon" href="/Uni2-Go/frontend/public/images/calendar.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="/Uni2-Go/frontend/public/images/calendar.ico">
+    <title>Iniciar session</title>
+    <link rel="stylesheet" href="/Uni2-Go/frontend/src/components/preloader/preloader.css">
+    <link rel="stylesheet" href="/Uni2-Go/frontend/src/style.css">
+
+</head>
+
+<body>
+
+    <div id="preloader">
+        <div class="loader"></div>
+    </div>
+
+    <div id="content">
+
+        <a href="/Uni2-Go/frontend/index.html">
+            <img src="/Uni2-Go/frontend/public/images/flecha 1.svg">
+        </a>
+        <form method="post" action="/Uni2-Go/backend/public/custom-login">
+            <a>
+                <img src="/Uni2-Go/frontend/public/images/logo_Uni2_Go.svg">
+            </a>
+            <h1>Inicia Sesión</h1>
+            <div>
+                <label>Correo electronico</label></br>
+                <input type="email" name="correoUsuario" required pattern="[a-z0-9._%+-]+@[a-z0-9._%-]+\.[a-z]{2,}">
+            </div>
+            <div>
+                <label>Contraseña</label></br>
+                <input type="password" name="contrasena" id="contrasena" required pattern="[0-9]{6,}">
+            </div>
+
+            <a href="/Uni2-Go/frontend/pages/recover_password.html">Has olvidado tu contraseña?</a>
+            <input type="submit" name="enviar" value="Iniciar Sesion">
+
+        </form>
+    </div>
+
+    <script type="module" src="/Uni2-Go/frontend/src/main.js"></script>
+    <script type="module" src="/Uni2-Go/frontend/src/components/preloader/preloader.js"></script>
+
+</body>
+
+</html>
