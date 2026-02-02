@@ -156,16 +156,16 @@ form input[type="submit"]:hover {
     form h1 {
         font-size: 28px;
     }
-    
+
     form > a img {
         width: 220px;
     }
-    
+
     #content > a:first-child {
         top: 20px;
         left: 20px;
     }
-    
+
     #content > a:first-child img {
         width: 30px;
         height: 30px;
