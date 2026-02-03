@@ -1,5 +1,5 @@
 # --- PHP / Composer ---
-backend/vendor/
+vendor/
 .phpunit.result.cache
 composer.lock
 
@@ -7,23 +7,11 @@ composer.lock
 .env
 .env.local
 .env.*.local
-frontend/.env
-backend/.env
-
-# --- Node / Frontend ---
-node_modules/
-dist/
-build/
-.eslintcache
-
-# --- Sistema y Editores ---
-.DS_Store
-Thumbs.db
-.vscode/
-.idea/
+# Como el .env está en el frontend, subimos un nivel
+../frontend/.env
 
 # --- Firebase ---
-# Ignora cualquier archivo JSON de credenciales por seguridad
+# Ignora cualquier archivo JSON de credenciales
 *.json
 !composer.json
 !package.json
