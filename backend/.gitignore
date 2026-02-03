@@ -1,0 +1,29 @@
+# --- PHP / Composer ---
+backend/vendor/
+.phpunit.result.cache
+composer.lock
+
+# --- Variables de Entorno (SEGURIDAD) ---
+.env
+.env.local
+.env.*.local
+frontend/.env
+backend/.env
+
+# --- Node / Frontend ---
+node_modules/
+dist/
+build/
+.eslintcache
+
+# --- Sistema y Editores ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# --- Firebase ---
+# Ignora cualquier archivo JSON de credenciales por seguridad
+*.json
+!composer.json
+!package.json
