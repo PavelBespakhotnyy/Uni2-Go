@@ -419,3 +419,35 @@ header img{
 #content > div:nth-of-type(5) p:empty{
     display: none;
 }
+
+
+/* ---------- Navbar Styles ---------- */
+.navbar {
+    height: 100vh;
+    width: fit-content;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: #ffffff;
+    border-right: #000000 1px solid;
+}
+
+.navbar img {
+    scale: 1.4;
+}
+
+.pages {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.pages-high {
+    justify-content: space-around;
+    min-height: 50vh;
+}
+
+.pages-low {
+    justify-content: space-around;
+    min-height: 16vh;
+}
