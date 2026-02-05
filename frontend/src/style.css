@@ -422,32 +422,58 @@ header img{
 
 
 /* ---------- Navbar Styles ---------- */
-.navbar {
+/* General sidebar styles */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
     height: 100vh;
-    width: fit-content;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    background-color: #ffffff;
-    border-right: #000000 1px solid;
+    width: 14vw;
+    min-width: 220px;
+    border-right: solid #000000 1px;
+    z-index: 9999;
 }
 
-.navbar img {
-    scale: 1.4;
-}
-
-.pages {
+/* Logo with close/open sidebar button */
+.sidebar-top-part {
     display: flex;
-    flex-direction: column;
     align-items: center;
+    justify-content: space-evenly;
+    height: auto;
+    padding: 10px 0;
 }
 
-.pages-high {
-    justify-content: space-around;
-    min-height: 50vh;
+/* Logo size */
+.sidebar-logo {
+    scale: 1;
 }
 
-.pages-low {
-    justify-content: space-around;
-    min-height: 16vh;
+.buttons-list {
+    display: flex;
+    flex-direction: column;
+    margin: 20px 0 0 0;
+    gap: 30px;
+    height: 100vh;
+}
+
+/* Button styles */
+.buttons-list li a {
+    margin: 0 10px;
+    padding: 10px;
+    background:rgba(20,20,20, 0.2);
+    border-radius: 10px;
+}
+
+/* Make USUARIO button at the bottom */
+.buttons-list > :last-child{
+    margin-top: auto;
+    margin-bottom: 20px;
+}
+
+/* Making button bigger */
+.sidebar li a {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 6px;
 }
