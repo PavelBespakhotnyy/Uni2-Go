@@ -1,6 +1,4 @@
-console.log('MAIN JS LOADED');
-
-import './style.css';
+// Connect this file only to calendar.html page
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 
