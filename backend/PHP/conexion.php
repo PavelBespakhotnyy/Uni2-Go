@@ -26,7 +26,7 @@ try {
     // 4. Obtenemos Firestore
     $firestore = $factory->createFirestore();
     $db = $firestore->database();
-
+    $auth = $factory->createAuth();
     // echo "Conectado directamente a Firebase desde el servidor";
 
 } catch (Exception $e) {
