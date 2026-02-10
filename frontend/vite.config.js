@@ -15,6 +15,13 @@ export default defineConfig({
         recovery: resolve(__dirname, "pages/recover_password.html"),
         calendar: resolve(__dirname, "pages/calendar.html"),
         navbartest: resolve(__dirname, "pages/navbartest.html"),
+        carpetas: resolve(__dirname, "pages/navbartest.html"),
+        chat: resolve(__dirname, "pages/navbartest.html"),
+        grupos: resolve(__dirname, "pages/grupos.html"),
+        notifications: resolve(__dirname, "pages/notifications.html"),
+        lista_de_compras: resolve(__dirname, "pages/lista_de_compras.html"),
+        user: resolve(__dirname, "pages/user.html"),
+
       },
     },
   },
