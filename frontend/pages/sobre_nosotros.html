@@ -24,15 +24,19 @@
         <link href="stylesheet" href="../src/components/preloader/preloader.css">
     </head>
     <body>
+        <div id="preloader">
+            <div class="loader"></div>
+        </div>
+
         <!-- HTML остается без изменений -->
         <div class="main-container">
             <!-- Боковая панель -->
             <nav class="sidebar" id="navbar">
-                <div class="sidebar-top-part">
+                <div class="navbar-button sidebar-top-part">
                     <a href="../index.html">
                         <img class="sidebar-logo" src="../public/images/logo_Uni2_Go.svg">
                     </a>
-                    <span class="sidebar-button bx bx-md bx-sidebar"></span>
+                    <span class="sidebar-button bx bx-sm bx-sidebar"></span>
                 </div>
 
                 <ul class="buttons-list">
@@ -80,7 +84,7 @@
                     </li>
                     <!-- Info -->
                     <li class="info">
-                        <a href="/">
+                        <a class="button-change-page-active" href="./sobre_nosotros.html">
                             <i class="bx bx-sm bx-info-circle"></i>
                             <span class="font-bold">Info</span>
                         </a>
@@ -259,6 +263,5 @@
         </div>
 
         <script type="module" src="../src/components/preloader/preloader.js"></script>
-
     </body>
 </html>

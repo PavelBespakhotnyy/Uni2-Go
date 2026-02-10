@@ -456,8 +456,27 @@ header img {
 .buttons-list li a {
     margin: 0 10px;
     padding: 10px;
-    background: rgba(20, 20, 20, 0.2);
     border-radius: 10px;
+    transition: all 250ms;
+}
+
+/* Button effects on hover */
+.buttons-list li a:hover:not(.button-change-page-active) {
+    transform: translateY(4px);
+    box-shadow:
+      inset 0 1px 0 0 #f4f4f4,
+      0 1px 0 0 #efefef,
+      0 1px 0 0 #ececec,
+      0 2px 0 0 #e0e0e0,
+      0 2px 0 0 #dedede,
+      0 3px 0 0 #dcdcdc,
+      0 4px 0 0 #cacaca,
+      0 4px 6px 0 #cecece;
+}
+
+/* Active buttons */
+.button-change-page-active {
+    background-color: rgba(20, 20, 20, 0.2);
 }
 
 /* Make USUARIO button at the bottom */
