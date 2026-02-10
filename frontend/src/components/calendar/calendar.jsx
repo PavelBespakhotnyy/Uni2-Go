@@ -39,7 +39,7 @@ export default function CalendarPage() {
 
 
   return (
-    <div className="rounded-b-none ml-55 overflow-auto">
+    <div className="rounded-b-none overflow-auto">
       <DayFlowCalendar calendar={calendar} />
     </div>
   );

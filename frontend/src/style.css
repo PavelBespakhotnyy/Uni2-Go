@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+:root {
+    --sidebar-width-expanded: 220px;
+    --sidebar-width-hidden: 60px;
+}
+
 /*CSS - Login.html*/
 
 /* ESTILOS GENERALES DEL BODY  test*/
@@ -425,7 +430,7 @@ header img {
     flex-direction: column;
     position: fixed;
     height: 100vh;
-    width: 220px;
+    width: var(--sidebar-width-expanded);
     border-right: solid #000000 1px;
     z-index: 9999;
 }
