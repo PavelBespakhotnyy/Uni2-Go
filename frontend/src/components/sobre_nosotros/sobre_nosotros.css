@@ -1,0 +1,287 @@
+/* sobre_nosotros.css */
+
+/* Основные стили */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    font-family: "Sarala", sans-serif;
+    background: #ffffff;
+    color: #2c3e50;
+    overflow: hidden;
+}
+
+/* Главный контейнер с боковой панелью */
+.main-container {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    height: 100vh;
+    width: 100vw;
+}
+
+/* Боковая панель - место для навигации */
+.sidebar {
+    background: #f8f9fa;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    height: 100vh;
+}
+
+/* Логотип в боковой панели */
+.sidebar-logo {
+    padding: 20px 0;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.sidebar-logo h2 {
+    color: #3498db;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+/* Навигация в боковой панели */
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.nav-item {
+    padding: 12px 20px;
+    color: #495057;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+/* Основное содержимое с 4 квадрантами */
+.content-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: relative;
+}
+
+/* Заголовок страницы */
+.page-title {
+    padding: 20px;
+    text-align: center;
+    background: #ffffff;
+    z-index: 100;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.page-title h1 {
+    font-size: 2rem;
+    color: #3498db;
+    font-weight: 700;
+}
+
+/* Контейнер с 4 квадрантами */
+.quadrants-container {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    height: calc(100vh - 140px);
+    grid-template-rows: 48% 32%;
+    height: calc(100vh - 165px);
+    gap: 0;
+}
+
+/* Общие стили для всех квадрантов */
+.quadrant {
+    display: flex;
+    padding: 80px;
+    padding: 10px 20px;
+    position: relative;
+    animation: quadrantAppear 0.6s ease-out forwards;
+    opacity: 0;
+}
+
+/* Верхний левый (картинка) */
+.quadrant.tl {
+    grid-column: 1;
+    grid-row: 1;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+/* Верхний правый (текст) */
+.quadrant.tr {
+    grid-column: 2;
+    grid-row: 1;
+    align-items: flex-start;
+    justify-content: flex-end;
+    justify-content: flex-start;
+}
+
+/* Нижний левый (текст) */
+.quadrant.bl {
+    grid-column: 1;
+    grid-row: 2;
+    align-items: flex-end;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding-top: 0;
+}
+
+/* Нижний правый (картинка) */
+.quadrant.br {
+    grid-column: 2;
+    grid-row: 2;
+    align-items: flex-end;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding-top: 0;
+}
+
+/* Стили для картинок */
+.quadrant-image {
+    max-width: 85%;
+    max-height: 85%;
+    max-width: 70%;
+    max-height: 280px;
+    object-fit: contain;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Стили для текстовых блоков */
+.text-content {
+    max-width: 80%;
+    padding: 30px;
+    max-width: 95%;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.text-content h2 {
+    font-size: 1.8rem;
+    margin-bottom: 40px;
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+    color: #2c3e50;
+    font-weight: 700;
+}
+
+.text-content p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    color: #495057;
+    margin-bottom: 15px;
+    margin-bottom: 8px;
+    text-align: justify;
+}
+
+/* Выравнивание текста */
+.quadrant.tr .text-content {
+    text-align: right;
+    text-align: left;
+}
+
+.quadrant.bl .text-content {
+    text-align: left;
+}
+
+/* Футер */
+.footer {
+    background: #ffffff;
+    padding: 15px 30px;
+    border-top: 1px solid #e9ecef;
+    height: 70px;
+    padding: 10px 30px;
+    border-top: 2px solid #e9ecef;
+    height: 55px;
+    position: relative;
+    z-index: 10;
+    flex-shrink: 0;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.social-links {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+}
+
+.social-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #495057;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    padding: 6px 12px;
+    border-radius: 6px;
+}
+
+.social-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.social-text {
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.footer-copyright {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* Анимации появления */
+@keyframes quadrantAppear {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Убедимся, что картинки и текст помещаются */
+.quadrant.bl .text-content {
+    margin-bottom: 80px;
+    margin-bottom: 0;
+    padding: 12px 18px;
+}
+
+.quadrant.bl .text-content h2 {
+    font-size: 1.15rem;
+    margin-bottom: 8px;
+}
+
+.quadrant.bl .text-content p {
+    font-size: 0.82rem;
+    line-height: 1.35;
+    margin-bottom: 5px;
+}
+
+.quadrant.br .quadrant-image {
+    margin-bottom: 40px;
+    margin-bottom: 0;
+}

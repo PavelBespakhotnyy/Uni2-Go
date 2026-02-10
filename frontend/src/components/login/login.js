@@ -12,6 +12,8 @@ form.addEventListener("submit", async (e) => {
     );
 
     console.log("Logged in:", user.uid);
+    alert("Success!");
+    //form.reset();
   } catch (err) {
     alert(err.message);
   }
