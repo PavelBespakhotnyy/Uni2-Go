@@ -7,7 +7,9 @@ import {
   createMonthView,
   createEvent,
   createAllDayEvent,
+  createYearView,
   createDragPlugin,
+  ViewType,
 } from '@dayflow/core';
 
 export default function CalendarPage() {
@@ -27,10 +29,16 @@ export default function CalendarPage() {
       createDayView(),
       createWeekView(),
       createMonthView(),
+      createYearView({
+        mode: 'fixed-week', // default is year-canvas
+        showTimedEventsInYearView: true // Enable dots for timed events
+      })
     ],
+    defaultView: ViewType.MONTH,
     useSidebar: {
       enabled: true,
       width: 280,
+      initialCollapsed: true,
     },
     plugins: [dragPlugin],
     events,
@@ -39,7 +47,7 @@ export default function CalendarPage() {
 
 
   return (
-    <div className="rounded-b-none overflow-auto">
+    <div className="rounded-b-none overflow-auto md:w-auto">
       <DayFlowCalendar calendar={calendar} />
     </div>
   );
