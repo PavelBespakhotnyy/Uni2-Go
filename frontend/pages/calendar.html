@@ -1,100 +1,106 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <!-- Metas -->
-    <meta charset="UTF-8" />
-    <!-- Page Title -->
-    <title>Calendar</title>
-    <!-- Connecting Styles -->
-    <link rel="stylesheet" href="../src/components/calendar/index.css">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="../src/style.css" id="main-style"/>
-</head>
-<body>
-
-    <div id="preloader">
-        <div class="loader"></div>
-    </div>
-
-    <div class="main-container">
-        <nav class="sidebar" id="navbar">
-            <div class="sidebar-top-part">
-                <a href="../index.html">
-                    <img class="sidebar-logo" src="../public/images/logo_Uni2_Go.svg">
-                </a>
-                <span class="sidebar-button bx bx-sm bx-sidebar"></span>
-            </div>
-
-            <ul class="buttons-list">
-                <!-- Calendar -->
-                <li class="calendar">
-                    <a class="button-change-page-active" href="./calendar.html">
-                        <i class="bx bx-sm bx-calendar"></i>
-                        <span class="font-bold">Calendar</span>
-                    </a>
-                </li>
-                <!-- Chat -->
-                <li class="chat">
-                    <a href="./chat.html">
-                        <i class="bx bx-sm bx-chat"></i>
-                        <span class="font-bold">Chat</span>
-                    </a>
-                </li>
-                <!-- Noifications -->
-                <li class="notifications">
-                    <a href="./notifications.html">
-                        <i class="bx bx-sm bx-bell"></i>
-                        <span class="font-bold">Noifications</span>
-                    </a>
-                </li>
-                <!-- Grupos -->
-                <li class="grupos">
-                    <a href="./grupos.html">
-                        <i class="bx bx-sm bx-group"></i>
-                        <span class="font-bold">Grupos</span>
-                    </a>
-                </li>
-                <!-- Lista de Compras -->
-                <li class="lista-de-compras">
-                    <a href="./lista_de_compras.html">
-                        <i class="bx bx-sm bx-edit"></i>
-                        <span class="font-bold">Lista de Compras</span>
-                    </a>
-                </li>
-                <!-- Carpetas -->
-                <li class="carpetas">
-                    <a href="./carpetas.html">
-                        <i class="bx bx-sm bx-folder"></i>
-                        <span class="font-bold">Carpetas</span>
-                    </a>
-                </li>
-                <!-- Info -->
-                <li class="info">
-                    <a href="./sobre_nosotros.html">
-                        <i class="bx bx-sm bx-info-circle"></i>
-                        <span class="font-bold">Info</span>
-                    </a>
-                </li>
-                <!-- Usuario -->
-                <li class="usuario">
-                    <a href=.user.html">
-                        <i class="bx bx-sm bx-user"></i>
-                        <span class="font-bold">Usuario</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-
-        <!-- Calendar -->
-        <div class="calendar-wrapper">
-            <div id="calendar-root"></div>
+    <head>
+        <!-- Metas -->
+        <meta charset="UTF-8" />
+        <!-- Page Title -->
+        <title>Calendar</title>
+        <!-- Connecting Styles -->
+        <link rel="stylesheet" href="../src/components/calendar/index.css" />
+        <link
+            href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="../src/style.css" id="main-style" />
+    </head>
+    <body>
+        <div id="preloader">
+            <div class="loader"></div>
         </div>
-    </div>
 
+        <div class="main-container">
+            <nav class="sidebar" id="navbar">
+                <div class="sidebar-top-part">
+                    <a href="../index.html">
+                        <img
+                            class="sidebar-logo"
+                            src="../public/images/logo_Uni2_Go.svg"
+                        />
+                    </a>
+                    <span class="sidebar-button bx bx-sm bx-sidebar"></span>
+                </div>
 
-  <!-- entry -->
-  <script type="module" src="/src/main.jsx"></script>
-  <script type="module" src="../src/components/preloader/preloader.js"></script>
+                <ul class="buttons-list">
+                    <!-- Calendar -->
+                    <li class="calendar">
+                        <a class="button-change-page-active" href="./calendar.html">
+                            <i class="bx bx-sm bx-calendar"></i>
+                            <span class="font-bold">Calendar</span>
+                        </a>
+                    </li>
+                    <!-- Chat -->
+                    <li class="chat">
+                        <a href="./chat.html">
+                            <i class="bx bx-sm bx-chat"></i>
+                            <span class="font-bold">Chat</span>
+                        </a>
+                    </li>
+                    <!-- Noifications -->
+                    <li class="notifications">
+                        <a href="./notifications.html">
+                            <i class="bx bx-sm bx-bell"></i>
+                            <span class="font-bold">Noifications</span>
+                        </a>
+                    </li>
+                    <!-- Grupos -->
+                    <li class="grupos">
+                        <a href="./grupos.html">
+                            <i class="bx bx-sm bx-group"></i>
+                            <span class="font-bold">Grupos</span>
+                        </a>
+                    </li>
+                    <!-- Lista de Compras -->
+                    <li class="lista-de-compras">
+                        <a href="./lista_de_compras.html">
+                            <i class="bx bx-sm bx-edit"></i>
+                            <span class="font-bold">Lista de Compras</span>
+                        </a>
+                    </li>
+                    <!-- Carpetas -->
+                    <li class="carpetas">
+                        <a href="./carpetas.html">
+                            <i class="bx bx-sm bx-folder"></i>
+                            <span class="font-bold">Carpetas</span>
+                        </a>
+                    </li>
+                    <!-- Info -->
+                    <li class="info">
+                        <a href="./sobre_nosotros.html">
+                            <i class="bx bx-sm bx-info-circle"></i>
+                            <span class="font-bold">Info</span>
+                        </a>
+                    </li>
+                    <!-- Usuario -->
+                    <li class="usuario">
+                        <a href="./user.html">
+                            <i class="bx bx-sm bx-user"></i>
+                            <span class="font-bold">Usuario</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
 
-</body>
+            <!-- Calendar -->
+            <div class="calendar-wrapper">
+                <div id="calendar-root"></div>
+            </div>
+        </div>
+
+        <!-- entry -->
+        <script type="module" src="/src/main.jsx"></script>
+        <script
+            type="module"
+            src="../src/components/preloader/preloader.js"
+        ></script>
+    </body>
 </html>
