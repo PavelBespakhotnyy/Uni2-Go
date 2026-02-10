@@ -1,12 +1,8 @@
 @import "tailwindcss";
 
-@theme {
-  --font-sans: "Sarala", sans-serif;
-}
-
 /*CSS - Login.html*/
 
-/* ESTILOS GENERALES DEL BODY */
+/* ESTILOS GENERALES DEL BODY  test*/
 /* Elimina márgenes, añadir fuente y color de fondo */
 body {
     margin: 0;
@@ -422,4 +418,62 @@ header img{
 /* Oculta los <p> vacíos para que no ocupen espacio */
 #content > div:nth-of-type(5) p:empty{
     display: none;
+}
+
+
+/* ---------- Navbar Styles ---------- */
+/* General sidebar styles */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    width: 14vw;
+    min-width: 220px;
+    border-right: solid #000000 1px;
+    z-index: 9999;
+}
+
+/* Logo with close/open sidebar button */
+.sidebar-top-part {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    height: auto;
+    padding: 10px 0;
+}
+
+/* Logo size */
+.sidebar-logo {
+    scale: 1;
+}
+
+.buttons-list {
+    display: flex;
+    flex-direction: column;
+    margin: 20px 0 0 0;
+    gap: 30px;
+    height: 100vh;
+}
+
+/* Button styles */
+.buttons-list li a {
+    margin: 0 10px;
+    padding: 10px;
+    background:rgba(20,20,20, 0.2);
+    border-radius: 10px;
+}
+
+/* Make USUARIO button at the bottom */
+.buttons-list > :last-child{
+    margin-top: auto;
+    margin-bottom: 20px;
+}
+
+/* Making button bigger */
+.sidebar li a {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 6px;
 }

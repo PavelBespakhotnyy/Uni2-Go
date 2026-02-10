@@ -37,8 +37,9 @@ export default function CalendarPage() {
     locale: 'es',
   });
 
+
   return (
-    <div className="p-4">
+    <div className="rounded-b-none ml-55 overflow-auto">
       <DayFlowCalendar calendar={calendar} />
     </div>
   );

@@ -14,6 +14,7 @@ export default defineConfig({
         registration: resolve(__dirname, "pages/registration.html"),
         recovery: resolve(__dirname, "pages/recover_password.html"),
         calendar: resolve(__dirname, "pages/calendar.html"),
+        navbartest: resolve(__dirname, "pages/navbartest.html"),
       },
     },
   },
