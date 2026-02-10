@@ -5,45 +5,23 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <meta
-            name="description"
-            content="Conoce más sobre Uni2Go - Conecta tu vida"
-        />
-        <meta
-            name="keywords"
-            content="sobre nosotros, Uni2Go, calendario universitario"
-        />
+        <meta name="description" content="Conoce más sobre Uni2Go - Conecta tu vida"/>
+        <meta name="keywords" content="sobre nosotros, Uni2Go, calendario universitario"/>
         <!-- Icons -->
-        <link
-            rel="icon"
-            href="../public/images/calendar.ico"
-            type="image/x-icon"
-        />
+        <link rel="icon" href="../public/images/calendar.ico" type="image/x-icon"/>
         <link rel="apple-touch-icon" href="../public/images/calendar.ico" />
         <!-- Page Title -->
         <title>Sobre Nosotros - Uni2Go</title>
         <!-- Fonts etc -->
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Sarala:wght@400;700&display=swap"
-            rel="stylesheet"
-        />
-        <!-- Connecting Styles -->
-        <link rel="stylesheet" href="../src/style.css" id="main-style" />
-        <link
-            rel="stylesheet"
-            href="../src/components/sobre_nosotros/sobre_nosotros.css"
-        />
-        <link
-            href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
-            rel="stylesheet"
-        />
+        <link href="https://fonts.googleapis.com/css2?family=Sarala:wght@400;700&display=swap" rel="stylesheet"/>
+         <!-- Connecting Styles -->
+        <link rel="stylesheet" href="../src/components/sobre_nosotros/sobre_nosotros.css"/>
+        <link rel="stylesheet" href="../src/style.css" id="main-style"/>
+        <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
         <!--Connecting preloaders Styles-->
-        <link
-            href="stylesheet"
-            href="../src/components/preloader/preloader.css"
-        />
+        <link href="stylesheet" href="../src/components/preloader/preloader.css">
     </head>
     <body>
         <!-- HTML остается без изменений -->
@@ -51,10 +29,9 @@
             <!-- Боковая панель -->
             <nav class="sidebar" id="navbar">
                 <div class="sidebar-top-part">
-                    <img
-                        class="sidebar-logo"
-                        src="../public/images/logo_Uni2_Go.svg"
-                    />
+                    <a href="../index.html">
+                        <img class="sidebar-logo" src="../public/images/logo_Uni2_Go.svg">
+                    </a>
                     <span class="sidebar-button bx bx-md bx-sidebar"></span>
                 </div>
 
@@ -63,63 +40,69 @@
                     <li class="calendar">
                         <a href="./calendar.html">
                             <i class="bx bx-sm bx-calendar"></i>
-                            <span>Calendar</span>
+                            <span class="font-bold">Calendar</span>
                         </a>
                     </li>
                     <!-- Chat -->
                     <li class="chat">
                         <a href="/">
                             <i class="bx bx-sm bx-chat"></i>
-                            <span>Chat</span>
+                            <span class="font-bold">Chat</span>
                         </a>
                     </li>
                     <!-- Noifications -->
                     <li class="notifications">
                         <a href="/">
                             <i class="bx bx-sm bx-bell"></i>
-                            <span>Noifications</span>
+                            <span class="font-bold">Noifications</span>
                         </a>
                     </li>
                     <!-- Grupos -->
                     <li class="grupos">
                         <a href="/">
                             <i class="bx bx-sm bx-group"></i>
-                            <span>Grupos</span>
+                            <span class="font-bold">Grupos</span>
                         </a>
                     </li>
                     <!-- Lista de Compras -->
                     <li class="lista-de-compras">
                         <a href="/">
                             <i class="bx bx-sm bx-edit"></i>
-                            <span>Lista de Compras</span>
+                            <span class="font-bold">Lista de Compras</span>
                         </a>
                     </li>
                     <!-- Carpetas -->
                     <li class="carpetas">
                         <a href="/">
                             <i class="bx bx-sm bx-folder"></i>
-                            <span>Carpetas</span>
+                            <span class="font-bold">Carpetas</span>
                         </a>
                     </li>
                     <!-- Info -->
                     <li class="info">
-                        <a href="./sobre_nosotros.html">
+                        <a href="/">
                             <i class="bx bx-sm bx-info-circle"></i>
-                            <span>Info</span>
+                            <span class="font-bold">Info</span>
                         </a>
                     </li>
                     <!-- Usuario -->
                     <li class="usuario">
                         <a href="/">
                             <i class="bx bx-sm bx-user"></i>
-                            <span>Usuario</span>
+                            <span class="font-bold">Usuario</span>
                         </a>
                     </li>
                 </ul>
+
             </nav>
 
             <!-- Основное содержимое -->
             <div class="content-wrapper">
+                <!-- Заголовок -->
+                <div class="page-title">
+                    <h1>Uni2Go connecta tu vida</h1>
+                </div>
+
                 <!-- Контейнер с 4 квадрантами -->
                 <div class="quadrants-container">
                     <!-- Верхний левый квадрант: картинка -->
@@ -267,8 +250,7 @@
                         <!-- Copyright -->
                         <div class="footer-copyright">
                             <p>
-                                &copy; 2024 Uni2Go. Todos los derechos
-                                reservados.
+                                2026 Uni2Go
                             </p>
                         </div>
                     </div>
@@ -276,9 +258,7 @@
             </div>
         </div>
 
-        <script
-            type="module"
-            src="../src/components/preloader/preloader.js"
-        ></script>
+        <script type="module" src="../src/components/preloader/preloader.js"></script>
+
     </body>
 </html>
