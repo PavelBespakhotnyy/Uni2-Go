@@ -30,67 +30,83 @@
             rel="stylesheet"
             href="../src/components/sobre_nosotros/sobre_nosotros.css"
         />
-        <style>
-            /* Оставляем только инлайновые стили и ховер-эффекты */
-            .nav-item:hover {
-                background: #e9ecef;
-                color: #3498db;
-            }
+        <link
+            rel="stylesheet"
+            href="../src/style.css"
+        />
+        <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
-            .social-link:hover {
-                color: #3498db;
-                background: #f8f9fa;
-            }
-
-            .quadrant.tl {
-                animation-delay: 0.1s;
-            }
-            .quadrant.tr {
-                animation-delay: 0.2s;
-            }
-            .quadrant.bl {
-                animation-delay: 0.3s;
-            }
-            .quadrant.br {
-                animation-delay: 0.4s;
-            }
-        </style>
     </head>
     <body>
         <!-- HTML остается без изменений -->
         <div class="main-container">
             <!-- Боковая панель -->
-            <aside class="sidebar">
-                <div class="sidebar-logo">
-                    <h2>Uni2Go</h2>
+            <nav class="sidebar" id="navbar">
+                <div class="sidebar-top-part">
+                    <img class="sidebar-logo" src="../public/images/logo_Uni2_Go.svg">
+                    <span class="sidebar-button bx bx-md bx-sidebar"></span>
                 </div>
 
-                <nav class="sidebar-nav">
-                    <a href="#" class="nav-item">Inicio</a>
-                    <a href="#" class="nav-item">Calendario</a>
-                    <a href="#" class="nav-item">Eventos</a>
-                    <a
-                        href="#"
-                        class="nav-item"
-                        style="background: #e3f2fd; color: #3498db"
-                        >Sobre Nosotros</a
-                    >
-                    <a href="#" class="nav-item">Contacto</a>
-                    <a href="#" class="nav-item">Configuración</a>
-                </nav>
+                <ul class="buttons-list">
+                    <!-- Calendar -->
+                    <li class="calendar">
+                        <a href="./calendar.html">
+                            <i class="bx bx-sm bx-calendar"></i>
+                            <span class="font-bold">Calendar</span>
+                        </a>
+                    </li>
+                    <!-- Chat -->
+                    <li class="chat">
+                        <a href="/">
+                            <i class="bx bx-sm bx-chat"></i>
+                            <span class="font-bold">Chat</span>
+                        </a>
+                    </li>
+                    <!-- Noifications -->
+                    <li class="notifications">
+                        <a href="/">
+                            <i class="bx bx-sm bx-bell"></i>
+                            <span class="font-bold">Noifications</span>
+                        </a>
+                    </li>
+                    <!-- Grupos -->
+                    <li class="grupos">
+                        <a href="/">
+                            <i class="bx bx-sm bx-group"></i>
+                            <span class="font-bold">Grupos</span>
+                        </a>
+                    </li>
+                    <!-- Lista de Compras -->
+                    <li class="lista-de-compras">
+                        <a href="/">
+                            <i class="bx bx-sm bx-edit"></i>
+                            <span class="font-bold">Lista de Compras</span>
+                        </a>
+                    </li>
+                    <!-- Carpetas -->
+                    <li class="carpetas">
+                        <a href="/">
+                            <i class="bx bx-sm bx-folder"></i>
+                            <span class="font-bold">Carpetas</span>
+                        </a>
+                    </li>
+                    <!-- Info -->
+                    <li class="info">
+                        <a href="/">
+                            <i class="bx bx-sm bx-info-circle"></i>
+                            <span class="font-bold">Info</span>
+                        </a>
+                    </li>
+                    <!-- Usuario -->
+                    <li class="usuario">
+                        <a href="/">
+                            <i class="bx bx-sm bx-user"></i>
+                            <span class="font-bold">Usuario</span>
+                        </a>
+                    </li>
+                </ul>
 
-                <div class="sidebar-footer" style="margin-top: auto">
-                    <p
-                        style="
-                            color: #6c757d;
-                            font-size: 0.9rem;
-                            padding: 20px 0;
-                        "
-                    >
-                        Conecta tu vida universitaria
-                    </p>
-                </div>
-            </aside>
+            </nav>
 
             <!-- Основное содержимое -->
             <div class="content-wrapper">
@@ -255,6 +271,5 @@
             </div>
         </div>
 
-        <script type="module" src="../src/main.jsx"></script>
     </body>
 </html>
