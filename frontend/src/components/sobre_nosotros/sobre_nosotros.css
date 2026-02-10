@@ -1,216 +1,162 @@
-/* sobre_nosotros.css */
+/* ----------------------------------------------------------------------------------------*/
+/* SOBRE NOSOTROS PAGE STYLES */
+/* Scoped to avoid conflicts with other pages */
 
-/* Основные стили */
-* {
-    margin: 0;
-    padding: 0;
+/* Main container for sobre_nosotros */
+.main-container {
+    overflow-x: hidden;
+    width: 100vw;
+    max-width: 100vw;
+}
+
+/* Main container for sobre_nosotros page */
+.main-container .content-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: relative;
+    background: #ffffff;
+    margin-left: 220px;
+    width: calc(100vw - 220px);
+    max-width: calc(100vw - 220px);
+    overflow-x: hidden;
     box-sizing: border-box;
 }
 
-body {
-    min-height: 100vh;
-    font-family: "Sarala", sans-serif;
-    background: #ffffff;
-    color: #2c3e50;
+/* Page title for sobre_nosotros - HIDDEN */
+.content-wrapper .page-title {
+    display: none;
+}
+
+/* Quadrants container - grid layout */
+.content-wrapper .quadrants-container {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    height: calc(100vh - 60px);
+    gap: 20px;
+    padding: 20px;
     overflow: hidden;
 }
 
-/* Главный контейнер с боковой панелью */
-.main-container {
-    display: grid;
-    grid-template-columns: 250px 1fr;
-    height: 100vh;
-    width: 100vw;
-}
-
-/* Боковая панель - место для навигации */
-.sidebar {
-    background: #f8f9fa;
+/* General quadrant styles */
+.quadrants-container .quadrant {
+    display: flex;
     padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    height: 100vh;
-}
-
-/* Логотип в боковой панели */
-.sidebar-logo {
-    padding: 20px 0;
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.sidebar-logo h2 {
-    color: #3498db;
-    font-size: 1.5rem;
-    font-weight: 700;
-}
-
-/* Навигация в боковой панели */
-.sidebar-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.nav-item {
-    padding: 12px 20px;
-    color: #495057;
-    text-decoration: none;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    font-weight: 500;
-}
-
-/* Основное содержимое с 4 квадрантами */
-.content-wrapper {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
     position: relative;
-}
-
-/* Заголовок страницы */
-.page-title {
-    padding: 20px;
-    text-align: center;
     background: #ffffff;
-    z-index: 100;
-    border-bottom: 1px solid #e9ecef;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
 }
 
-.page-title h1 {
-    font-size: 2rem;
-    color: #3498db;
-    font-weight: 700;
-}
-
-/* Контейнер с 4 квадрантами */
-.quadrants-container {
-    flex: 1;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    height: calc(100vh - 140px);
-    grid-template-rows: 48% 32%;
-    height: calc(100vh - 165px);
-    gap: 0;
-}
-
-/* Общие стили для всех квадрантов */
-.quadrant {
-    display: flex;
-    padding: 80px;
-    padding: 10px 20px;
-    position: relative;
-    animation: quadrantAppear 0.6s ease-out forwards;
-    opacity: 0;
-}
-
-/* Верхний левый (картинка) */
-.quadrant.tl {
+/* Top left quadrant (image) */
+.quadrants-container .quadrant.tl {
     grid-column: 1;
     grid-row: 1;
-    align-items: flex-start;
-    justify-content: flex-start;
+    align-items: center;
+    justify-content: center;
 }
 
-/* Верхний правый (текст) */
-.quadrant.tr {
-    grid-column: 2;
+/* Top right quadrant (text) */
+.quadrants-container .quadrant.tr {
+    grid-column: 2 / 4;
     grid-row: 1;
-    align-items: flex-start;
-    justify-content: flex-end;
-    justify-content: flex-start;
+    align-items: center;
+    justify-content: center;
 }
 
-/* Нижний левый (текст) */
-.quadrant.bl {
-    grid-column: 1;
+/* Bottom left quadrant (text) */
+.quadrants-container .quadrant.bl {
+    grid-column: 1 / 3;
     grid-row: 2;
-    align-items: flex-end;
-    align-items: flex-start;
-    justify-content: flex-start;
-    padding-top: 0;
+    align-items: center;
+    justify-content: center;
 }
 
-/* Нижний правый (картинка) */
-.quadrant.br {
-    grid-column: 2;
+/* Bottom right quadrant (image) */
+.quadrants-container .quadrant.br {
+    grid-column: 3;
     grid-row: 2;
-    align-items: flex-end;
-    align-items: flex-start;
-    justify-content: flex-end;
-    padding-top: 0;
+    align-items: center;
+    justify-content: center;
 }
 
-/* Стили для картинок */
-.quadrant-image {
-    max-width: 85%;
-    max-height: 85%;
-    max-width: 70%;
-    max-height: 280px;
+/* Image styles in quadrants */
+.quadrants-container .quadrant-image {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
     object-fit: contain;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
 }
 
-/* Стили для текстовых блоков */
-.text-content {
-    max-width: 80%;
-    padding: 30px;
-    max-width: 95%;
+/* Text content blocks */
+.quadrants-container .text-content {
+    max-width: 100%;
+    width: 100%;
     padding: 20px;
     background: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
-.text-content h2 {
+.quadrants-container .text-content h2 {
     font-size: 1.8rem;
-    margin-bottom: 40px;
-    font-size: 1.3rem;
-    margin-bottom: 10px;
-    color: #2c3e50;
+    margin-bottom: 18px;
+    color: #000000;
     font-weight: 700;
 }
 
-.text-content p {
+.quadrants-container .text-content p {
     font-size: 1.1rem;
-    line-height: 1.6;
-    font-size: 0.9rem;
-    line-height: 1.45;
-    color: #495057;
-    margin-bottom: 15px;
-    margin-bottom: 8px;
+    line-height: 1.65;
+    color: #333333;
+    margin-bottom: 14px;
     text-align: justify;
 }
 
-/* Выравнивание текста */
-.quadrant.tr .text-content {
-    text-align: right;
+/* Text alignment in quadrants */
+.quadrants-container .quadrant.tr .text-content {
     text-align: left;
 }
 
-.quadrant.bl .text-content {
+.quadrants-container .quadrant.bl .text-content {
     text-align: left;
+    padding: 20px 25px;
 }
 
-/* Футер */
-.footer {
-    background: #ffffff;
-    padding: 15px 30px;
-    border-top: 1px solid #e9ecef;
-    height: 70px;
-    padding: 10px 30px;
-    border-top: 2px solid #e9ecef;
-    height: 55px;
+.quadrants-container .quadrant.bl .text-content h2 {
+    font-size: 1.6rem;
+    margin-bottom: 15px;
+}
+
+.quadrants-container .quadrant.bl .text-content p {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+.quadrants-container .quadrant.br .quadrant-image {
+    margin-bottom: 0;
+}
+
+/* Footer for sobre_nosotros */
+.content-wrapper .footer {
+    background: #f5f5f5;
+    padding: 12px 30px;
+    border-top: 1px solid #e0e0e0;
+    height: 60px;
     position: relative;
     z-index: 10;
     flex-shrink: 0;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.footer-content {
+.content-wrapper .footer-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -219,69 +165,64 @@ body {
     margin: 0 auto;
 }
 
-.social-links {
+.footer-content .social-links {
     display: flex;
-    gap: 25px;
+    gap: 20px;
     align-items: center;
 }
 
-.social-link {
+.social-links .social-link {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #495057;
+    color: #333333;
     text-decoration: none;
     transition: all 0.3s ease;
-    padding: 6px 12px;
-    border-radius: 6px;
+    padding: 8px 14px;
+    border-radius: 8px;
 }
 
-.social-icon {
+.social-links .social-link:hover {
+    background: #e0e0e0;
+}
+
+.social-link .social-icon {
     width: 20px;
     height: 20px;
 }
 
-.social-text {
+.social-link .social-text {
     font-weight: 500;
     font-size: 0.9rem;
 }
 
-.footer-copyright {
-    color: #6c757d;
+.footer-content .footer-copyright {
+    color: #666666;
     font-size: 0.9rem;
+    font-weight: 400;
 }
 
-/* Анимации появления */
-@keyframes quadrantAppear {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
+/* Responsive design for smaller screens */
+@media (max-width: 1024px) {
+    .content-wrapper .quadrants-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        gap: 15px;
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+
+    .quadrants-container .quadrant.tl,
+    .quadrants-container .quadrant.tr,
+    .quadrants-container .quadrant.bl,
+    .quadrants-container .quadrant.br {
+        grid-column: 1;
+        grid-row: auto;
     }
-}
 
-/* Убедимся, что картинки и текст помещаются */
-.quadrant.bl .text-content {
-    margin-bottom: 80px;
-    margin-bottom: 0;
-    padding: 12px 18px;
-}
+    .quadrants-container .text-content {
+        max-width: 100%;
+    }
 
-.quadrant.bl .text-content h2 {
-    font-size: 1.15rem;
-    margin-bottom: 8px;
-}
-
-.quadrant.bl .text-content p {
-    font-size: 0.82rem;
-    line-height: 1.35;
-    margin-bottom: 5px;
-}
-
-.quadrant.br .quadrant-image {
-    margin-bottom: 40px;
-    margin-bottom: 0;
+    .quadrants-container .quadrant-image {
+        max-width: 60%;
+    }
 }
