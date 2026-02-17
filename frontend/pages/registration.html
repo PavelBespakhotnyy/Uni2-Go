@@ -25,47 +25,47 @@
             <img src="/images/flecha 1.svg">
         </a>
 
-    <form id="registroForm">
-        <img src="/images/logo_Uni2_Go.svg" alt="Logo Uni2 Go">
-        <h1>Regístrate</h1>
+        <form id="registroForm">
+            <img src="/images/logo_Uni2_Go.svg" alt="Logo Uni2 Go">
+            <h1>Regístrate</h1>
+            <div>
+                <label>Nombre de usuario</label><br>
+                <input type="text" name="name" required>
+            </div>
 
-        <div>
-            <label>Nombre de usuario</label><br>
-            <input type="text" name="name" required>
-        </div>
+            <div>
+                <label>Apellido de usuario</label><br>
+                <input type="text" name="surname" required>
+            </div>
 
-        <div>
-            <label>Apellido de usuario</label><br>
-            <input type="text" name="surname" required>
-        </div>
+            <div>
+                <label>Fecha de nacimiento</label><br>
+                <input type="date" name="dateOfBirth" required>
+            </div>
 
-        <div>
-            <label>Fecha de nacimiento</label><br>
-            <input type="date" name="dateOfBirth" required>
-        </div>
+            <div>
+                <label>Correo Electrónico</label><br>
+                <input type="email" name="email" placeholder="Email" require pattern="[a-z0-9._%+-]+@[a-z0-9._%-]+\.[a-z]{2,}">
+            </div>
 
-        <div>
-            <label>Correo Electrónico</label><br>
-            <input type="email" name="email" placeholder="Email" require>
-        </div>
+            <div>
+                <label>Teléfono</label><br>
+                <input type="tel" name="phone" placeholder="+34 123 456 789" required pattern="[0-9]{3}-[0-9]{3}-[0-9]{3}">
+            </div>
 
-        <div>
-            <label>Teléfono</label><br>
-            <input type="tel" name="phone" placeholder="+34 123 456 789" required>
-        </div>
+            <div>
+                <label>Contraseña</label><br>
+                <input type="password" name="password" id="contraseña" required pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}">
+            </div>
 
-        <div>
-            <label>Contraseña</label><br>
-            <input type="password" name="password" id="contrasena" required>
-        </div>
+            <div>
+                <label>Confirmar Contraseña</label><br>
+                <input type="password" name="confirmPassword" id="confcontrasena" required pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}">
+            </div>
 
-        <div>
-            <label>Confirmar Contraseña</label><br>
-            <input type="password" name="confirmPassword" id="confcontrasena" required>
-        </div>
-        <input type="hidden" name="activo" value="1">
-        <input type="submit" name="enviar" value="Registrarse">
-    </form>
+            <input type="hidden" name="activo" value="1">
+            <input type="submit" name="enviar" value="Registrarse">
+        </form>
 
     <script type="module" src="../src/components/preloader/preloader.js"></script>
     <script type="module" src="../src/components/registration/registration.js"></script>
