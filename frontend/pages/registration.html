@@ -58,9 +58,11 @@
                 <input type="password" name="contrasena" id="contrasena" required pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" title="Revise que tenga almenos una letra en mayuscula y minuscula, minimo 8 digitos">
             </div>
 
+            <div>
             <label>Confirmar Contraseña</label><br>
-                <input type="password" name="confcontrasena" id="confcontrasena" required pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" 
+                <input type="password" name="confirmPassword" id="confcontrasena" required pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" 
                 title="Contraseña invalida, revise que tenga almenos una letra en mayuscula y minuscula, minimo 8 digitos">
+            </div>
 
             <input type="hidden" name="activo" value="1">
             <input type="submit" name="enviar" value="Registrarse">
