@@ -50,18 +50,17 @@
 
             <div>
                 <label>Teléfono</label><br>
-                <input type="tel" name="phone" placeholder="+34 123 456 789" required pattern="[0-9]{3}-[0-9]{3}-[0-9]{3}">
+                <input type="tel" name="phone" placeholder="123-456-789" required pattern="[0-9]{3}-[0-9]{3}-[0-9]{3}">
             </div>
 
             <div>
                 <label>Contraseña</label><br>
-                <input type="password" name="password" id="contraseña" required pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}">
+                <input type="password" name="contrasena" id="contrasena" required pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" title="Revise que tenga almenos una letra en mayuscula y minuscula, minimo 8 digitos">
             </div>
 
-            <div>
-                <label>Confirmar Contraseña</label><br>
-                <input type="password" name="confirmPassword" id="confcontrasena" required pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}">
-            </div>
+            <label>Confirmar Contraseña</label><br>
+                <input type="password" name="confcontrasena" id="confcontrasena" required pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" 
+                title="Contraseña invalida, revise que tenga almenos una letra en mayuscula y minuscula, minimo 8 digitos">
 
             <input type="hidden" name="activo" value="1">
             <input type="submit" name="enviar" value="Registrarse">
