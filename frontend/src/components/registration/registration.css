@@ -1,0 +1,119 @@
+/* --- ESTILOS GENERALES --- */
+html,
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Sarala", Arial, sans-serif;
+    background-color: #ffffff;
+    overflow-x: hidden;
+    width: 100%;
+}
+
+/* --- CONTENEDOR PRINCIPAL --- */
+#content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+    /* Eliminamos 'position: relative' para que la flecha se posicione respecto a la pantalla (body) */
+    width: 100%;
+    max-width: 980px;
+    margin: 0 auto;
+}
+
+/* --- FLECHA DE REGRESO (POSICIÓN GLOBAL) --- */
+#content > a:first-of-type {
+    position: fixed; /* Cambiado a fixed para que se pegue al borde de la ventana del navegador */
+    top: 50px;
+    left: 50px;
+    z-index: 100;
+}
+
+#content > a:first-of-type img {
+    width: 35px;
+    height: auto;
+    display: block;
+    cursor: pointer;
+}
+
+/* --- CONTENEDOR DEL FORMULARIO --- */
+form#registroForm {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 500px;
+}
+
+/* LOGO UNI2 GO */
+form#registroForm > img {
+    width: 280px;
+    height: auto;
+    margin-bottom: 40px;
+}
+
+/* TÍTULO REGÍSTRATE */
+form#registroForm h1 {
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 30px;
+    text-align: center;
+    color: #000000;
+}
+
+/* CONTENEDORES DE INPUTS */
+form#registroForm > div {
+    width: 100%;
+    margin-bottom: 25px;
+}
+
+/* ETIQUETAS */
+form#registroForm label {
+    display: block;
+    font-size: 16px;
+    margin-bottom: 8px;
+    color: #000000;
+}
+
+/* ENTRADAS (INPUTS) */
+form#registroForm input[type="text"],
+form#registroForm input[type="password"],
+form#registroForm input[type="email"],
+form#registroForm input[type="date"],
+form#registroForm input[type="tel"] {
+    width: 100%;
+    padding: 12px 15px;
+    font-size: 16px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    background-color: #f5f5f5;
+}
+
+/* BOTÓN DE REGISTRARSE */
+form#registroForm input[type="submit"] {
+    width: 180px;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: 500;
+    background-color: #d3d3d3;
+    color: #000000;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+form#registroForm input[type="submit"]:hover {
+    background-color: #b8b8b8;
+}
+
+/* DISEÑO RESPONSIVE */
+@media (max-width: 600px) {
+    #content > a:first-of-type {
+        top: 30px; /* Un poco más arriba en móviles si lo prefieres, o déjalo en 50px */
+        left: 20px; /* Un poco más pegado en móviles */
+    }
+}
