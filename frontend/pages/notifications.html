@@ -13,6 +13,7 @@
         />
         <link rel="stylesheet" href="../src/style.css" id="main-style" />
         <link rel="stylesheet" href="../src/components/navbar/navbar.css" />
+        <link rel="stylesheet" href="../src/components/notifications/notifications.css" />
     </head>
     <body>
         <div id="preloader">
@@ -32,59 +33,48 @@
                 </div>
 
                 <ul class="buttons-list">
-                    <!-- Calendar -->
                     <li class="calendar">
                         <a href="./calendar.html">
                             <i class="bx bx-sm bx-calendar"></i>
                             <span class="font-bold">Calendar</span>
                         </a>
                     </li>
-                    <!-- Chat -->
                     <li class="chat">
                         <a href="./chat.html">
                             <i class="bx bx-sm bx-chat"></i>
                             <span class="font-bold">Chat</span>
                         </a>
                     </li>
-                    <!-- Noifications -->
                     <li class="notifications">
-                        <a
-                            class="button-change-page-active"
-                            href="./notifications.html"
-                        >
+                        <a class="button-change-page-active" href="./notifications.html">
                             <i class="bx bx-sm bx-bell"></i>
-                            <span class="font-bold">Noifications</span>
+                            <span class="font-bold">Notifications</span>
                         </a>
                     </li>
-                    <!-- Grupos -->
                     <li class="grupos">
                         <a href="./grupos.html">
                             <i class="bx bx-sm bx-group"></i>
                             <span class="font-bold">Grupos</span>
                         </a>
                     </li>
-                    <!-- Lista de Compras -->
                     <li class="lista-de-compras">
                         <a href="./lista_de_compras.html">
                             <i class="bx bx-sm bx-edit"></i>
                             <span class="font-bold">Lista de Compras</span>
                         </a>
                     </li>
-                    <!-- Carpetas -->
                     <li class="carpetas">
                         <a href="./carpetas.html">
                             <i class="bx bx-sm bx-folder"></i>
                             <span class="font-bold">Carpetas</span>
                         </a>
                     </li>
-                    <!-- Info -->
                     <li class="info">
                         <a href="./sobre_nosotros.html">
                             <i class="bx bx-sm bx-info-circle"></i>
                             <span class="font-bold">Info</span>
                         </a>
                     </li>
-                    <!-- Usuario -->
                     <li class="usuario">
                         <a href="./user.html">
                             <i class="bx bx-sm bx-user"></i>
@@ -93,6 +83,37 @@
                     </li>
                 </ul>
             </nav>
+
+            <div class="content-wrapper">
+                <div class="controls-bar">
+                    <select id="statusFilter" class="dropdown-select">
+                        <option value="all">Todos</option>
+                        <option value="read">Leídos</option>
+                        <option value="unread">No leídos</option>
+                    </select>
+                    <div class="search-container">
+                        <i class="bx bx-search search-icon"></i>
+                        <input type="text" id="notificationSearch" class="search-input" placeholder="Buscar ..." />
+                    </div>
+                    <select class="filters-select">
+                        <option>Filtros</option>
+                    </select>
+                </div>
+
+                <div class="notifications-container">
+                    <div id="notificationsList" class="notifications-list">
+                        <!-- JS populated -->
+                    </div>
+                </div>
+
+                <div class="pagination-container">
+                    <div class="pagination-list">
+                        <i class="bx bx-chevron-left pagination-item"></i>
+                        <span class="pagination-item active">1</span>
+                        <i class="bx bx-chevron-right pagination-item"></i>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <script
@@ -100,5 +121,6 @@
             src="../src/components/preloader/preloader.js"
         ></script>
         <script type="module" src="../src/components/navbar/navbar.js"></script>
+        <script type="module" src="../src/components/notifications/notifications.js"></script>
     </body>
 </html>
