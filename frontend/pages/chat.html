@@ -10,6 +10,7 @@
         <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet"/>
         <link rel="stylesheet" href="../src/style.css" id="main-style" />
         <link rel="stylesheet" href="../src/components/navbar/navbar.css" />
+        <link rel="stylesheet" href="../src/components/chat/style.css"/>
     </head>
     <body>
         <div id="preloader">
@@ -85,10 +86,38 @@
                 </ul>
             </nav>
 
+            <div class="content-wrapper chat-page-wrapper">
+                <div class="chat-body">
+                    <aside class="chat-contacts-sidebar">
+                        <div class="chat-search-container">
+                            <i class='bx bx-search'></i>
+                            <input type="text" placeholder="Buscar ..." class="chat-search-input">
+                        </div>
+                        <ul class="chat-contacts-list" id="contacts-list">
+                            <!-- Contacts dynamically rendered -->
+                        </ul>
+                    </aside>
+                    
+                    <main class="chat-main-window">
+                        <header class="chat-window-header" id="chat-header">
+                            <!-- Active contact header dynamically rendered -->
+                        </header>
+                        <div class="chat-messages-area" id="chat-messages">
+                            <!-- Messages dynamically rendered -->
+                        </div>
+                        <footer class="chat-input-area">
+                            <button class="chat-add-btn"><i class='bx bx-plus'></i></button>
+                            <input type="text" placeholder="Escribe..." class="chat-input-field">
+                            <button class="chat-send-btn"><i class='bx bx-send'></i></button>
+                        </footer>
+                    </main>
+                </div>
+            </div>
 
         </div>
 
         <script type="module" src="../src/components/preloader/preloader.js"></script>
         <script type="module" src="../src/components/navbar/navbar.js"></script>
+        <script type="module" src="../src/components/chat/chat.js"></script>
     </body>
 </html>

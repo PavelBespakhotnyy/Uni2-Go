@@ -1,0 +1,203 @@
+/* Chat Container Layout */
+.chat-page-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    background-color: #f5f5f5;
+    /* Remove width: 100% if it exists to allow margin-left and calc width to work */
+}
+
+.chat-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Contacts Sidebar */
+.chat-contacts-sidebar {
+    width: 320px;
+    background-color: #dbe4eb; /* Light blue-grey from mockup */
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #c0c8cf;
+}
+
+.chat-search-container {
+    padding: 15px 20px;
+    position: relative;
+    border-bottom: 2px solid #ffffff; /* White line separation */
+}
+
+.chat-search-container i {
+    position: absolute;
+    left: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+}
+
+.chat-search-input {
+    width: 100%;
+    padding: 10px 10px 10px 35px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    background-color: #ffffff;
+    font-size: 14px;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.chat-contacts-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.chat-contact-item {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    cursor: pointer;
+    border-bottom: 2px solid #ffffff; /* White dividers like in mockup */
+    transition: background-color 0.2s;
+}
+
+.chat-contact-item:hover {
+    background-color: #ced9e1;
+}
+
+.chat-contact-item.active {
+    background-color: #e8eef3; /* Slightly lighter for active */
+}
+
+.chat-contact-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 15px;
+    background-color: #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.chat-contact-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.chat-contact-name {
+    font-size: 16px;
+    color: #1a1a1a;
+    font-weight: 500;
+}
+
+/* Main Chat Window */
+.chat-main-window {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #ffffff;
+}
+
+.chat-window-header {
+    display: flex;
+    align-items: center;
+    padding: 15px 30px;
+    background-color: #ffffff;
+    border-bottom: 2px solid #1a1a1a; /* Thick black line in mockup */
+}
+
+.chat-window-header .chat-contact-avatar {
+    margin-right: 15px;
+    width: 45px;
+    height: 45px;
+}
+
+.chat-window-header h2 {
+    margin: 0;
+    font-size: 18px;
+    color: #1a1a1a;
+    font-weight: 600;
+}
+
+.chat-messages-area {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background-color: #ffffff;
+}
+
+/* Messages */
+.chat-message {
+    max-width: 65%;
+    padding: 15px 20px;
+    font-size: 15px;
+    line-height: 1.4;
+    position: relative;
+    word-wrap: break-word;
+    /* Simulate the empty messages in the mockup */
+    min-height: 60px; 
+    min-width: 250px;
+}
+
+.chat-message.received {
+    align-self: flex-start;
+    background-color: #dcdcdc; /* Light grey */
+    border-radius: 20px 20px 20px 0;
+}
+
+.chat-message.sent {
+    align-self: flex-end;
+    background-color: #d1e5f0; /* Light blue */
+    border-radius: 20px 20px 0 20px;
+}
+
+/* Chat Input Area */
+.chat-input-area {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: #909090; /* Dark grey from mockup */
+    gap: 15px;
+}
+
+.chat-add-btn, .chat-send-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background-color: #d1d1d1;
+    color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 20px;
+    transition: background-color 0.2s;
+    flex-shrink: 0;
+}
+
+.chat-add-btn:hover, .chat-send-btn:hover {
+    background-color: #ffffff;
+}
+
+.chat-input-field {
+    flex: 1;
+    padding: 12px 20px;
+    border-radius: 25px;
+    border: none;
+    outline: none;
+    font-size: 15px;
+    background-color: #ffffff;
+}
