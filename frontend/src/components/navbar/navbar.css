@@ -155,10 +155,19 @@ body.sidebar-collapsed .buttons-list li:hover a span {
 }
 
 /* Main container layout adjustment */
-body.sidebar-collapsed .calendar-wrapper,
-body.sidebar-collapsed .content-wrapper,
-body.sidebar-collapsed .main-container .calendar-wrapper,
-body.sidebar-collapsed .main-container .content-wrapper {
+.content-wrapper {
+    margin-left: var(--sidebar-width-expanded);
+    width: calc(100vw - var(--sidebar-width-expanded));
+    transition: all var(--transition-speed) ease;
+}
+
+body.sidebar-collapsed .content-wrapper {
+    margin-left: var(--sidebar-width-collapsed) !important;
+    width: calc(100vw - var(--sidebar-width-collapsed)) !important;
+    max-width: calc(100vw - var(--sidebar-width-collapsed)) !important;
+}
+
+body.sidebar-collapsed .calendar-wrapper {
     margin-left: var(--sidebar-width-collapsed) !important;
     width: calc(100vw - var(--sidebar-width-collapsed)) !important;
     max-width: calc(100vw - var(--sidebar-width-collapsed)) !important;
