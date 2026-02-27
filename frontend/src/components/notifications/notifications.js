@@ -7,8 +7,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const notificationsList = document.getElementById('notificationsList');
     const paginationList = document.querySelector('.pagination-list');
 
-    const ITEMS_PER_PAGE = 8;
+    let ITEMS_PER_PAGE = 8;
     let currentPage = 1;
+
+    function calculateItemsPerPage() {
+        const container = document.querySelector('.notifications-container');
+        if (!container) return;
+
+        // Measure a single notification item height
+        const dummy = document.createElement('div');
+        dummy.className = 'notification-panel unread';
+        dummy.style.visibility = 'hidden';
+        dummy.style.position = 'absolute';
+        dummy.style.width = '100%';
+        dummy.innerHTML = '<div class="notification-main-text"><span class="username">M</span> A</div>';
+        notificationsList.appendChild(dummy);
+        const itemHeight = dummy.offsetHeight;
+        notificationsList.removeChild(dummy);
+
+        const gap = 12; // gap from CSS
+        const availableHeight = container.clientHeight;
+
+        if (itemHeight > 0) {
+            // We want to fit N items and N-1 gaps, but let's just use item + gap for simplicity
+            // availableHeight >= N * itemHeight + (N-1) * gap
+            // availableHeight + gap >= N * (itemHeight + gap)
+            // N = floor((availableHeight + gap) / (itemHeight + gap))
+            ITEMS_PER_PAGE = Math.floor((availableHeight + gap) / (itemHeight + gap));
+            if (ITEMS_PER_PAGE < 1) ITEMS_PER_PAGE = 1;
+        }
+    }
 
     let notifications = [
         { id: 1, name: 'Martín', action: 'te ha enviado una solicitud para ser tu amigo', date: '20.09.2025', time: '10:40', read: false },
@@ -23,12 +51,16 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 10, name: 'Ana', action: 'te invitó a un grupo', date: '18.09.2025', time: '08:30', read: true }
     ];
 
-    function renderPagination(totalItems) {
-        const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
-        paginationList.innerHTML = '';
-        if (totalPages <= 1) return;
-
-        const prev = document.createElement('i');
+        function renderPagination(totalItems) {
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+            paginationList.innerHTML = '';
+            
+            if (totalPages <= 1) {
+                paginationList.style.display = 'none';
+                return;
+            }
+            paginationList.style.display = 'flex';
+            const prev = document.createElement('i');
         prev.className = `bx bx-chevron-left pagination-item ${currentPage === 1 ? 'disabled' : ''}`;
         prev.onclick = () => { if(currentPage > 1) { currentPage--; updateUI(); } };
         paginationList.appendChild(prev);
@@ -49,6 +81,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateUI() {
         const filtered = getFilteredAndSortedList();
+        const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+        if (currentPage > totalPages && totalPages > 0) {
+            currentPage = totalPages;
+        }
+        if (currentPage < 1) currentPage = 1;
+
         const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
         const pageItems = filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
         renderNotifications(pageItems);
@@ -66,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
             panel.className = `notification-panel ${notif.read ? 'read' : 'unread'}`;
             panel.dataset.id = notif.id;
 
-            const menuContent = notif.read 
+            const menuContent = notif.read
                 ? `<button class="notification-menu-item action-unread">Marcar como no leído</button>
                    <button class="notification-menu-item delete action-delete">Eliminar</button>`
                 : `<button class="notification-menu-item action-read">Leer</button>
@@ -136,8 +174,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let filtered = notifications.filter(notif => {
             const matchesSearch = `${notif.name} ${notif.action}`.toLowerCase().includes(term);
-            const matchesStatus = status === 'all' || 
-                                 (status === 'read' && notif.read) || 
+            const matchesStatus = status === 'all' ||
+                                 (status === 'read' && notif.read) ||
                                  (status === 'unread' && !notif.read);
             return matchesSearch && matchesStatus;
         });
@@ -151,5 +189,11 @@ document.addEventListener('DOMContentLoaded', () => {
     searchInput.addEventListener('input', () => { currentPage = 1; updateUI(); });
     statusFilter.addEventListener('change', () => { currentPage = 1; updateUI(); });
 
+    window.addEventListener('resize', () => {
+        calculateItemsPerPage();
+        updateUI();
+    });
+
+    calculateItemsPerPage();
     updateUI();
 });
