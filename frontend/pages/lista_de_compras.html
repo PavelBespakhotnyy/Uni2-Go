@@ -13,6 +13,7 @@
         />
         <link rel="stylesheet" href="../src/style.css" id="main-style" />
         <link rel="stylesheet" href="../src/components/navbar/navbar.css" />
+        <link rel="stylesheet" href="../src/components/lista_de_compras/lista_de_compras.css" />
     </head>
     <body>
         <div id="preloader">
@@ -90,6 +91,43 @@
                     </li>
                 </ul>
             </nav>
+            <div class="content-wrapper">
+                <div class="shopping-page-wrapper">
+                    <!-- Sub-sidebar for lists -->
+                    <div class="shopping-lists-sidebar">
+                        <div id="sidebar-lists-container">
+                            <!-- Lists will be added here -->
+                            <div class="lists-header active-list">
+                                <h2 id="list-title">Lista de la compra</h2>
+                                <i class='bx bx-pencil bx-sm edit-title-btn' style="cursor: pointer;"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="add-list-btn" id="add-list-btn">
+                            <span>Añadir lista</span>
+                            <i class='bx bx-plus bx-md'></i>
+                        </div>
+                    </div>
+
+                    <!-- Main shopping content -->
+                    <div class="shopping-main-content">
+                        <div class="search-container">
+                            <i class='bx bx-search'></i>
+                            <input type="text" placeholder="Buscar ...">
+                        </div>
+
+                        <div class="products-container" id="products-list">
+                            <!-- Items will be added here dynamically -->
+                            
+                            <!-- Add Product button -->
+                            <div class="add-product-card" id="add-product-btn">
+                                <i class='bx bx-plus'></i>
+                                <span>Añadir producto</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <script
@@ -97,5 +135,6 @@
             src="../src/components/preloader/preloader.js"
         ></script>
         <script type="module" src="../src/components/navbar/navbar.js"></script>
+        <script type="module" src="../src/components/lista_de_compras/lista_de_compras.js"></script>
     </body>
 </html>
