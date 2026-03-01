@@ -110,7 +110,9 @@ header img {
 
 /* --- CAMBIAR SOLO LA IMAGEN CALENDARIO --- */
 .img-calendar-hero {
-    width: 450px !important; 
+    padding: 20px;
+    width: 800px; 
+    height: 800px;
 }
 
 #content > div > img {
