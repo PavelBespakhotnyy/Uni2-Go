@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const folderGrid = document.getElementById('foldersGrid');
     const paginationList = document.querySelector('.pagination-list');
 
-    const ITEMS_PER_PAGE = 6;
+    let ITEMS_PER_PAGE = 6;
     let currentPage = 1;
 
     let foldersData = [
@@ -43,6 +43,32 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 8, name: 'Música', hasBackground: false, eventCount: 1, users: [] },
     ];
 
+    function calculateItemsPerPage() {
+        const container = document.querySelector('.folders-container');
+        if (!container) return;
+
+        const availableHeight = container.clientHeight;
+        const availableWidth = container.clientWidth;
+
+        // Base measurements from CSS
+        const cardWidth = 300; 
+        const cardHeight = 170;
+        const footerHeight = 40; 
+        const gapX = 40;
+        const gapY = 15;
+        const paddingBottom = 20;
+
+        const totalItemHeight = cardHeight + 5 + footerHeight; // 5 is gap in CSS
+
+        let cols = Math.floor((availableWidth + gapX) / (cardWidth + gapX));
+        if (cols < 1) cols = 1;
+        
+        let rows = Math.floor((availableHeight - paddingBottom + gapY) / (totalItemHeight + gapY));
+        if (rows < 1) rows = 1;
+        
+        ITEMS_PER_PAGE = cols * rows;
+    }
+
     function createFolderCard(folder) {
         const folderCardWrapper = document.createElement('div');
         folderCardWrapper.className = 'folder-card-wrapper';
@@ -58,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             cardContent += `
                 <div class="folder-content">
-                    <img src="../public/images/av5c8336583e291842624 1.png" class="folder-icon" />
+                    <img src="../public/images/av5c8336583e291842624 1.svg" class="folder-icon" />
                 </div>
             `;
         }
@@ -111,13 +137,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const cancelEdit = () => {
                 container.innerHTML = `
-                    <span class="folder-name">${folder.name}</span>
+                    <span class="folder-name" title="${folder.name}">${folder.name}</span>
                     <i class="bx bx-pencil edit-folder-btn"></i>
                 `;
-                // Re-attach listener since we replaced the HTML
                 container.querySelector('.edit-folder-btn').addEventListener('click', (ev) => {
                     ev.stopPropagation();
-                    editBtn.click(); // Trigger same logic
+                    editBtn.click();
                 });
             };
 
@@ -222,7 +247,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // Cancel if user clicks away
             input.addEventListener('blur', () => {
                 setTimeout(() => {
                     if (isCreating) handleCancel();
@@ -246,7 +270,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderPagination(totalItems) {
-        // totalItems + 1 because the "Add Folder" button always takes the first slot on the first page
         const totalPages = Math.ceil((totalItems + 1) / ITEMS_PER_PAGE);
         paginationList.innerHTML = '';
         
@@ -276,17 +299,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateUI() {
+        calculateItemsPerPage();
         const term = folderSearchInput.value.toLowerCase();
         const filtered = foldersData.filter(folder => 
             folder.name.toLowerCase().includes(term)
         );
 
-        // We use ITEMS_PER_PAGE - 1 on the first page because the "Add" button takes a slot
         let pageItems;
         if (currentPage === 1) {
             pageItems = filtered.slice(0, ITEMS_PER_PAGE - 1);
         } else {
-            // Adjust slice for subsequent pages
             const startIndex = (currentPage - 1) * ITEMS_PER_PAGE - 1;
             pageItems = filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
         }
@@ -295,7 +317,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderPagination(filtered.length);
     }
 
-    // Menu handlers
     folderGrid.addEventListener('click', (e) => {
         const menuBtn = e.target.closest('.folder-menu-btn');
         if (menuBtn) {
@@ -323,6 +344,10 @@ document.addEventListener('DOMContentLoaded', () => {
     folderSearchInput.addEventListener('input', () => { 
         currentPage = 1; 
         updateUI(); 
+    });
+
+    window.addEventListener('resize', () => {
+        updateUI();
     });
 
     updateUI();
