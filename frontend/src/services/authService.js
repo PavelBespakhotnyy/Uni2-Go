@@ -47,3 +47,7 @@ export async function loginUser(email, password) {
 
   return userCredential.user;
 }
+
+export async function logoutUser() {
+  await auth.signOut();
+}
