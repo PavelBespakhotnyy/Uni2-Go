@@ -12,8 +12,7 @@ form.addEventListener("submit", async (e) => {
     );
 
     console.log("Logged in:", user.uid);
-    alert("Success!");
-    //form.reset();
+    window.location.href = "/pages/calendar.html";
   } catch (err) {
     alert(err.message);
   }
