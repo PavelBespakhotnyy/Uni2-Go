@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
             hasBackground: true, 
             backgroundImg: '../public/images/Rectangle 129.png',
             eventCount: 5,
-            users: ['../public/images/logo_Uni2_Go.svg', '../public/images/logo_Uni2_Go.svg'] 
+            users: ['../public/images/Group 29.svg', '../public/images/Group 29.svg'] 
         },
         { 
             id: 2, 
@@ -21,21 +21,21 @@ document.addEventListener('DOMContentLoaded', () => {
             hasBackground: true, 
             backgroundImg: '../public/images/Rectangle 130.png',
             eventCount: 12,
-            users: ['../public/images/logo_Uni2_Go.svg'] 
+            users: ['../public/images/Group 29.svg'] 
         },
         { 
             id: 3, 
             name: 'Trabajo', 
             hasBackground: false, 
             eventCount: 3,
-            users: ['../public/images/logo_Uni2_Go.svg', '../public/images/logo_Uni2_Go.svg', '../public/images/logo_Uni2_Go.svg'] 
+            users: ['../public/images/Group 29.svg', '../public/images/Group 29.svg', '../public/images/Group 29.svg'] 
         },
         { 
             id: 4, 
             name: 'Proyectos', 
             hasBackground: false, 
             eventCount: 8,
-            users: ['../public/images/logo_Uni2_Go.svg'] 
+            users: ['../public/images/Group 29.svg'] 
         },
         { id: 5, name: 'Viajes', hasBackground: false, eventCount: 2, users: [] },
         { id: 6, name: 'Hogar', hasBackground: false, eventCount: 0, users: [] },
