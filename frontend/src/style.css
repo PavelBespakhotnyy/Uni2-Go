@@ -7,10 +7,10 @@
 
 /* ----------------------------------------------------------------------------------------*/
 /* HEADER (Home) */
+/* Justify-content: flex-start removed to avoid conflicts with Tailwind in components */
 header {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
     padding: 8px 0 14px 0;
 }
 
