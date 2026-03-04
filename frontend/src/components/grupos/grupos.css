@@ -1,0 +1,399 @@
+.content-wrapper {
+    margin-left: var(--sidebar-width-expanded);
+    padding: 30px 0 10px 0;
+    width: calc(100vw - var(--sidebar-width-expanded));
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.controls-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    margin-bottom: 20px;
+    gap: 20px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 15px 12px 45px;
+    background-color: #fff;
+    border: 1px solid #333;
+    border-radius: 25px;
+    font-size: 16px;
+    outline: none;
+}
+
+.filters-select {
+    background-color: #E0E0E0;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    outline: none;
+    cursor: pointer;
+    appearance: none; /* Remove default arrow */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' style='fill: rgba(0, 0, 0, 1);'%3E%3Cpath d='M16.293 9.293 12 13.586 7.707 9.293l-1.414 1.414L12 16.414l5.707-5.707z'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 40px;
+}
+
+.filters-select:hover {
+    background-color: #d0d0d0;
+}
+
+.groups-container {
+    padding: 0 40px;
+    flex: 1;
+    overflow: hidden;
+}
+
+.groups-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px 40px;
+    padding-bottom: 20px;
+    align-content: start;
+}
+
+.group-card-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.group-card {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #f5f5f5;
+    border-radius: 25px;
+    overflow: visible;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.group-card:hover {
+    transform: translateY(-5px);
+}
+
+.group-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+}
+
+/* User icon in the bottom right corner */
+.group-card-users {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-avatar-inside {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    object-fit: cover;
+    background-color: #fff;
+}
+
+/* Combined Plus Icon (Plus.svg inside Rectangle 154.svg) */
+.combined-plus {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+    padding: 0;
+}
+
+.combined-plus .rect-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.combined-plus .plus-icon {
+    position: relative;
+    z-index: 2;
+    width: 20px;
+    height: 20px;
+}
+
+.combined-plus:hover {
+    transform: scale(1.1);
+}
+
+/* Three dots menu */
+.group-menu-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 24px;
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.group-submenu {
+    position: absolute;
+    top: 45px;
+    right: 10px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    display: none;
+    flex-direction: column;
+    z-index: 100;
+    min-width: 120px;
+    overflow: hidden;
+}
+
+.group-submenu.active {
+    display: flex;
+}
+
+.submenu-item {
+    padding: 10px 15px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.submenu-item:hover {
+    background-color: #f0f0f0;
+}
+
+.submenu-item.delete {
+    color: #ff4d4d;
+}
+
+/* Footer info with edit pencil */
+.group-footer {
+    display: flex;
+    flex-direction: column;
+    padding: 0 10px;
+}
+
+.group-name-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.group-name {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: calc(100% - 30px);
+}
+
+.edit-name-btn {
+    cursor: pointer;
+    font-size: 16px;
+    color: #999;
+    transition: color 0.2s;
+}
+
+.edit-name-btn:hover {
+    color: #0056FF;
+}
+
+.group-name-input {
+    font-size: 18px;
+    font-weight: bold;
+    border: 2px solid #0056FF;
+    border-radius: 8px;
+    padding: 2px 8px;
+    width: 100%;
+    outline: none;
+    background-color: #f0f7ff;
+}
+
+.group-members {
+    font-size: 14px;
+    color: #888;
+}
+
+/* Add Group Card (Main) */
+.add-group-card-main {
+    background-color: #f5f5f5; /* Same as regular group cards */
+    border: none; /* No border, just like others */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    opacity: 1;
+    transition: transform 0.2s ease;
+    position: relative;
+}
+
+.add-group-card-main:hover {
+    transform: translateY(-5px); /* Same hover as regular group cards */
+    background-color: #f5f5f5;
+}
+
+.create-plus-icon {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 70px;
+    height: 70px;
+    z-index: 2;
+}
+
+/* Modal Styling */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.modal-content {
+    background: #fff;
+    padding: 25px;
+    border-radius: 20px;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.modal-close {
+    cursor: pointer;
+    font-size: 28px;
+    color: #666;
+}
+
+.modal-section {
+    margin-bottom: 20px;
+}
+
+.modal-section h3 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    color: #0056FF;
+}
+
+.modal-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.modal-section li {
+    padding: 8px 0;
+    border-bottom: 1px solid #f9f9f9;
+}
+
+.modal-users {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.user-avatar-modal {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #f0f0f0;
+}
+
+/* Pagination */
+.pagination-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 40px;
+}
+
+.pagination-list {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pagination-item {
+    cursor: pointer;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 500;
+}
+
+.pagination-item.active {
+    background-color: #0056FF;
+    color: #fff;
+}
+
+.pagination-item.disabled {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+@media (max-width: 768px) {
+    .content-wrapper {
+        margin-left: 0;
+        width: 100vw;
+    }
+}
