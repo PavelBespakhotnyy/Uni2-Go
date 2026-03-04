@@ -16,10 +16,11 @@
     "vite": "^7.2.4"
   },
   "dependencies": {
-    "@dayflow/core": "^2.0.7",
     "@tailwindcss/vite": "^4.1.17",
+    "date-fns": "^4.1.0",
     "firebase": "^12.6.0",
     "lucide-react": "^0.563.0",
-    "react": "^19.2.4"
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
   }
 }
