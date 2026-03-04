@@ -7,12 +7,37 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPage = 1;
 
     let groupsData = [
-        { id: 1, name: 'Equipo de Diseño', members: 8, users: ['../public/images/grupo.svg'], events: ['Reunión semanal', 'Sprint review'] },
-        { id: 2, name: 'Desarrollo Frontend', members: 12, users: ['../public/images/grupo.svg'], events: ['Daily standup', 'Tech talk'] },
-        { id: 3, name: 'Marketing Digital', members: 5, users: ['../public/images/grupo.svg'], events: ['Campaña marzo'] },
-        { id: 4, name: 'Gestión de Proyectos', members: 15, users: ['../public/images/grupo.svg'], events: ['Planificación Q2'] },
-        { id: 5, name: 'Ciencia de Datos', members: 6, users: [], events: [] },
-        { id: 6, name: 'Ciberseguridad', members: 4, users: [], events: [] },
+        { 
+            id: 1, 
+            name: 'Equipo de Diseño', 
+            members: 8, 
+            users: [
+                { id: 101, avatar: '../public/images/grupo.svg' },
+                { id: 102, avatar: '../public/images/grupo.svg' }
+            ], 
+            description: 'Grupo dedicado al diseño de interfaces y experiencia de usuario para Uni2Go.',
+            events: ['Reunión semanal', 'Sprint review'] 
+        },
+        { 
+            id: 2, 
+            name: 'Desarrollo Frontend', 
+            members: 12, 
+            users: [
+                { id: 201, avatar: '../public/images/grupo.svg' }
+            ], 
+            description: 'Equipo encargado del desarrollo de la plataforma web utilizando React y Vite.',
+            events: ['Daily standup', 'Tech talk'] 
+        },
+        { 
+            id: 3, 
+            name: 'Marketing Digital', 
+            members: 5, 
+            users: [
+                { id: 301, avatar: '../public/images/grupo.svg' }
+            ], 
+            description: 'Estrategias de comunicación y posicionamiento de la aplicación.',
+            events: ['Campaña marzo'] 
+        },
     ];
 
     function calculateItemsPerPage() {
@@ -35,31 +60,99 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.appendChild(modal);
         }
 
-        modal.innerHTML = `
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>${group.name}</h2>
-                    <i class="bx bx-x modal-close"></i>
-                </div>
-                <div class="modal-body">
-                    <div class="modal-section">
-                        <h3>Eventos</h3>
-                        <ul>
-                            ${group.events && group.events.length ? group.events.map(e => `<li>${e}</li>`).join('') : '<li>No hay eventos</li>'}
-                        </ul>
+        const renderModalContent = () => {
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>${group.name}</h2>
+                        <i class="bx bx-x modal-close"></i>
                     </div>
-                    <div class="modal-section">
-                        <h3>Usuarios</h3>
-                        <div class="modal-users">
-                            ${group.users && group.users.length ? group.users.map(() => `<img src="../public/images/grupo.svg" class="user-avatar-modal">`).join('') : 'No hay usuarios'}
+                    <div class="modal-body">
+                        <div class="modal-section">
+                            <div class="section-header">
+                                <h3>Descripción</h3>
+                                <i class="bx bx-pencil edit-desc-btn"></i>
+                            </div>
+                            <div id="descContainer">
+                                <p class="desc-text">${group.description || 'Sin descripción.'}</p>
+                            </div>
+                        </div>
+                        <div class="modal-section">
+                            <h3>Usuarios en este grupo</h3>
+                            <div class="modal-users-container">
+                                <button class="modal-add-user-btn">
+                                    <i class="bx bx-plus"></i>
+                                </button>
+                                <div class="modal-users-list">
+                                    ${group.users.map(u => `
+                                        <div class="user-avatar-wrapper" data-user-id="${u.id}">
+                                            <img src="${u.avatar}" class="user-avatar-modal">
+                                            <div class="user-action-menu">
+                                                <button class="user-delete-btn">Eliminar</button>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        `;
+            `;
 
+            // Close modal
+            modal.querySelector('.modal-close').onclick = () => modal.style.display = 'none';
+            
+            // Edit description
+            modal.querySelector('.edit-desc-btn').onclick = () => {
+                const container = modal.querySelector('#descContainer');
+                const p = container.querySelector('.desc-text');
+                const textarea = document.createElement('textarea');
+                textarea.className = 'modal-desc-input';
+                textarea.value = group.description;
+                container.replaceChild(textarea, p);
+                textarea.focus();
+                textarea.onblur = () => {
+                    group.description = textarea.value.trim();
+                    renderModalContent();
+                };
+            };
+
+            // Add user
+            modal.querySelector('.modal-add-user-btn').onclick = () => {
+                const userId = Date.now();
+                group.users.push({ id: userId, avatar: '../public/images/grupo.svg' });
+                group.members = group.users.length;
+                renderModalContent();
+                updateUI();
+            };
+
+            // User context menu (toggle)
+            modal.querySelectorAll('.user-avatar-modal').forEach(img => {
+                img.onclick = (e) => {
+                    e.stopPropagation();
+                    const menu = img.nextElementSibling;
+                    document.querySelectorAll('.user-action-menu').forEach(m => {
+                        if (m !== menu) m.classList.remove('active');
+                    });
+                    menu.classList.toggle('active');
+                };
+            });
+
+            // Delete user
+            modal.querySelectorAll('.user-delete-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    const userId = parseInt(btn.closest('.user-avatar-wrapper').dataset.userId);
+                    group.users = group.users.filter(u => u.id !== userId);
+                    group.members = group.users.length;
+                    renderModalContent();
+                    updateUI();
+                };
+            });
+        };
+
+        renderModalContent();
         modal.style.display = 'flex';
-        modal.querySelector('.modal-close').onclick = () => modal.style.display = 'none';
         modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
     }
 
@@ -70,27 +163,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const groupCard = document.createElement('div');
         groupCard.className = 'group-card';
-        
+        groupCard.onclick = () => showGroupModal(group);
+
         const groupContent = document.createElement('div');
         groupContent.className = 'group-content';
         
+        // Only user avatar in bottom right, no centered plus
         const userIconsContainer = document.createElement('div');
         userIconsContainer.className = 'group-card-users';
         const userImg = document.createElement('img');
         userImg.className = 'user-avatar-inside';
         userImg.src = '../public/images/grupo.svg';
         userIconsContainer.appendChild(userImg);
-
-        const addUserBtn = document.createElement('button');
-        addUserBtn.className = 'add-user-btn combined-plus';
-        addUserBtn.innerHTML = `
-            <img src="../public/images/Rectangle 154.svg" class="rect-bg" alt="Bg">
-            <img src="../public/images/Plus.svg" class="plus-icon" alt="Add">
-        `;
-        addUserBtn.onclick = (e) => { e.stopPropagation(); alert('Añadir usuario'); };
-
         groupContent.appendChild(userIconsContainer);
-        groupContent.appendChild(addUserBtn);
 
         const menuBtn = document.createElement('button');
         menuBtn.className = 'group-menu-btn';
@@ -99,8 +184,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const submenu = document.createElement('div');
         submenu.className = 'group-submenu';
         submenu.innerHTML = `
-            <button class="submenu-item action-open">Abrir</button>
-            <button class="submenu-item delete">Eliminar</button>
+            <button class="submenu-item action-favorite">Añadir a favoritas</button>
+            <button class="submenu-item delete action-delete">Eliminar</button>
         `;
 
         menuBtn.onclick = (e) => {
@@ -111,10 +196,18 @@ document.addEventListener('DOMContentLoaded', () => {
             submenu.classList.toggle('active');
         };
 
-        submenu.querySelector('.action-open').onclick = (e) => {
+        submenu.querySelector('.action-favorite').onclick = (e) => {
             e.stopPropagation();
             submenu.classList.remove('active');
-            showGroupModal(group);
+            alert('Añadido a favoritas');
+        };
+
+        submenu.querySelector('.action-delete').onclick = (e) => {
+            e.stopPropagation();
+            if(confirm('¿Seguro que quieres eliminar este grupo?')) {
+                groupsData = groupsData.filter(g => g.id !== group.id);
+                updateUI();
+            }
         };
 
         groupCard.appendChild(menuBtn);
@@ -123,7 +216,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const groupFooter = document.createElement('div');
         groupFooter.className = 'group-footer';
-        
         const groupNameContainer = document.createElement('div');
         groupNameContainer.className = 'group-name-container';
         groupNameContainer.innerHTML = `
@@ -135,24 +227,18 @@ document.addEventListener('DOMContentLoaded', () => {
             e.stopPropagation();
             const span = groupNameContainer.querySelector('.group-name');
             const currentPencil = groupNameContainer.querySelector('.edit-name-btn');
-            
             const input = document.createElement('input');
             input.type = 'text';
             input.className = 'group-name-input';
             input.value = group.name;
-            
             groupNameContainer.replaceChild(input, span);
             currentPencil.style.display = 'none';
             input.focus();
-            
             const save = () => {
                 const newName = input.value.trim();
-                if (newName) {
-                    group.name = newName;
-                }
+                if (newName) group.name = newName;
                 updateUI();
             };
-            
             input.onblur = save;
             input.onkeydown = (ev) => { if (ev.key === 'Enter') save(); };
         };
@@ -168,20 +254,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function createAddGroupCard() {
         const addGroupWrapper = document.createElement('div');
         addGroupWrapper.className = 'group-card-wrapper';
-        
         const addGroupCard = document.createElement('div');
         addGroupCard.className = 'group-card add-group-card-main';
-        addGroupCard.innerHTML = `
-            <img src="../public/images/Plus.1.svg" class="create-plus-icon" alt="Add">
-        `;
+        addGroupCard.innerHTML = `<img src="../public/images/Plus.1.svg" class="create-plus-icon" alt="Add">`;
         
         const addGroupFooter = document.createElement('div');
         addGroupFooter.className = 'group-footer';
-        addGroupFooter.innerHTML = `
-            <div class="group-info">
-                <span class="group-name">nuevo grupo</span>
-            </div>
-        `;
+        addGroupFooter.innerHTML = `<div class="group-info"><span class="group-name">nuevo grupo</span></div>`;
 
         addGroupCard.onclick = () => {
             const newName = prompt('Nombre del nuevo grupo:');
@@ -191,6 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     name: newName,
                     members: 0,
                     users: [],
+                    description: '',
                     events: []
                 });
                 updateUI();
@@ -249,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.addEventListener('click', () => {
-        document.querySelectorAll('.group-submenu').forEach(m => m.classList.remove('active'));
+        document.querySelectorAll('.group-submenu, .user-action-menu').forEach(m => m.classList.remove('active'));
     });
 
     groupSearchInput.addEventListener('input', () => { currentPage = 1; updateUI(); });
