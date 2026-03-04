@@ -67,7 +67,23 @@ form h1 {
 /* CONTENEDORES DE INPUTS */
 form > div {
     width: 100%;
-    margin-bottom: 25px;
+    margin-bottom: 10px;
+}
+
+.field-error {
+    color: #e74c3c;
+    font-size: 12px;
+    height: 16px;
+    margin-top: 5px;
+    margin-bottom: 0;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.field-error.visible {
+    visibility: visible;
+    opacity: 1;
 }
 
 /* ETIQUETAS */
@@ -125,6 +141,30 @@ form input[type="submit"] {
 
 form input[type="submit"]:hover {
     background-color: #b8b8b8;
+}
+
+/* ERROR MESSAGE */
+.error-container {
+    width: 100%;
+    min-height: 24px;
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.error-text {
+    color: #e74c3c;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.error-text.visible {
+    visibility: visible;
+    opacity: 1;
 }
 
 /* DISEÑO RESPONSIVE MÓVIL */
