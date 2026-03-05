@@ -95,7 +95,11 @@ document.addEventListener('DOMContentLoaded', () => {
         listsContainer.appendChild(input);
         input.focus();
 
+        let isProcessing = false;
         const createNewList = () => {
+            if (isProcessing) return;
+            isProcessing = true;
+
             const name = input.value.trim();
             if (name) {
                 const newList = document.createElement('div');
@@ -114,11 +118,19 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') createNewList();
-            if (e.key === 'Escape') input.remove();
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                createNewList();
+            }
+            if (e.key === 'Escape') {
+                isProcessing = true; // Prevent blur from triggering create
+                input.remove();
+            }
         });
         input.addEventListener('blur', (e) => {
-            if (e.relatedTarget !== addListBtn) createNewList();
+            if (!isProcessing && e.relatedTarget !== addListBtn) {
+                createNewList();
+            }
         });
     });
 

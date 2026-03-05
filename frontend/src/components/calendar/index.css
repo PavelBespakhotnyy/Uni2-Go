@@ -1,7 +1,80 @@
-@import "tailwindcss";
-/* src/index.css */
-@import '@dayflow/core/dist/styles.css';
+/* src/components/calendar/index.css */
 
+/* 1. Reset box-sizing */
+* {
+    box-sizing: border-box !important;
+}
+
+/* 2. Root elements - strict full screen */
+html, body {
+    height: 100vh !important;
+    width: 100vw !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+
+/* 3. Page container: Sidebar + Calendar */
+.main-container {
+    display: flex !important;
+    flex-direction: row !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    overflow: hidden !important;
+}
+
+/* 4. Sidebar: fixed width */
+#navbar.sidebar {
+    position: relative !important;
+    height: 100vh !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+    z-index: 100;
+}
+
+/* 5. Calendar wrapper: fills remaining space */
 .calendar-wrapper {
-    margin-left: var(--sidebar-width-expanded);
+    flex: 1 !important;
+    min-width: 0 !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background-color: #f5f5f5;
+}
+
+/* 6. React root */
+#calendar-root {
+    flex: 1 !important;
+    height: 100% !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+/* 7. Scrollable grid area */
+.calendar-grid-scrollable {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    min-height: 0 !important;
+}
+
+/* 8. Overriding styles from other CSS files */
+body.sidebar-collapsed .calendar-wrapper,
+body.sidebar-ready .calendar-wrapper,
+.content-wrapper {
+    margin-left: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+}
+
+/* Mobile version */
+@media (max-width: 768px) {
+    #navbar.sidebar {
+        display: none !important;
+    }
 }

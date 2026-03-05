@@ -26,50 +26,61 @@
             <img src="/images/flecha 1.svg">
         </a>
 
-        <form id="registroForm">
+        <form id="registroForm" novalidate>
             <img src="/images/logo_Uni2_Go.svg" alt="Logo Uni2 Go">
             <h1>Regístrate</h1>
             <div>
                 <label>Nombre de usuario</label><br>
                 <input type="text" name="name" required>
+                <p id="error-name" class="field-error">Error</p>
             </div>
 
             <div>
                 <label>Apellido de usuario</label><br>
                 <input type="text" name="surname" required>
+                <p id="error-surname" class="field-error">Error</p>
             </div>
 
             <div>
                 <label>Fecha de nacimiento</label><br>
                 <input type="date" name="dateOfBirth" required>
+                <p id="error-dateOfBirth" class="field-error">Error</p>
             </div>
 
             <div>
                 <label>Correo Electrónico</label><br>
                 <input type="email" name="email" placeholder="Email" require pattern="[a-z0-9._%+-]+@[a-z0-9._%-]+\.[a-z]{2,}">
+                <p id="error-email" class="field-error">Error</p>
             </div>
 
             <div>
                 <label>Teléfono</label><br>
                 <input type="tel" name="phone" placeholder="123-456-789" required pattern="[0-9]{3}-[0-9]{3}-[0-9]{3}">
+                <p id="error-phone" class="field-error">Error</p>
             </div>
 
             <div>
                 <label>Contraseña</label><br>
                 <input type="password" name="contrasena" id="contrasena" required pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" title="Revise que tenga almenos una letra en mayuscula y minuscula, minimo 8 digitos">
+                <p id="error-contrasena" class="field-error">Error</p>
             </div>
 
             <div>
             <label>Confirmar Contraseña</label><br>
                 <input type="password" name="confirmPassword" id="confcontrasena" required pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" 
                 title="Contraseña invalida, revise que tenga almenos una letra en mayuscula y minuscula, minimo 8 digitos">
+                <p id="error-confirmPassword" class="field-error">Error</p>
             </div>
 
             <input type="hidden" name="activo" value="1">
             <input type="submit" name="enviar" value="Registrarse">
+            <div class="error-container">
+                <p id="errorText" class="error-text">Mensaje de error</p>
+            </div>
         </form>
 
     <script type="module" src="../src/components/preloader/preloader.js"></script>
+    <script type="module" src="../src/services/authGuard.js"></script>
     <script type="module" src="../src/components/registration/registration.js"></script>
 
 

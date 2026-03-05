@@ -13,6 +13,7 @@
         />
         <link rel="stylesheet" href="../src/style.css" id="main-style" />
         <link rel="stylesheet" href="../src/components/navbar/navbar.css" />
+        <link rel="stylesheet" href="../src/components/grupos/grupos.css" />
     </head>
     <body>
         <div id="preloader">
@@ -93,12 +94,40 @@
                     </li>
                 </ul>
             </nav>
+
+            <main class="content-wrapper">
+                <div class="controls-bar">
+                    <select id="groupFilter" class="filters-select">
+                        <option value="all">Todos</option>
+                        <option value="recent">recientes</option>
+                        <option value="favorites">favoritos</option>
+                    </select>
+                    <div class="search-container">
+                        <i class="bx bx-search search-icon"></i>
+                        <input type="text" id="groupSearch" class="search-input" placeholder="Buscar grupos..." />
+                    </div>
+                </div>
+
+                <div class="groups-container">
+                    <div id="groupsGrid" class="groups-grid">
+                        <!-- Groups will be rendered here -->
+                    </div>
+                </div>
+
+                <div class="pagination-container">
+                    <div class="pagination-list">
+                        <!-- Pagination will be rendered here -->
+                    </div>
+                </div>
+            </main>
         </div>
 
         <script
             type="module"
             src="../src/components/preloader/preloader.js"
         ></script>
+        <script type="module" src="../src/services/authGuard.js"></script>
         <script type="module" src="../src/components/navbar/navbar.js"></script>
+        <script type="module" src="../src/components/grupos/grupos.js"></script>
     </body>
 </html>
