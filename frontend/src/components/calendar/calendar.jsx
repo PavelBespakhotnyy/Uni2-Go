@@ -33,15 +33,18 @@ import {
   Calendar as CalendarIcon, 
   AlignLeft, 
   CalendarDays,
-  AlertCircle
+  AlertCircle,
+  LucideWavesArrowDown
 } from 'lucide-react';
-import { subscribeToEvents, addEvent, updateEvent, deleteEvent } from '../../services/calendarService';
+import { addEvent, updateEvent, deleteEvent } from '../../services/calendarService';
 
 const VIEWS = {
   MONTH: 'month',
   WEEK: 'week',
   DAY: 'day'
 };
+import { auth, db } from '../../firebase/firebase.js';
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 
 const EVENT_COLORS = [
   { bg: 'bg-[#e2f2e3]', border: 'border-[#4caf50]', text: 'text-[#1b5e20]' },
@@ -72,11 +75,35 @@ export default function Calendar() {
   });
 
   useEffect(() => {
+  const user = auth.currentUser;
+  if (user) {
+    const eventsRef = collection(db, "events");
+    const q = query(eventsRef, where("userId", "==", user.uid));
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const userEvents = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        // IMPORTANTE: Convertir Timestamps de Firebase a Date de JS
+        userEvents.push({ 
+          id: doc.id, 
+          ...data,
+          start: data.start?.toDate ? data.start.toDate() : new Date(data.start),
+          end: data.end?.toDate ? data.end.toDate() : new Date(data.end)
+        });
+      });
+      setEvents(userEvents);
+    });
+
+    return () => unsubscribe();
+  }
+}, [auth.currentUser]);/*
+    
     const unsubscribeEvents = subscribeToEvents((fetchedEvents) => {
       setEvents(fetchedEvents);
     });
     return () => unsubscribeEvents();
-  }, []);
+  }, []);*/
 
   useEffect(() => {
     const handleKeyDown = (e) => {

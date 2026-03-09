@@ -1,15 +1,72 @@
+import { db, auth } from '../firebase/firebase'; // Ajusta la ruta si es necesario
+import { 
+  collection, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  doc, 
+  serverTimestamp 
+} from "firebase/firestore";
+
+const COLLECTION_NAME = "events";
+
+export async function addEvent(eventData) {
+  const user = auth.currentUser;
+  if (!user) throw new Error("Usuario no autenticado");
+
+  try {
+    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
+      ...eventData,
+      userId: user.uid,
+      createdAt: serverTimestamp(),
+      // Convertimos fechas a objetos Date por si vienen como string
+      start: new Date(eventData.start),
+      end: new Date(eventData.end)
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error("Error al añadir evento a Firebase:", error);
+    throw error;
+  }
+}
+
+export async function updateEvent(id, updatedData) {
+  try {
+    const eventRef = doc(db, COLLECTION_NAME, id);
+    await updateDoc(eventRef, {
+      ...updatedData,
+      updatedAt: serverTimestamp(),
+      start: new Date(updatedData.start),
+      end: new Date(updatedData.end)
+    });
+  } catch (error) {
+    console.error("Error al actualizar evento en Firebase:", error);
+    throw error;
+  }
+}
+
+export async function deleteEvent(id) {
+  try {
+    const eventRef = doc(db, COLLECTION_NAME, id);
+    await deleteDoc(eventRef);
+  } catch (error) {
+    console.error("Error al eliminar evento en Firebase:", error);
+    throw error;
+  }
+}
 /**
  * Servicio para la gestión de eventos del calendario utilizando localStorage.
  * Este archivo permite que los eventos se guarden de forma persistente en el navegador,
  * eliminando la dependencia previa de Firebase Firestore para la gestión de eventos.
  */
-
+/*
 const STORAGE_KEY = "calendar_events";
 let listeners = [];
 
 /**
  * Notifica a todos los suscriptores en la pestaña actual.
  */
+/*
 function notifyListeners() {
   const events = getEventsFromStorage();
   listeners.forEach(callback => callback(events));
@@ -57,6 +114,7 @@ function saveEventsToStorage(events) {
 /**
  * Suscribirse a los cambios en los eventos.
  */
+/*
 export function subscribeToEvents(callback) {
   // Enviar datos iniciales
   const events = getEventsFromStorage();
@@ -114,3 +172,4 @@ export async function deleteEvent(id) {
   saveEventsToStorage(updatedEvents);
   notifyListeners();
 }
+*/
