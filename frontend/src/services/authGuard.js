@@ -1,5 +1,5 @@
 import { auth } from "../firebase/firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, signOut } from "firebase/auth"; // 1. Importar signOut
 
 const PROTECTED_PAGES = [
   "calendar.html",
@@ -20,7 +20,6 @@ const AUTH_PAGES = [
 
 onAuthStateChanged(auth, (user) => {
   const currentPath = window.location.pathname;
-  
   // Checking if current page is protected
   const isProtected = PROTECTED_PAGES.some(page => currentPath.endsWith(page));
   // Checking if current page is auth-related
@@ -33,4 +32,30 @@ onAuthStateChanged(auth, (user) => {
     // Already logged in -> skip login/register and go to calendar
     window.location.href = "/pages/calendar.html";
   }
+
+  // 2. Si el usuario está autenticado, activamos el botón de cerrar sesión
+  if (user) {
+    initLogout();
+  }
 });
+
+// 3. Función para manejar el evento del botón
+function initLogout() {
+  const logoutBtn = document.getElementById("btn-logout");
+  
+  if (logoutBtn) {
+    // Usamos onclick o addEventListener
+    logoutBtn.addEventListener("click", async () => {
+      try {
+        await signOut(auth);
+        // No necesitas redireccionar aquí; onAuthStateChanged 
+        // se ejecutará de nuevo, detectará que user es null 
+        // y te enviará a login.html automáticamente.
+        console.log("Sesión cerrada");
+      } catch (error) {
+        console.error("Error al cerrar sesión:", error);
+        alert("Hubo un error al intentar cerrar sesión.");
+      }
+    });
+  }
+}
