@@ -160,15 +160,29 @@ document.addEventListener('DOMContentLoaded', () => {
             input.type = 'number';
             input.className = 'edit-qty-input';
             input.value = currentText;
-            input.min = 1;
+            input.min = 0; // Cambiado a 0 para permitir la eliminación
             target.replaceWith(input);
             input.focus();
+
             const saveQty = () => {
-                const newSpan = document.createElement('span');
-                newSpan.className = 'product-qty';
-                newSpan.innerText = `${input.value || 1} uds.`;
-                input.replaceWith(newSpan);
+                const newValue = parseInt(input.value);
+
+                // Lógica de eliminación automática
+                if (isNaN(newValue) || newValue <= 0) {
+                    // Buscamos el contenedor padre (la tarjeta) para eliminarla
+                    const card = input.closest('.product-card');
+                    if (card) {
+                        card.remove();
+                    }
+                } else {
+                    // Si es mayor a 0, se actualiza normalmente
+                    const newSpan = document.createElement('span');
+                    newSpan.className = 'product-qty';
+                    newSpan.innerText = `${newValue} uds.`;
+                    input.replaceWith(newSpan);
+                }
             };
+
             input.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') saveQty(); });
             input.addEventListener('blur', saveQty);
         }
