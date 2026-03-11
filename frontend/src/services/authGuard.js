@@ -1,5 +1,6 @@
 import { auth } from "../firebase/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth"; // 1. Importar signOut
+import { getUserProfile } from "./userService.js";
 
 const PROTECTED_PAGES = [
   "calendar.html",
@@ -18,15 +19,26 @@ const AUTH_PAGES = [
   "recover_password.html"
 ];
 
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async(user) => {
   const currentPath = window.location.pathname;
   // Checking if current page is protected
   const isProtected = PROTECTED_PAGES.some(page => currentPath.endsWith(page));
   // Checking if current page is auth-related
   const isAuthPage = AUTH_PAGES.some(page => currentPath.endsWith(page));
-
+  const data = await getUserProfile(user.uid);
+            
+            if (data) {
+                // Si encontramos los datos, los ponemos
+                document.getElementById('user-name').innerText = data.name || "Usuario";
+                document.getElementById('user-lastname').innerText = data.surname || "";
+            } else {
+                // Si el usuario existe en Auth pero no en Firestore aún
+                document.getElementById('user-name').innerText = user.displayName || "Nuevo Usuario";
+                console.log("Perfil de Firestore no encontrado, usando datos de Auth.");
+            }
   if (!user && isProtected) {
     // Not logged in -> go to login
+    
     window.location.href = "/pages/login.html";
   } else if (user && isAuthPage) {
     // Already logged in -> skip login/register and go to calendar
@@ -35,6 +47,9 @@ onAuthStateChanged(auth, (user) => {
 
   // 2. Si el usuario está autenticado, activamos el botón de cerrar sesión
   if (user) {
+    //const data = await getUserProfile(user.uid);
+        // Usamos .name y .surname (tal cual están en tu base de datos)
+      
     initLogout();
   }
 });
