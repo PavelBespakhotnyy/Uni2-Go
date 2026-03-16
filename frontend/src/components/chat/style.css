@@ -139,6 +139,15 @@
 }
 
 /* Messages */
+#chat-messages {
+    display: flex;             /* Obligatorio para align-self */
+    flex-direction: column;    /* Los mensajes se apilan verticalmente */
+    gap: 15px;                 /* Espacio entre burbujas */
+    padding: 20px;
+    overflow-y: auto;          /* Scroll si hay muchos mensajes */
+    height: 100%;              /* O un alto fijo */
+}
+
 .chat-message {
     max-width: 65%;
     padding: 15px 20px;
@@ -146,9 +155,9 @@
     line-height: 1.4;
     position: relative;
     word-wrap: break-word;
-    /* Simulate the empty messages in the mockup */
-    min-height: 60px; 
-    min-width: 250px;
+    /* Quitamos el min-height fijo para que la burbuja se ajuste al texto */
+    min-height: auto; 
+    margin-bottom: 5px;
 }
 
 .chat-message.received {

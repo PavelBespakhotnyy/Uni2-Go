@@ -1,31 +1,21 @@
+// chat.js
+import { chatService } from '../../services/chatService.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     const contactsListEl = document.getElementById('contacts-list');
     const chatHeaderEl = document.getElementById('chat-header');
-    const chatMessagesEl = document.getElementById('chat-messages');
     const searchInputEl = document.querySelector('.chat-search-input');
+    const messageInputEl = document.querySelector('.chat-input-field');
+    const sendBtnEl = document.querySelector('.chat-send-btn');
+    const chatMessagesEl = document.getElementById('chat-messages'); // Asegúrate de tener este ID
 
-    // Mock data based on the design
-    const contacts = [
-        { id: 1, name: 'Martina Orobidg', avatar: 'https://ui-avatars.com/api/?name=Martina+Orobidg&background=random' },
-        { id: 2, name: 'Carlos Melchor', avatar: 'https://ui-avatars.com/api/?name=Carlos+Melchor&background=random' },
-        { id: 3, name: 'Arcadi Martin', avatar: 'https://ui-avatars.com/api/?name=Arcadi+Martin&background=random' },
-        { id: 4, name: 'Ariadna Jobani', avatar: 'https://ui-avatars.com/api/?name=Ariadna+Jobani&background=random' },
-        { id: 5, name: 'Hugo Ruiz', avatar: 'https://ui-avatars.com/api/?name=Hugo+Ruiz&background=random' },
-        { id: 6, name: 'Alba Lopez', avatar: 'https://ui-avatars.com/api/?name=Alba+Lopez&background=random' }
-    ];
+    let activeContactId = 5;
 
-    const messagesData = {
-        // No test messages yet
-    };
+    // --- Renderizado ---
 
-    let activeContactId = 5; // Default to Hugo Ruiz based on mockup
-    let searchQuery = '';
-
-    function renderContacts() {
+    function renderContacts(query = '') {
         contactsListEl.innerHTML = '';
-        const filtered = contacts.filter(c =>
-            c.name.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+        const filtered = chatService.getContacts(query);
 
         filtered.forEach(contact => {
             const li = document.createElement('li');
@@ -41,17 +31,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function selectContact(id) {
-        activeContactId = id;
-        renderContacts();
-        renderActiveChat();
-    }
-
     function renderActiveChat() {
-        const contact = contacts.find(c => c.id === activeContactId);
+        const contact = chatService.getContactById(activeContactId);
         if (!contact) return;
 
-        // Render header
+        // Header
         chatHeaderEl.innerHTML = `
             <div class="chat-contact-avatar">
                 <img src="${contact.avatar}" alt="${contact.name}">
@@ -59,27 +43,76 @@ document.addEventListener('DOMContentLoaded', () => {
             <h2>${contact.name}</h2>
         `;
 
-        // Render messages
+        // Limpiar y renderizar mensajes
         chatMessagesEl.innerHTML = '';
-        const msgs = messagesData[activeContactId] || [];
-        msgs.forEach(msg => {
-            const div = document.createElement('div');
-            div.className = `chat-message ${msg.type}`;
-            div.textContent = msg.text;
-            chatMessagesEl.appendChild(div);
-        });
+        const msgs = chatService.getMessages(activeContactId);
+        msgs.forEach(msg => appendMessageDOM(msg));
+        
+        scrollToBottom();
+    }
 
-        // Scroll to bottom
+    function appendMessageDOM(msg) {
+    const chatMessagesEl = document.getElementById('chat-messages');
+    
+    if (!chatMessagesEl) {
+        console.error("Error: No se encontró el elemento #chat-messages en el HTML");
+        return;
+    }
+
+    const div = document.createElement('div');
+    // IMPORTANTE: Asegúrate de que msg.type devuelva 'sent' o 'received'
+    div.className = `chat-message ${msg.type}`; 
+    div.textContent = msg.text;
+
+    chatMessagesEl.appendChild(div);
+
+    // Auto-scroll al último mensaje
+    chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+}
+
+    // --- Acciones ---
+
+    function selectContact(id) {
+        activeContactId = id;
+        renderContacts(searchInputEl.value);
+        renderActiveChat();
+    }
+
+    function handleSendMessage() {
+        const text = messageInputEl.value;
+        if (text) {
+            const msg = chatService.sendMessage(activeContactId, text);
+            appendMessageDOM(msg);
+            messageInputEl.value = '';
+        }
+    }
+
+    function scrollToBottom() {
         chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
     }
 
-    // Search functionality
+    // --- Eventos ---
+
+    // Escuchar mensajes entrantes desde el servicio
+    chatService.onMessageReceived = (contactId, msg) => {
+        if (contactId === activeContactId) {
+            appendMessageDOM(msg);
+        } else {
+            console.log(`Nuevo mensaje de un contacto no activo (ID: ${contactId})`);
+        }
+    };
+
     searchInputEl.addEventListener('input', (e) => {
-        searchQuery = e.target.value;
-        renderContacts();
+        renderContacts(e.target.value);
     });
 
-    // Initialize
+    sendBtnEl?.addEventListener('click', handleSendMessage);
+
+    messageInputEl?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleSendMessage();
+    });
+
+    // Inicialización
     renderContacts();
     renderActiveChat();
 });
