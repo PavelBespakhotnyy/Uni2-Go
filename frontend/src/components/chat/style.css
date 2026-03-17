@@ -210,3 +210,70 @@
     font-size: 15px;
     background-color: #ffffff;
 }
+/*menu emergente*/
+/* Contenedor del contacto */
+.chat-contact-item {
+    position: relative; /* Muy importante para que el submenú se posicione respecto a esto */
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    cursor: pointer;
+}
+
+/* El botón de los tres puntos */
+.group-menu-btn {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    padding: 5px;
+    margin-left: auto; /* Lo empuja a la derecha */
+    font-size: 1.2rem;
+    z-index: 5;
+}
+
+/* La "ventana" emergente (Submenú) */
+.group-submenu {
+    display: none; /* Escondido por defecto */
+    position: absolute;
+    right: 10px;
+    top: 40px;
+    background: white;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-radius: 8px;
+    z-index: 100; /* Asegura que flote sobre todo */
+    min-width: 150px;
+    overflow: hidden;
+}
+
+/* Mostrar cuando tiene la clase active */
+.group-submenu.active {
+    display: block;
+    animation: fadeIn 0.2s ease;
+}
+
+/* Estilo de los botones dentro de la ventana */
+.submenu-item {
+    width: 100%;
+    padding: 10px 15px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.submenu-item:hover {
+    background: #f5f5f5;
+}
+
+.submenu-item.delete {
+    color: #e74c3c;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}

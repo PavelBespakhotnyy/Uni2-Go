@@ -36,33 +36,88 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             chats.forEach(chat => {
-                // CAMBIO CLAVE: En lugar de buscar por nombre del DOM, 
-                // buscamos la POSICIÓN de nuestro ID en el array de participantes
-                const myIndex = chat.participants.indexOf(currentUser.uid);
-                
-                // El "otro" índice será 0 si el mío es 1, o 1 si el mío es 0
-                const otherIndex = myIndex === 0 ? 1 : 0;
-                
-                // Obtenemos el nombre del amigo usando ese índice
-                const otherName = chat.participantNames[otherIndex] || "Amigo";
-                
-                const li = document.createElement('li');
-                li.className = `chat-contact-item ${chat.id === activeChatId ? 'active' : ''}`;
-                
-                li.addEventListener('click', () => {
-                    document.querySelectorAll('.chat-contact-item').forEach(el => el.classList.remove('active'));
-                    li.classList.add('active');
-                    selectContact(chat.id, otherName);
-                });
+    const myIndex = chat.participants.indexOf(currentUser.uid);
+    const otherIndex = myIndex === 0 ? 1 : 0;
+    const otherName = chat.participantNames[otherIndex] || "Amigo";
+    
+    const li = document.createElement('li');
+    li.className = `chat-contact-item ${chat.id === activeChatId ? 'active' : ''}`;
+    
+    // Contenido principal del contacto
+    li.innerHTML = `
+        <div class="chat-contact-avatar">
+            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(otherName)}&background=random" alt="${otherName}">
+        </div>
+        <div class="chat-contact-name">${otherName}</div>
+    `;
 
-                li.innerHTML = `
-                    <div class="chat-contact-avatar">
-                        <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(otherName)}&background=random" alt="${otherName}">
-                    </div>
-                    <div class="chat-contact-name">${otherName}</div>
-                `;
-                contactsListEl.appendChild(li);
-            });
+    // 1. Crear el botón de menú (tres puntos)
+    const menuBtn = document.createElement('button');
+    menuBtn.className = 'group-menu-btn';
+    menuBtn.innerHTML = '<i class="bx bx-dots-vertical-rounded"></i>';
+
+    // 2. Crear el submenú
+    const submenu = document.createElement('div');
+    submenu.className = 'group-submenu';
+    submenu.innerHTML = `
+        <button class="submenu-item delete action-delete">Eliminar</button>
+    `;
+
+    // EVENTOS
+    li.addEventListener('click', () => {
+        document.querySelectorAll('.chat-contact-item').forEach(el => el.classList.remove('active'));
+        li.classList.add('active');
+        selectContact(chat.id, otherName);
+    });
+
+    menuBtn.onclick = (e) => {
+        e.stopPropagation(); // Evita que se abra el chat al tocar los puntos
+        document.querySelectorAll('.group-submenu').forEach(m => {
+            if (m !== submenu) m.classList.remove('active');
+        });
+        submenu.classList.toggle('active');
+    };
+
+    submenu.querySelector('.action-delete').onclick = async (e) => {
+        e.stopPropagation();
+        if(confirm('¿Seguro que quieres eliminar este chat?')) {
+            // Aquí llamarías a una función de chatService para borrar de Firebase
+            // await chatService.deleteChat(chat.id); 
+            console.log("Eliminando chat:", chat.id);
+        }
+    };
+
+    // CONSTRUCCIÓN FINAL: Añadimos todo al LI y el LI a la lista
+    li.appendChild(menuBtn);
+    li.appendChild(submenu);
+    contactsListEl.appendChild(li); 
+
+    submenu.querySelector('.action-delete').onclick = async (e) => {
+    e.stopPropagation(); // Evita abrir el chat
+    submenu.classList.remove('active'); // Cierra la ventanita
+
+    const confirmDelete = confirm(`¿Estás seguro de que quieres eliminar el chat con ${otherName}? Esta acción no se puede deshacer.`);
+    
+    if (confirmDelete) {
+        try {
+            // Llamamos al servicio para borrar de Firebase
+            await chatService.deleteChat(chat.id);
+            
+            // Si el chat que borramos era el que estaba abierto, limpiamos la pantalla
+            if (activeChatId === chat.id) {
+                activeChatId = null;
+                chatHeaderEl.innerHTML = '<h2>Selecciona un chat</h2>';
+                chatMessagesEl.innerHTML = '';
+                if (window.unsubscribeMessages) window.unsubscribeMessages();
+            }
+            
+            alert('Chat eliminado correctamente.');
+        } catch (error) {
+            alert('No se pudo eliminar el chat: ' + error.message);
+        }
+    }
+};
+});
         });
     }
 

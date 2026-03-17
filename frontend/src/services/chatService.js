@@ -1,7 +1,7 @@
 import { db } from '../firebase/firebase';
 import { 
     collection, query, where, getDocs, addDoc, 
-    onSnapshot, orderBy, serverTimestamp, doc, getDoc 
+    onSnapshot, orderBy, serverTimestamp, doc, getDoc, deleteDoc, writeBatch 
 } from "firebase/firestore";
 
 class ChatService {
@@ -129,6 +129,34 @@ listenMyChats(userId, callback) {
         console.error("Error al ejecutar addDoc:", e);
     }
 }
+    async deleteChat(chatId) {
+        if (!chatId) return;
+
+        try {
+            // 1. Opcional: Borrar la subcolección de mensajes primero
+            // Nota: Firestore no borra subcolecciones automáticamente al borrar el padre
+            const messagesRef = collection(db, "chats", chatId, "messages");
+            const messagesSnap = await getDocs(messagesRef);
+            
+            const batch = writeBatch(db);
+            messagesSnap.forEach((msgDoc) => {
+                batch.delete(msgDoc.ref);
+            });
+            await batch.commit();
+
+            // 2. Borrar el documento principal del chat
+            const chatRef = doc(db, "chats", chatId);
+            await deleteDoc(chatRef);
+            
+            console.log(`Chat ${chatId} y sus mensajes eliminados.`);
+        } catch (error) {
+            console.error("Error al eliminar el chat de Firebase:", error);
+            throw error;
+        }
+    }
+
+
+
 }
 
 export const chatService = new ChatService();
