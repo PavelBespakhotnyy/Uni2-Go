@@ -25,16 +25,17 @@ onAuthStateChanged(auth, async(user) => {
   const isProtected = PROTECTED_PAGES.some(page => currentPath.endsWith(page));
   // Checking if current page is auth-related
   const isAuthPage = AUTH_PAGES.some(page => currentPath.endsWith(page));
-  const data = await getUserProfile(user.uid);
+  
             
-            if (data) {
+            if (user) {
+                const data = await getUserProfile(user.uid);
                 // Si encontramos los datos, los ponemos
                 document.getElementById('user-name').innerText = data.name || "Usuario";
                 document.getElementById('user-lastname').innerText = data.surname || "";
             } else {
                 // Si el usuario existe en Auth pero no en Firestore aún
-                document.getElementById('user-name').innerText = user.displayName || "Nuevo Usuario";
-                console.log("Perfil de Firestore no encontrado, usando datos de Auth.");
+                
+                console.log("Perfil de Firestore no encontrado");
             }
   if (!user && isProtected) {
     // Not logged in -> go to login

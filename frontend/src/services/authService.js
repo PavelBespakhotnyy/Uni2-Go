@@ -3,6 +3,10 @@ import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "../firebase/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 
+function generateFriendshipCode() {
+  return Math.floor(10000000 + Math.random() * 90000000).toString();
+}
+
 export async function registerUser(formData) {
   const {
     email,
@@ -26,12 +30,15 @@ export async function registerUser(formData) {
 
   const user = userCredential.user;
 
+  const friend_code = generateFriendshipCode();
+
   await setDoc(doc(db, "users", user.uid), {
     name,
     surname,
     phone,
     dateOfBirth,
     email,
+    friend_code,
     createdAt: new Date(),
   });
 

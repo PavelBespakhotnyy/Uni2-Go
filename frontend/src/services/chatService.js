@@ -1,70 +1,82 @@
-// chatService.js
+import { db } from '../firebase/firebase'; // Tu configuración de Firebase
+import { 
+    collection, query, where, getDocs, addDoc, 
+    onSnapshot, orderBy, serverTimestamp, doc, getDoc 
+} from "firebase/firestore";
 
 class ChatService {
-    constructor() {
-        this.contacts = [
-            { id: 1, name: 'Martina Orobidg', avatar: 'https://ui-avatars.com/api/?name=Martina+Orobidg&background=random' },
-            { id: 2, name: 'Carlos Melchor', avatar: 'https://ui-avatars.com/api/?name=Carlos+Melchor&background=random' },
-            { id: 3, name: 'Arcadi Martin', avatar: 'https://ui-avatars.com/api/?name=Arcadi+Martin&background=random' },
-            { id: 4, name: 'Ariadna Jobani', avatar: 'https://ui-avatars.com/api/?name=Ariadna+Jobani&background=random' },
-            { id: 5, name: 'Hugo Ruiz', avatar: 'https://ui-avatars.com/api/?name=Hugo+Ruiz&background=random' },
-            { id: 6, name: 'Alba Lopez', avatar: 'https://ui-avatars.com/api/?name=Alba+Lopez&background=random' }
-        ];
-        
-        this.messagesData = {}; // Estructura: { contactId: [ {text, type, timestamp} ] }
-        this.onMessageReceived = null; // Callback para avisar a la UI
-    }
+    // Busca un usuario por código y crea un chat si no existe
+    async createChatByCode(friendCode, currentUser) {
+        // 1. Buscar al usuario con ese código
+        const uQuery = query(collection(db, "users"), where("friend_code", "==", friendCode));
+        const querySnapshot = await getDocs(uQuery);
 
-    getContacts(query = '') {
-        return this.contacts.filter(c => 
-            c.name.toLowerCase().includes(query.toLowerCase())
+        if (querySnapshot.empty) throw new Error("Código no encontrado");
+
+        const friendDoc = querySnapshot.docs[0];
+        const friendData = friendDoc.data();
+        const friendId = friendDoc.id;
+
+        // 2. Verificar si ya existe un chat entre ambos
+        const cQuery = query(
+            collection(db, "chats"), 
+            where("participants", "array-contains", currentUser.uid)
         );
+        const existingChats = await getDocs(cQuery);
+        let existingChatId = null;
+
+        existingChats.forEach(doc => {
+            if (doc.data().participants.includes(friendId)) {
+                existingChatId = doc.id;
+            }
+        });
+
+        if (existingChatId) return existingChatId;
+
+        // 3. Si no existe, crear uno nuevo
+        const newChat = await addDoc(collection(db, "chats"), {
+            participants: [currentUser.uid, friendId],
+            participantNames: [currentUser.displayName, friendData.name], // Útil para la UI
+            createdAt: serverTimestamp()
+        });
+
+        return newChat.id;
+    }
+    
+    listenMyChats(userId, callback) {
+        
+        const q = query(
+            collection(db, "chats"), 
+            where("participants", "array-contains", userId)
+        );
+        return onSnapshot(q, (snapshot) => {
+            const chats = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            callback(chats);
+        });
     }
 
-    getContactById(id) {
-        return this.contacts.find(c => c.id === id);
+    // Escuchar mensajes en tiempo real
+    listenMessages(chatId, callback) {
+        const q = query(
+            collection(db, `chats/${chatId}/messages`), 
+            orderBy("timestamp", "asc")
+        );
+        return onSnapshot(q, (snapshot) => {
+            const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            callback(msgs);
+        });
     }
 
-    getMessages(contactId) {
-        return this.messagesData[contactId] || [];
-    }
-
-    sendMessage(contactId, text) {
-        if (!text.trim()) return;
-
-        const newMessage = {
-            text: text,
-            type: 'sent',
-            timestamp: new Date()
-        };
-
-        if (!this.messagesData[contactId]) this.messagesData[contactId] = [];
-        this.messagesData[contactId].push(newMessage);
-
-        // Simulación de respuesta automática (Tiempo Real Fake)
-        setTimeout(() => {
-            this.receiveMessage(contactId, "¡Hola! Soy un bot respondiendo en tiempo real.");
-        }, 1000);
-
-        return newMessage;
-    }
-
-    receiveMessage(contactId, text) {
-        const incomingMsg = {
-            text: text,
-            type: 'received',
-            timestamp: new Date()
-        };
-
-        if (!this.messagesData[contactId]) this.messagesData[contactId] = [];
-        this.messagesData[contactId].push(incomingMsg);
-
-        // Si tenemos un callback configurado, avisamos a la UI
-        if (this.onMessageReceived) {
-            this.onMessageReceived(contactId, incomingMsg);
-        }
-    }
+    async sendMessage(chatId, text, senderId) {
+    const messagesRef = collection(db, "chats", chatId, "messages");
+    
+    await addDoc(messagesRef, {
+        text: text,                // El texto que escribió el usuario
+        senderId: senderId,        // El ID del usuario actual
+        timestamp: serverTimestamp(), // Hora oficial del servidor de Google
+        type: 'text'               // Por si luego quieres añadir fotos o audios
+    });
+}
 }
 
-// Exportamos la instancia para que sea única
 export const chatService = new ChatService();
