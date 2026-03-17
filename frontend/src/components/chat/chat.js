@@ -16,11 +16,9 @@ let currentUser = null;
 let activeChatId = null; // Esta variable solo cambiará al hacer clic
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("Archivo chat.js cargado correctamente");
     onAuthStateChanged(auth, (user) => {
         if (user) {
             currentUser = user;
-            console.log("Usuario autenticado:", currentUser.uid);
             initChatList();
         }
     });
@@ -65,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 contactsListEl.appendChild(li);
             });
-            console.log("Lista de chats renderizada:", chats.length);
         });
     }
 
@@ -77,10 +74,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     
     activeChatId = chatId; // <--- Aquí se asigna el ID global
-    console.log("Chat seleccionado:", activeChatId);
 
         // Actualizar UI
-        chatHeaderEl.innerHTML = `<h2>${contactName}</h2>`;
+        chatHeaderEl.innerHTML = `
+                    <div class="chat-contact-avatar">
+                        <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(contactName)}&background=random" alt="${contactName}">
+                    </div>
+                    <h2>${contactName}</h2>`;
         chatMessagesEl.innerHTML = '';
 
         // Detener escucha previa de mensajes
@@ -98,10 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const text = messageInputEl.value;
     
     // DEBUG: Mira esto en la consola del navegador (F12)
-    console.log("DATOS A ENVIAR:");
-    console.log("- Chat ID:", activeChatId);
-    console.log("- Texto:", text);
-    console.log("- User ID:", currentUser?.uid);
 
     if (activeChatId && text && currentUser?.uid) {
         await chatService.sendMessage(activeChatId, text, currentUser.uid);
