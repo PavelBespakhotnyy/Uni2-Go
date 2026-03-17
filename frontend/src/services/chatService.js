@@ -1,57 +1,89 @@
-import { db } from '../firebase/firebase'; // Tu configuración de Firebase
+import { db } from '../firebase/firebase';
 import { 
     collection, query, where, getDocs, addDoc, 
     onSnapshot, orderBy, serverTimestamp, doc, getDoc 
 } from "firebase/firestore";
 
 class ChatService {
-    // Busca un usuario por código y crea un chat si no existe
     async createChatByCode(friendCode, currentUser) {
-        // 1. Buscar al usuario con ese código
-        const uQuery = query(collection(db, "users"), where("friend_code", "==", friendCode));
-        const querySnapshot = await getDocs(uQuery);
+    console.log("Buscando amigo con código:", friendCode);
 
-        if (querySnapshot.empty) throw new Error("Código no encontrado");
+    // 1. Buscar al usuario amigo con ese código
+    const uQuery = query(collection(db, "users"), where("friend_code", "==", friendCode));
+    const querySnapshot = await getDocs(uQuery);
 
-        const friendDoc = querySnapshot.docs[0];
-        const friendData = friendDoc.data();
-        const friendId = friendDoc.id;
+    if (querySnapshot.empty) throw new Error("Código de amigo no encontrado");
 
-        // 2. Verificar si ya existe un chat entre ambos
-        const cQuery = query(
-            collection(db, "chats"), 
-            where("participants", "array-contains", currentUser.uid)
-        );
-        const existingChats = await getDocs(cQuery);
-        let existingChatId = null;
+    const friendDoc = querySnapshot.docs[0];
+    const friendData = friendDoc.data();
+    const friendId = friendDoc.id;
 
-        existingChats.forEach(doc => {
-            if (doc.data().participants.includes(friendId)) {
-                existingChatId = doc.id;
-            }
-        });
+    if (friendId === currentUser.uid) throw new Error("No puedes chatear contigo mismo");
 
-        if (existingChatId) return existingChatId;
+    // 2. BUSCAR MI PROPIO NOMBRE en la colección 'users' (Para evitar el "Usuario")
+    const myDocRef = doc(db, "users", currentUser.uid);
+    const myDocSnap = await getDoc(myDocRef);
+    let myRealName = "Usuario";
 
-        // 3. Si no existe, crear uno nuevo
-        const newChat = await addDoc(collection(db, "chats"), {
-            participants: [currentUser.uid, friendId],
-            participantNames: [currentUser.displayName, friendData.name], // Útil para la UI
-            createdAt: serverTimestamp()
-        });
-
-        return newChat.id;
+    if (myDocSnap.exists()) {
+        myRealName = myDocSnap.data().name; // Sacamos tu nombre real de tu perfil
+    } else {
+        // Si no hay perfil en Firestore, intentamos el de Auth
+        myRealName = currentUser.displayName || "Usuario";
     }
-    
-    listenMyChats(userId, callback) {
-        
+
+    // 3. Verificar si ya existe un chat entre ambos
+    const cQuery = query(
+        collection(db, "chats"), 
+        where("participants", "array-contains", currentUser.uid)
+    );
+    const existingChats = await getDocs(cQuery);
+    let existingChatId = null;
+
+    existingChats.forEach(doc => {
+        const data = doc.data();
+        if (data.participants.includes(friendId)) {
+            existingChatId = doc.id;
+        }
+    });
+
+    if (existingChatId) return existingChatId;
+
+    // 4. CREACIÓN DEL CHAT CON NOMBRES REALES
+    const friendName = friendData.name || "Amigo";
+
+    try {
+        const newChatData = {
+            participants: [currentUser.uid, friendId],
+            participantNames: [myRealName, friendName], // <--- Ahora myRealName tendrá tu nombre de Firestore
+            createdAt: serverTimestamp(),
+            lastMessage: ""
+        };
+
+        const docRef = await addDoc(collection(db, "chats"), newChatData);
+        console.log(" Chat creado con ID:", docRef.id);
+        return docRef.id;
+    } catch (error) {
+        console.error("Error al crear documento en Firestore:", error);
+        throw error;
+    }
+}
+listenMyChats(userId, callback) {
+        // Importante: Asegúrate de tener acceso a 'db' y las funciones de firestore aquí
         const q = query(
             collection(db, "chats"), 
             where("participants", "array-contains", userId)
         );
+
+        // Retornamos el unsubscribe para poder cerrar la escucha si fuera necesario
         return onSnapshot(q, (snapshot) => {
-            const chats = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const chats = snapshot.docs.map(doc => ({ 
+                id: doc.id, 
+                ...doc.data() 
+            }));
             callback(chats);
+        }, (error) => {
+            console.error("Error en listenMyChats:", error);
         });
     }
 
@@ -67,15 +99,35 @@ class ChatService {
         });
     }
 
-    async sendMessage(chatId, text, senderId) {
-    const messagesRef = collection(db, "chats", chatId, "messages");
-    
-    await addDoc(messagesRef, {
-        text: text,                // El texto que escribió el usuario
-        senderId: senderId,        // El ID del usuario actual
-        timestamp: serverTimestamp(), // Hora oficial del servidor de Google
-        type: 'text'               // Por si luego quieres añadir fotos o audios
-    });
+   async sendMessage(chatId, text, senderId) {
+    // 1. Validaciones de seguridad para evitar el error de 'undefined'
+    if (!chatId) {
+        console.error("Error: chatId es undefined");
+        return;
+    }
+    if (!senderId) {
+        console.error("Error: senderId es undefined");
+        return;
+    }
+    if (!text || text.trim() === "") {
+        console.error("Error: El texto está vacío");
+        return;
+    }
+
+    try {
+        const messagesRef = collection(db, "chats", chatId, "messages");
+        
+        // 2. Solo enviamos datos si estamos seguros de que existen
+        await addDoc(messagesRef, {
+            text: text,
+            senderId: senderId,
+            timestamp: serverTimestamp() // Usar siempre el del servidor
+        });
+        
+        console.log("Mensaje guardado correctamente en Firebase");
+    } catch (e) {
+        console.error("Error al ejecutar addDoc:", e);
+    }
 }
 }
 
