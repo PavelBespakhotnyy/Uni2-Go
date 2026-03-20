@@ -1,3 +1,7 @@
+import { auth } from '../../firebase/firebase.js';
+import { onAuthStateChanged } from "firebase/auth";
+import { notificationService } from '../../services/notificationService.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('hasNewNotification', 'false');
     if (window.updateNotificationBadge) window.updateNotificationBadge();
@@ -9,6 +13,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let ITEMS_PER_PAGE = 8;
     let currentPage = 1;
+    let notifications = [];
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            console.log("🔔 Listening to notifications for:", user.uid);
+            notificationService.listenMyNotifications(user.uid, (data) => {
+                console.log("📥 Received notifications:", data.length);
+                // Sort by createdAt desc in frontend to avoid index requirement for now
+                const sortedData = data.sort((a, b) => {
+                    const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+                    const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+                    return timeB - timeA;
+                });
+
+                notifications = sortedData.map(n => ({
+                    id: n.id,
+                    name: n.senderName,
+                    action: n.action,
+                    date: n.createdAt?.toDate ? n.createdAt.toDate().toLocaleDateString() : '',
+                    time: n.createdAt?.toDate ? n.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+                    read: n.read
+                }));
+                updateUI();
+            });
+        } else {
+            window.location.href = "/pages/login.html";
+        }
+    });
 
     function calculateItemsPerPage() {
         const container = document.querySelector('.notifications-container');
@@ -29,29 +61,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const availableHeight = container.clientHeight;
 
         if (itemHeight > 0) {
-            // We want to fit N items and N-1 gaps, but let's just use item + gap for simplicity
-            // availableHeight >= N * itemHeight + (N-1) * gap
-            // availableHeight + gap >= N * (itemHeight + gap)
-            // N = floor((availableHeight + gap) / (itemHeight + gap))
             ITEMS_PER_PAGE = Math.floor((availableHeight + gap) / (itemHeight + gap));
             if (ITEMS_PER_PAGE < 1) ITEMS_PER_PAGE = 1;
         }
     }
 
-    let notifications = [
-        { id: 1, name: 'Martín', action: 'te ha enviado una solicitud para ser tu amigo', date: '20.09.2025', time: '10:40', read: false },
-        { id: 2, name: 'Lucía', action: 'te ha enviado una solicitud para ser tu amigo', date: '19.09.2025', time: '10:20', read: false },
-        { id: 3, name: 'Juan', action: 'compartió contigo un evento', date: '19.09.2025', time: '10:20', read: false },
-        { id: 4, name: 'Lucía', action: 'te ha enviado una solicitud para ser tu amigo', date: '19.09.2025', time: '10:20', read: true },
-        { id: 5, name: 'Lucía', action: 'te ha enviado una solicitud для ser tu amigo', date: '19.09.2025', time: '10:20', read: false },
-        { id: 6, name: 'Lucía', action: 'te ha enviado una solicitud для ser tu amigo', date: '19.09.2025', time: '10:20', read: true },
-        { id: 7, name: 'Lucía', action: 'te ha enviado una solicitud для ser tu amigo', date: '19.09.2025', time: '10:20', read: false },
-        { id: 8, name: 'Lucía', action: 'te ha enviado una solicitud для ser tu amigo', date: '19.09.2025', time: '10:20', read: false },
-        { id: 9, name: 'Carlos', action: 'comentó en tu publicación', date: '18.09.2025', time: '09:00', read: false },
-        { id: 10, name: 'Ana', action: 'te invitó a un grupo', date: '18.09.2025', time: '08:30', read: true }
-    ];
-
-        function renderPagination(totalItems) {
+    function renderPagination(totalItems) {
             const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
             paginationList.innerHTML = '';
             
@@ -96,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderNotifications(list) {
         notificationsList.innerHTML = '';
         if (list.length === 0) {
-            notificationsList.innerHTML = '<div style="text-align:center; padding: 40px; color: #888; font-size: 18px;">No hay notificaciones que coincidan con el filtro.</div>';
+            notificationsList.innerHTML = '<div style="text-align:center; padding: 40px; color: #888; font-size: 18px;">No hay notificaciones.</div>';
             return;
         }
         list.forEach(notif => {
@@ -132,8 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
     notificationsList.addEventListener('click', (e) => {
         const panel = e.target.closest('.notification-panel');
         if (!panel) return;
-        const id = parseInt(panel.dataset.id);
-        const index = notifications.findIndex(n => n.id === id);
+        const id = panel.dataset.id;
 
         if (e.target.closest('.notification-menu-btn')) {
             document.querySelectorAll('.notification-menu').forEach(m => {
@@ -144,21 +158,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (e.target.classList.contains('action-read')) {
-            if (index !== -1) notifications[index].read = true;
-            updateUI();
+            notificationService.markAsRead(id);
         }
 
         if (e.target.classList.contains('action-unread')) {
-            if (index !== -1) notifications[index].read = false;
-            updateUI();
+            notificationService.markAsUnread(id);
         }
 
         if (e.target.classList.contains('action-delete')) {
-            notifications = notifications.filter(n => n.id !== id);
-            if ((currentPage - 1) * ITEMS_PER_PAGE >= notifications.length && currentPage > 1) {
-                currentPage--;
-            }
-            updateUI();
+            notificationService.deleteNotification(id);
         }
     });
 
@@ -195,5 +203,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     calculateItemsPerPage();
-    updateUI();
 });
+

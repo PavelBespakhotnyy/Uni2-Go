@@ -99,6 +99,26 @@ body.sidebar-collapsed .sidebar-button {
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative; /* Added to anchor the badge */
+}
+
+.notification-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #ff4d4d;
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 4px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    z-index: 10;
 }
 
 body.sidebar-collapsed .buttons-list li a {

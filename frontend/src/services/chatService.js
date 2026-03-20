@@ -1,8 +1,9 @@
-import { db } from '../firebase/firebase';
+import { db } from '../firebase/firebase.js';
 import { 
     collection, query, where, getDocs, addDoc, 
     onSnapshot, orderBy, serverTimestamp, doc, updateDoc, increment, getDoc 
 } from "firebase/firestore";
+import { notificationService } from './notificationService.js';
 
 class ChatService {
     // Busca un usuario por código y crea un chat si no existe
@@ -39,15 +40,26 @@ class ChatService {
         initialUnreadCount[currentUser.uid] = 0;
         initialUnreadCount[friendId] = 0;
 
+        const senderName = currentUser.displayName || currentUser.email;
+
         const newChat = await addDoc(collection(db, "chats"), {
             participants: [currentUser.uid, friendId],
-            participantNames: [currentUser.displayName || currentUser.email, friendData.name],
+            participantNames: [senderName, friendData.name],
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
             lastMessage: null,
             messageCount: 0,
             unreadCount: initialUnreadCount
         });
+
+        console.log("📨 Envoi de notification de nuevo chat à:", friendId);
+        await notificationService.createNotification(
+            friendId, 
+            'new_chat', 
+            senderName, 
+            'te ha añadido a un nuevo chat', 
+            { chatId: newChat.id }
+        );
 
         return newChat.id;
     }
@@ -100,18 +112,18 @@ class ChatService {
         });
     }
 
-    async sendMessage(chatId, text, senderId, participants) {
+    async sendMessage(chatId, text, senderId, participants, senderName) {
+        console.log("📤 Envoi de message au chat:", chatId, "Participants:", participants);
         const chatRef = doc(db, "chats", chatId);
         const messagesRef = collection(db, "chats", chatId, "messages");
         
         const timestamp = serverTimestamp();
 
-        // 1. Add the message to the subcollection with the full schema
         const newMessage = {
             senderId: senderId,
-            text: text, // Existing field
-            messageText: text, // New duplicate field as requested
-            timestamp: timestamp, // Existing field
+            text: text,
+            messageText: text,
+            timestamp: timestamp,
             messageType: 'text',
             isDelivered: true,
             isRead: false,
@@ -123,7 +135,6 @@ class ChatService {
 
         await addDoc(messagesRef, newMessage);
 
-        // 2. Update the parent chat document
         const updateData = {
             lastMessage: {
                 text: text,
@@ -135,23 +146,36 @@ class ChatService {
             messageCount: increment(1)
         };
 
-        // Update unreadCount for all participants except the sender
-        participants.forEach(pId => {
-            if (pId !== senderId) {
-                updateData[`unreadCount.${pId}`] = increment(1);
-            }
+        const notificationPromises = [];
+        const targetParticipants = (participants && participants.length > 0) ? participants : [];
+
+        targetParticipants.forEach(pId => {
+            // ВРЕМЕННО: Убрал проверку (pId !== senderId), чтобы вы видели уведомление сами
+            updateData[`unreadCount.${pId}`] = increment(1);
+            
+            console.log(`🔔 Создание уведомления для пользователя: ${pId}`);
+            notificationPromises.push(
+                notificationService.createNotification(
+                    pId, 
+                    'new_message', 
+                    senderName || 'Alguien', 
+                    `te envió un mensaje: "${text.substring(0, 30)}${text.length > 30 ? '...' : ''}"`, 
+                    { chatId }
+                )
+            );
         });
 
-        await updateDoc(chatRef, updateData);
+        await Promise.all([
+            updateDoc(chatRef, updateData),
+            ...notificationPromises
+        ]);
+        console.log("✅ Message et notifications traités.");
     }
 
     async markAsRead(chatId, userId) {
         const chatRef = doc(db, "chats", chatId);
         const updateData = {};
         updateData[`unreadCount.${userId}`] = 0;
-        
-        // Note: You might also want to update readBy in lastMessage if the user is not in it
-        // and potentially update readBy in individual messages, but this is a good start.
         await updateDoc(chatRef, updateData);
     }
 }

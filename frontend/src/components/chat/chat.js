@@ -144,7 +144,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         try {
-            await chatService.sendMessage(activeChatId, text, currentUser.uid, activeChatParticipants);
+            const senderName = currentUser.displayName || currentUser.email;
+            await chatService.sendMessage(activeChatId, text, currentUser.uid, activeChatParticipants, senderName);
             if (messageInputEl) messageInputEl.value = '';
             console.log("✅ Mensaje enviado al chat:", activeChatId);
         } catch (error) {
