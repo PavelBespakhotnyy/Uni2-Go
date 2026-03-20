@@ -1,87 +1,72 @@
 <!doctype html>
 <html lang="es">
     <head>
-        <!-- Metas -->
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <!-- Page Title -->
         <title>Usuario</title>
-        <!-- Connecting Styles -->
-        <link
-            href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
-            rel="stylesheet"
-        />
+        <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
         <link rel="stylesheet" href="../src/style.css" id="main-style" />
         <link rel="stylesheet" href="../src/components/navbar/navbar.css" />
+        <link rel="stylesheet" href="../src/components/user/user.css" />
+        <link rel="stylesheet" href="../src/components/user/editModal.css" />
     </head>
     <body>
         <div id="preloader">
-          <div class="loader"></div>
+            <div class="loader"></div>
         </div>
 
         <div class="main-container">
             <nav class="sidebar" id="navbar">
                 <div class="sidebar-top-part">
                     <a href="../index.html">
-                        <img
-                            class="sidebar-logo"
-                            src="../public/images/logo_Uni2_Go.svg"
-                        />
+                        <img class="sidebar-logo" src="../public/images/logo_Uni2_Go.svg" />
                     </a>
                     <span class="sidebar-button bx bx-sm bx-sidebar"></span>
                 </div>
 
                 <ul class="buttons-list">
-                    <!-- Calendar -->
                     <li class="calendar">
                         <a href="./calendar.html">
                             <i class="bx bx-sm bx-calendar"></i>
                             <span class="font-bold">Calendar</span>
                         </a>
                     </li>
-                    <!-- Chat -->
                     <li class="chat">
                         <a href="./chat.html">
                             <i class="bx bx-sm bx-chat"></i>
                             <span class="font-bold">Chat</span>
                         </a>
                     </li>
-                    <!-- Noifications -->
                     <li class="notifications">
                         <a href="./notifications.html">
                             <i class="bx bx-sm bx-bell"></i>
                             <span class="font-bold">Noifications</span>
                         </a>
                     </li>
-                    <!-- Grupos -->
                     <li class="grupos">
                         <a href="./grupos.html">
                             <i class="bx bx-sm bx-group"></i>
                             <span class="font-bold">Grupos</span>
                         </a>
                     </li>
-                    <!-- Lista de Compras -->
                     <li class="lista-de-compras">
                         <a href="./lista_de_compras.html">
                             <i class="bx bx-sm bx-edit"></i>
                             <span class="font-bold">Lista de Compras</span>
                         </a>
                     </li>
-                    <!-- Carpetas -->
                     <li class="carpetas">
                         <a href="./carpetas.html">
                             <i class="bx bx-sm bx-folder"></i>
                             <span class="font-bold">Carpetas</span>
                         </a>
                     </li>
-                    <!-- Info -->
                     <li class="info">
                         <a href="./sobre_nosotros.html">
                             <i class="bx bx-sm bx-info-circle"></i>
                             <span class="font-bold">Info</span>
                         </a>
                     </li>
-                    <!-- Usuario -->
                     <li class="usuario">
                         <a class="button-change-page-active" href="./user.html">
                             <i class="bx bx-sm bx-user"></i>
@@ -90,40 +75,68 @@
                     </li>
                 </ul>
             </nav>
+
             <div class="content-wrapper">
-               
+
                 <div class="user-profile">
-                    <img src="https://ui-avatars.com/api/?name=Hugo+Ruiz&background=random" alt="Profile Image">
+                    <img id="user-avatar" src="" alt="Avatar de usuario" />
                 </div>
+
                 <div class="user-content">
                     <div>
-                        <h1>Nombre de Usuario</h1>
-                        <h1 id="user-name"></h1>
+                        <h1>Nombre</h1>
+                        <h1 id="user-name" title="Haz click para editar">
+                            <span class="field-text"></span>
+                            <img
+                                class="icon-edit"
+                                src="../public/images/editar-texto.png"
+                                alt="Editar nombre"
+                            />
+                        </h1>
                     </div>
                     <div>
-                        <h1>Apellido de Usuario</h1>
-                        <h1 id="user-lastname"></h1>
+                        <h1>Apellido</h1>
+                        <h1 id="user-lastname" title="Haz click para editar">
+                            <span class="field-text"></span>
+                            <img
+                                class="icon-edit"
+                                src="../public/images/editar-texto.png"
+                                alt="Editar apellido"
+                            />
+                        </h1>
                     </div>
                 </div>
+
                 <div class="info-container">
                     <div class="info-item">
-                        <button type="button" id="btn-info" class="btn-primary">Informacion personal</button>
+                        <button type="button" id="btn-info" class="btn-primary">
+                            Informacion personal
+                        </button>
                     </div>
                     <div class="info-item">
-                        <button  type="button" id="btn-privacy" class="btn-secondary">Datos y Privacidad</button>
+                        <button type="button" id="btn-privacy" class="btn-secondary">
+                            Datos y Privacidad
+                        </button>
                     </div>
                 </div>
+
                 <div class="button-sign-out">
-                    <button type="button" id="btn-logout" class="btn-tertiary">Cerrar Sesión</button>
+                    <button type="button" id="btn-logout" class="btn-tertiary">
+                        <img
+                            class="icon-logout"
+                            src="../public/images/cerrar-sesion.png"
+                            alt="Cerrar sesión"
+                        />
+                        Cerrar Sesión
+                    </button>
                 </div>
+
             </div>
         </div>
 
-        <script
-            type="module"
-            src="../src/components/preloader/preloader.js"
-        ></script>
+        <script type="module" src="../src/components/preloader/preloader.js"></script>
         <script type="module" src="../src/services/authGuard.js"></script>
         <script type="module" src="../src/components/navbar/navbar.js"></script>
+        <script type="module" src="../src/components/user/user.js"></script>
     </body>
 </html>
