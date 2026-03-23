@@ -19,21 +19,15 @@ const AUTH_PAGES = [
   "recover_password.html"
 ];
 
-// Функция для обновления UI с данными пользователя
+// Actualiza la interfaz con los datos del perfil del usuario
 function updateUserUI(data) {
-  // Проверяем, существует ли элемент user-name на этой странице
-  const userNameElement = document.getElementById('user-name');
-  const userLastNameElement = document.getElementById('user-lastname');
-  
-  if (userNameElement) {
-    userNameElement.innerText = data?.name || "Usuario";
-  }
-  
-  if (userLastNameElement) {
-    userLastNameElement.innerText = data?.surname || "";
-  }
-  
-  // Если элементов нет, это нормально для некоторых страниц
+  const nameSpan     = document.querySelector('#user-name .field-text');
+  const surnameSpan  = document.querySelector('#user-lastname .field-text');
+  const friendCodeEl = document.getElementById('friend-code');
+
+  if (nameSpan)     nameSpan.textContent     = data?.name    || "Usuario";
+  if (surnameSpan)  surnameSpan.textContent  = data?.surname || "";
+  if (friendCodeEl) friendCodeEl.textContent = data?.friend_code || "—";
 }
 
 // Функция для редиректа
