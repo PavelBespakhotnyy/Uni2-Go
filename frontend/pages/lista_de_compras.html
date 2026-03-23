@@ -95,17 +95,36 @@
                 <div class="shopping-page-wrapper">
                     <!-- Sub-sidebar for lists -->
                     <div class="shopping-lists-sidebar">
-                        <div id="sidebar-lists-container">
+                        <div class="sidebar-categories">
+                            <div class="category-btn active" id="btn-show-lists">
+                                <i class='bx bx-list-ul'></i>
+                                <span>Listas</span>
+                            </div>
+                            <div class="category-btn" id="btn-show-notes">
+                                <i class='bx bx-note'></i>
+                                <span>Notas</span>
+                            </div>
+                        </div>
+
+                        <div class="add-item-btn" id="add-list-btn">
+                            <span>Añadir lista</span>
+                            <i class='bx bx-plus bx-md'></i>
+                        </div>
+                        <div class="add-item-btn" id="add-note-btn" style="display: none;">
+                            <span>Añadir nota</span>
+                            <i class='bx bx-plus bx-md'></i>
+                        </div>
+
+                        <div id="sidebar-lists-container" class="sidebar-scroll-container">
                             <!-- Lists will be added here -->
                             <div class="lists-header active-list">
                                 <h2 id="list-title">Lista de la compra</h2>
                                 <i class='bx bx-pencil bx-sm edit-title-btn' style="cursor: pointer;"></i>
                             </div>
                         </div>
-                        
-                        <div class="add-list-btn" id="add-list-btn">
-                            <span>Añadir lista</span>
-                            <i class='bx bx-plus bx-md'></i>
+
+                        <div id="sidebar-notes-container" class="sidebar-scroll-container" style="display: none;">
+                            <!-- Notes will be added here -->
                         </div>
                     </div>
 
@@ -116,6 +135,7 @@
                             <input type="text" placeholder="Buscar ...">
                         </div>
 
+                        <!-- Products View -->
                         <div class="products-container" id="products-list">
                             <!-- Items will be added here dynamically -->
                             
@@ -125,9 +145,27 @@
                                 <span>Añadir producto</span>
                             </div>
                         </div>
+
+                        <!-- Notes View -->
+                        <div class="notes-container" id="notes-list" style="display: none;">
+                            <div class="note-paper">
+                                <div class="note-header">
+                                    <i class='bx bx-pencil pencil-icon'></i>
+                                    <input type="text" id="note-title-input" placeholder="Título de la nota..." class="note-title-field">
+                                </div>
+                                <textarea id="note-content-input" placeholder="Escribe tu nota aquí..." class="note-content-field"></textarea>
+                                <div class="note-footer">Uni2Go Notepad</div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
+        </div>
+
+        <div id="save-status" class="save-status">
+            <div class="spinner"></div>
+            <span>Guardando...</span>
         </div>
 
         <script
