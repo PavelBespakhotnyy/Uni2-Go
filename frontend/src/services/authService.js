@@ -1,7 +1,6 @@
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
-import { auth, db } from "../firebase/firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { auth, db } from "../firebase/firebase.js"; // ← ВАЖНО: используем configNew.js
 
 function generateFriendshipCode() {
   return Math.floor(10000000 + Math.random() * 90000000).toString();
@@ -22,6 +21,7 @@ export async function registerUser(formData) {
     throw new Error("Passwords do not match");
   }
 
+  console.log("🚀 Попытка создания пользователя в Firebase Auth:", email);
   const userCredential = await createUserWithEmailAndPassword(
     auth,
     email,
@@ -29,18 +29,30 @@ export async function registerUser(formData) {
   );
 
   const user = userCredential.user;
+  console.log("✅ Пользователь создан в Auth, UID:", user.uid);
 
   const friend_code = generateFriendshipCode();
 
-  await setDoc(doc(db, "users", user.uid), {
-    name,
-    surname,
-    phone,
-    dateOfBirth,
-    email,
-    friend_code,
-    createdAt: new Date(),
-  });
+  console.log("📝 Запись данных в Firestore (коллекция users)...");
+  try {
+    await setDoc(doc(db, "users", user.uid), {
+      name,
+      surname,
+      phone,
+      dateOfBirth,
+      email,
+      friend_code,
+      isActive: true,
+      avatarUrl: "",
+      bio: "",
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    console.log("✅ Данные успешно записаны в Firestore!");
+  } catch (fsError) {
+    console.error("❌ Ошибка при записи в Firestore:", fsError);
+    throw fsError;
+  }
 
   return user;
 }
