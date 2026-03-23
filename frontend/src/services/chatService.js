@@ -6,25 +6,18 @@ import {
 import { notificationService } from './notificationService.js';
 
 class ChatService {
-    // Busca un usuario por código y crea un chat si no existe
     async createChatByCode(friendCode, currentUser) {
-        // 1. Buscar al usuario con ese código
-        const uQuery = query(collection(db, "users"), where("friend_code", "==", friendCode));
-        const querySnapshot = await getDocs(uQuery);
+    console.log("Buscando amigo con código:", friendCode);
 
-        if (querySnapshot.empty) throw new Error("Código no encontrado");
+    // 1. Buscar al usuario amigo con ese código
+    const uQuery = query(collection(db, "users"), where("friend_code", "==", friendCode));
+    const querySnapshot = await getDocs(uQuery);
 
-        const friendDoc = querySnapshot.docs[0];
-        const friendData = friendDoc.data();
-        const friendId = friendDoc.id;
+    if (querySnapshot.empty) throw new Error("Código de amigo no encontrado");
 
-        // 2. Verificar si ya existe un chat entre ambos
-        const cQuery = query(
-            collection(db, "chats"), 
-            where("participants", "array-contains", currentUser.uid)
-        );
-        const existingChats = await getDocs(cQuery);
-        let existingChatId = null;
+    const friendDoc = querySnapshot.docs[0];
+    const friendData = friendDoc.data();
+    const friendId = friendDoc.id;
 
         existingChats.forEach(doc => {
             const data = doc.data();
@@ -33,7 +26,27 @@ class ChatService {
             }
         });
 
-        if (existingChatId) return existingChatId;
+    if (myDocSnap.exists()) {
+        myRealName = myDocSnap.data().name; // Sacamos tu nombre real de tu perfil
+    } else {
+        // Si no hay perfil en Firestore, intentamos el de Auth
+        myRealName = currentUser.displayName || "Usuario";
+    }
+
+    // 3. Verificar si ya existe un chat entre ambos
+    const cQuery = query(
+        collection(db, "chats"), 
+        where("participants", "array-contains", currentUser.uid)
+    );
+    const existingChats = await getDocs(cQuery);
+    let existingChatId = null;
+
+    existingChats.forEach(doc => {
+        const data = doc.data();
+        if (data.participants.includes(friendId)) {
+            existingChatId = doc.id;
+        }
+    });
 
         // 3. Si no existe, crear uno nuevo con el esquema actualizado
         const initialUnreadCount = {};
@@ -107,9 +120,16 @@ class ChatService {
             where("participants", "array-contains", userId),
             orderBy("updatedAt", "desc")
         );
+
+        // Retornamos el unsubscribe para poder cerrar la escucha si fuera necesario
         return onSnapshot(q, (snapshot) => {
-            const chats = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const chats = snapshot.docs.map(doc => ({ 
+                id: doc.id, 
+                ...doc.data() 
+            }));
             callback(chats);
+        }, (error) => {
+            console.error("Error en listenMyChats:", error);
         });
     }
 

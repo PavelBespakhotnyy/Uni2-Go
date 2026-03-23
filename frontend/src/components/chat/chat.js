@@ -41,10 +41,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function initChatList() {
+        console.log("Iniciando escucha de chats...");
+        
         chatService.listenMyChats(currentUser.uid, (chats) => {
             console.log("📥 Количество загруженных чатов:", chats.length);
             if (!contactsListEl) return;
-            contactsListEl.innerHTML = '';
+            contactsListEl.innerHTML = ''; 
+
+            if (chats.length === 0) {
+                contactsListEl.innerHTML = '<li class="no-chats">No tienes chats aún</li>';
+                return;
+            }
 
             if (chats.length === 0) {
                 const emptyLi = document.createElement('li');
@@ -174,6 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
             alert("Error al enviar mensaje: " + error.message);
         }
     }
+}
 
     function appendMessageDOM(msg) {
         if (!chatMessagesEl || !currentUser) return;
@@ -273,4 +281,29 @@ document.addEventListener('DOMContentLoaded', () => {
             handleSendMessage();
         }
     });
+    const initEvents = () => {
+    console.log("Asignando eventos de botones...");
+    
+    // Botón de enviar
+    if (sendBtnEl) {
+        sendBtnEl.onclick = () => {
+            console.log("Clic en botón enviar detectado");
+            handleSendMessage();
+        };
+    } else {
+        console.error("No se encontró el botón .chat-send-btn");
+    }
+
+    // Tecla Enter
+    if (messageInputEl) {
+        messageInputEl.onkeypress = (e) => {
+            if (e.key === 'Enter') {
+                console.log("Enter detectado");
+                handleSendMessage();
+            }
+        };
+    }
+};
+
 });
+//29910128
