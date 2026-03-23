@@ -181,7 +181,6 @@ document.addEventListener('DOMContentLoaded', () => {
             alert("Error al enviar mensaje: " + error.message);
         }
     }
-}
 
     function appendMessageDOM(msg) {
         if (!chatMessagesEl || !currentUser) return;
