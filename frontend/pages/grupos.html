@@ -97,15 +97,15 @@
 
             <main class="content-wrapper">
                 <div class="controls-bar">
-                    <select id="groupFilter" class="filters-select">
-                        <option value="all">Todos</option>
-                        <option value="recent">recientes</option>
-                        <option value="favorites">favoritos</option>
-                    </select>
+                    <h1>Grupos</h1>
                     <div class="search-container">
                         <i class="bx bx-search search-icon"></i>
                         <input type="text" id="groupSearch" class="search-input" placeholder="Buscar grupos..." />
                     </div>
+                    <select id="groupFilter" class="filters-select">
+                        <option value="all">Todos</option>
+                        <option value="recent">Recientes</option>
+                    </select>
                 </div>
 
                 <div class="groups-container">
@@ -114,10 +114,8 @@
                     </div>
                 </div>
 
-                <div class="pagination-container">
-                    <div class="pagination-list">
-                        <!-- Pagination will be rendered here -->
-                    </div>
+                <div class="pagination-container" style="display:none">
+                    <div class="pagination-list"></div>
                 </div>
             </main>
         </div>
