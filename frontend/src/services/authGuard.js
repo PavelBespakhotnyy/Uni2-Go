@@ -1,5 +1,5 @@
 import { auth } from "../firebase/firebase";
-import { onAuthStateChanged, signOut } from "firebase/auth"; // 1. Importar signOut
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import { getUserProfile } from "./userService.js";
 
 const PROTECTED_PAGES = [
@@ -19,54 +19,76 @@ const AUTH_PAGES = [
   "recover_password.html"
 ];
 
-onAuthStateChanged(auth, async(user) => {
+// Функция для обновления UI с данными пользователя
+function updateUserUI(data) {
+  // Проверяем, существует ли элемент user-name на этой странице
+  const userNameElement = document.getElementById('user-name');
+  const userLastNameElement = document.getElementById('user-lastname');
+  
+  if (userNameElement) {
+    userNameElement.innerText = data?.name || "Usuario";
+  }
+  
+  if (userLastNameElement) {
+    userLastNameElement.innerText = data?.surname || "";
+  }
+  
+  // Если элементов нет, это нормально для некоторых страниц
+}
+
+// Функция для редиректа
+function redirectIfNeeded(user, currentPath, isProtected, isAuthPage) {
+  if (!user && isProtected) {
+    // Не залогинен -> на страницу входа
+    window.location.href = "/pages/login.html";
+    return true;
+  } else if (user && isAuthPage) {
+    // Уже залогинен -> на календарь
+    window.location.href = "/pages/calendar.html";
+    return true;
+  }
+  return false;
+}
+
+// Основная функция
+async function handleAuthState(user) {
   const currentPath = window.location.pathname;
-  // Checking if current page is protected
   const isProtected = PROTECTED_PAGES.some(page => currentPath.endsWith(page));
-  // Checking if current page is auth-related
   const isAuthPage = AUTH_PAGES.some(page => currentPath.endsWith(page));
   
-            
-            if (user) {
-                const data = await getUserProfile(user.uid);
-                // Si encontramos los datos, los ponemos
-                document.getElementById('user-name').innerText = data.name || "Usuario";
-                document.getElementById('user-lastname').innerText = data.surname || "";
-            } else {
-                // Si el usuario existe en Auth pero no en Firestore aún
-                
-                console.log("Perfil de Firestore no encontrado");
-            }
-  if (!user && isProtected) {
-    // Not logged in -> go to login
-    
-    window.location.href = "/pages/login.html";
-  } else if (user && isAuthPage) {
-    // Already logged in -> skip login/register and go to calendar
-    window.location.href = "/pages/calendar.html";
-  }
-
-  // 2. Si el usuario está autenticado, activamos el botón de cerrar sesión
+  // Сначала проверяем, нужно ли редиректить
+  const redirected = redirectIfNeeded(user, currentPath, isProtected, isAuthPage);
+  if (redirected) return;
+  
+  // Если пользователь залогинен, получаем его данные
   if (user) {
-    //const data = await getUserProfile(user.uid);
-        // Usamos .name y .surname (tal cual están en tu base de datos)
-      
-    initLogout();
+    try {
+      const data = await getUserProfile(user.uid);
+      updateUserUI(data);
+      initLogout();
+    } catch (error) {
+      console.error("Error al obtener perfil:", error);
+    }
+  } else {
+    console.log("Usuario no autenticado");
   }
-});
+}
 
-// 3. Función para manejar el evento del botón
+// Запускаем слушатель
+onAuthStateChanged(auth, handleAuthState);
+
+// Функция для кнопки выхода
 function initLogout() {
   const logoutBtn = document.getElementById("btn-logout");
   
   if (logoutBtn) {
-    // Usamos onclick o addEventListener
-    logoutBtn.addEventListener("click", async () => {
+    // Удаляем старые обработчики, чтобы не было дубликатов
+    const newLogoutBtn = logoutBtn.cloneNode(true);
+    logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
+    
+    newLogoutBtn.addEventListener("click", async () => {
       try {
         await signOut(auth);
-        // No necesitas redireccionar aquí; onAuthStateChanged 
-        // se ejecutará de nuevo, detectará que user es null 
-        // y te enviará a login.html automáticamente.
         console.log("Sesión cerrada");
       } catch (error) {
         console.error("Error al cerrar sesión:", error);

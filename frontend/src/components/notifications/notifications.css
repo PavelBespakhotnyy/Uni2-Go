@@ -113,10 +113,10 @@ html, body {
     color: #000;
 }
 
-/* Unread: White background, Bold text */
+/* Unread: White background */
 .notification-panel.unread {
     background-color: #ffffff;
-    font-weight: bold;
+    font-weight: normal; /* Changed from bold to normal so only username is bold */
 }
 
 /* Read: Grey background, Normal text */
@@ -266,8 +266,8 @@ html, body {
     position: absolute;
     top: -5px;
     right: -5px;
-    background-color: #999;
-    color: #000;
+    background-color: #ff0000;
+    color: #ffffff;
     font-size: 10px;
     width: 16px;
     height: 16px;
