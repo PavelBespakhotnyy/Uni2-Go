@@ -1,8 +1,9 @@
-import { db } from '../firebase/firebase';
+import { db } from '../firebase/firebase.js';
 import { 
     collection, query, where, getDocs, addDoc, 
-    onSnapshot, orderBy, serverTimestamp, doc, getDoc, deleteDoc, writeBatch 
+    onSnapshot, orderBy, serverTimestamp, doc, updateDoc, increment, getDoc 
 } from "firebase/firestore";
+import { notificationService } from './notificationService.js';
 
 class ChatService {
     async createChatByCode(friendCode, currentUser) {
@@ -18,12 +19,12 @@ class ChatService {
     const friendData = friendDoc.data();
     const friendId = friendDoc.id;
 
-    if (friendId === currentUser.uid) throw new Error("No puedes chatear contigo mismo");
-
-    // 2. BUSCAR MI PROPIO NOMBRE en la colección 'users' (Para evitar el "Usuario")
-    const myDocRef = doc(db, "users", currentUser.uid);
-    const myDocSnap = await getDoc(myDocRef);
-    let myRealName = "Usuario";
+        existingChats.forEach(doc => {
+            const data = doc.data();
+            if (data.participants.includes(friendId)) {
+                existingChatId = doc.id;
+            }
+        });
 
     if (myDocSnap.exists()) {
         myRealName = myDocSnap.data().name; // Sacamos tu nombre real de tu perfil
@@ -47,32 +48,77 @@ class ChatService {
         }
     });
 
-    if (existingChatId) return existingChatId;
+        // 3. Si no existe, crear uno nuevo con el esquema actualizado
+        const initialUnreadCount = {};
+        initialUnreadCount[currentUser.uid] = 0;
+        initialUnreadCount[friendId] = 0;
 
-    // 4. CREACIÓN DEL CHAT CON NOMBRES REALES
-    const friendName = friendData.name || "Amigo";
+        // Obtener perfil del remitente para nombre completo
+        let senderName = currentUser.displayName || currentUser.email;
+        try {
+            const senderDoc = await getDoc(doc(db, "users", currentUser.uid));
+            if (senderDoc.exists()) {
+                const sData = senderDoc.data();
+                senderName = `${sData.name || ''} ${sData.surname || ''}`.trim() || senderName;
+            }
+        } catch (e) {
+            console.warn("No se pudo obtener el perfil del remitente:", e);
+        }
 
-    try {
-        const newChatData = {
+        const friendFullName = `${friendData.name || ''} ${friendData.surname || ''}`.trim() || friendData.name || "Amigo";
+
+        const newChat = await addDoc(collection(db, "chats"), {
             participants: [currentUser.uid, friendId],
-            participantNames: [myRealName, friendName], // <--- Ahora myRealName tendrá tu nombre de Firestore
+            participantNames: [senderName, friendFullName],
             createdAt: serverTimestamp(),
-            lastMessage: ""
-        };
+            updatedAt: serverTimestamp(),
+            lastMessage: null,
+            messageCount: 0,
+            unreadCount: initialUnreadCount
+        });
 
-        const docRef = await addDoc(collection(db, "chats"), newChatData);
-        console.log(" Chat creado con ID:", docRef.id);
-        return docRef.id;
-    } catch (error) {
-        console.error("Error al crear documento en Firestore:", error);
-        throw error;
+        console.log("📨 Envoi de notification de nuevo chat à:", friendId);
+        await notificationService.createNotification(
+            friendId, 
+            'new_chat', 
+            senderName, 
+            'te ha añadido a un nuevo chat', 
+            { chatId: newChat.id },
+            currentUser.uid
+        );
+
+        return newChat.id;
     }
-}
-listenMyChats(userId, callback) {
-        // Importante: Asegúrate de tener acceso a 'db' y las funciones de firestore aquí
+
+    async getChatInfo(chatId) {
+        try {
+            console.log('🔍 Obteniendo información del chat:', chatId);
+            const chatRef = doc(db, "chats", chatId);
+            const chatSnap = await getDoc(chatRef);
+            
+            if (!chatSnap.exists()) {
+                console.log('❌ Chat no encontrado');
+                return null;
+            }
+            
+            const chatData = chatSnap.data();
+            console.log('✅ Chat encontrado:', chatData);
+            
+            return {
+                id: chatSnap.id,
+                ...chatData
+            };
+        } catch (error) {
+            console.error('❌ Error en getChatInfo:', error);
+            throw error;
+        }
+    }
+    
+    listenMyChats(userId, callback) {
         const q = query(
             collection(db, "chats"), 
-            where("participants", "array-contains", userId)
+            where("participants", "array-contains", userId),
+            orderBy("updatedAt", "desc")
         );
 
         // Retornamos el unsubscribe para poder cerrar la escucha si fuera necesario
@@ -99,64 +145,75 @@ listenMyChats(userId, callback) {
         });
     }
 
-   async sendMessage(chatId, text, senderId) {
-    // 1. Validaciones de seguridad para evitar el error de 'undefined'
-    if (!chatId) {
-        console.error("Error: chatId es undefined");
-        return;
-    }
-    if (!senderId) {
-        console.error("Error: senderId es undefined");
-        return;
-    }
-    if (!text || text.trim() === "") {
-        console.error("Error: El texto está vacío");
-        return;
-    }
-
-    try {
+    async sendMessage(chatId, text, senderId, participants, senderName) {
+        console.log("📤 Envoi de message au chat:", chatId, "Participants:", participants);
+        const chatRef = doc(db, "chats", chatId);
         const messagesRef = collection(db, "chats", chatId, "messages");
         
-        // 2. Solo enviamos datos si estamos seguros de que existen
-        await addDoc(messagesRef, {
-            text: text,
+        const timestamp = serverTimestamp();
+
+        const newMessage = {
             senderId: senderId,
-            timestamp: serverTimestamp() // Usar siempre el del servidor
+            text: text,
+            messageText: text,
+            timestamp: timestamp,
+            messageType: 'text',
+            isDelivered: true,
+            isRead: false,
+            deliveredAt: timestamp,
+            sentAt: timestamp,
+            readBy: [senderId],
+            reactions: {}
+        };
+
+        await addDoc(messagesRef, newMessage);
+
+        const updateData = {
+            lastMessage: {
+                text: text,
+                senderId: senderId,
+                timestamp: timestamp,
+                readBy: [senderId]
+            },
+            updatedAt: timestamp,
+            messageCount: increment(1)
+        };
+
+        const notificationPromises = [];
+        const targetParticipants = (participants && participants.length > 0) ? participants : [];
+
+        targetParticipants.forEach(pId => {
+            // No enviar notificaciones ni incrementar contador para el remitente
+            if (pId === senderId) return;
+
+            updateData[`unreadCount.${pId}`] = increment(1);
+            
+            console.log(`🔔 Создание уведомления для пользователя: ${pId}`);
+            notificationPromises.push(
+                notificationService.createNotification(
+                    pId, 
+                    'new_message', 
+                    senderName || 'Alguien', 
+                    `te envió un mensaje: "${text.substring(0, 30)}${text.length > 30 ? '...' : ''}"`, 
+                    { chatId },
+                    senderId
+                )
+            );
         });
-        
-        console.log("Mensaje guardado correctamente en Firebase");
-    } catch (e) {
-        console.error("Error al ejecutar addDoc:", e);
-    }
-}
-    async deleteChat(chatId) {
-        if (!chatId) return;
 
-        try {
-            // 1. Opcional: Borrar la subcolección de mensajes primero
-            // Nota: Firestore no borra subcolecciones automáticamente al borrar el padre
-            const messagesRef = collection(db, "chats", chatId, "messages");
-            const messagesSnap = await getDocs(messagesRef);
-            
-            const batch = writeBatch(db);
-            messagesSnap.forEach((msgDoc) => {
-                batch.delete(msgDoc.ref);
-            });
-            await batch.commit();
-
-            // 2. Borrar el documento principal del chat
-            const chatRef = doc(db, "chats", chatId);
-            await deleteDoc(chatRef);
-            
-            console.log(`Chat ${chatId} y sus mensajes eliminados.`);
-        } catch (error) {
-            console.error("Error al eliminar el chat de Firebase:", error);
-            throw error;
-        }
+        await Promise.all([
+            updateDoc(chatRef, updateData),
+            ...notificationPromises
+        ]);
+        console.log("✅ Message et notifications traités.");
     }
 
-
-
+    async markAsRead(chatId, userId) {
+        const chatRef = doc(db, "chats", chatId);
+        const updateData = {};
+        updateData[`unreadCount.${userId}`] = 0;
+        await updateDoc(chatRef, updateData);
+    }
 }
 
 export const chatService = new ChatService();

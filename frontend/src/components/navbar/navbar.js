@@ -1,3 +1,7 @@
+import { auth } from '../../firebase/firebase.js';
+import { onAuthStateChanged } from "firebase/auth";
+import { notificationService } from '../../services/notificationService.js';
+
 (function() {
     // Apply initial state immediately to avoid animation on load
     const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
@@ -21,26 +25,39 @@
             localStorage.setItem('sidebar-collapsed', document.body.classList.contains('sidebar-collapsed'));
         });
 
-        // Badge logic
-        updateNotificationBadge();
+        // Initialize real-time badge updates
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                notificationService.listenMyNotifications(user.uid, (notifications) => {
+                    const unreadCount = notifications.filter(n => !n.read).length;
+                    updateBadgeUI(unreadCount);
+                });
+            }
+        });
     });
 
-    // Function to show/hide badge based on localStorage
-    window.updateNotificationBadge = function() {
-        const hasNew = localStorage.getItem('hasNewNotification') === 'true';
+    function updateBadgeUI(count) {
         const navItem = document.querySelector('.buttons-list .notifications i');
-        
         if (!navItem) return;
 
         // Remove existing badge if any
         const existingBadge = navItem.querySelector('.notification-badge');
         if (existingBadge) existingBadge.remove();
 
-        if (hasNew) {
+        if (count > 0) {
             const badge = document.createElement('span');
             badge.className = 'notification-badge';
-            badge.textContent = '1';
+            badge.textContent = count > 9 ? '9+' : count;
             navItem.appendChild(badge);
+        }
+    }
+
+    // Export for manual updates if needed
+    window.updateNotificationBadge = function() {
+        const user = auth.currentUser;
+        if (user) {
+            // This is just a fallback, the real-time listener should handle it
+            // but we can trigger a manual check if absolutely necessary.
         }
     };
 })();
