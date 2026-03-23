@@ -1,338 +1,534 @@
+import { auth } from '../../firebase/firebase.js';
+import { onAuthStateChanged } from 'firebase/auth';
+import { gruposService } from '../../services/gruposService.js';
+
 document.addEventListener('DOMContentLoaded', () => {
-    const groupSearchInput = document.getElementById('groupSearch');
+    let currentUser = null;
+    let groupsData = [];
+    let unsubscribeGroups = null;
+
     const groupsGrid = document.getElementById('groupsGrid');
-    const paginationList = document.querySelector('.pagination-list');
+    const groupSearchInput = document.getElementById('groupSearch');
+    const groupFilter = document.getElementById('groupFilter');
 
-    let ITEMS_PER_PAGE = 6;
-    let currentPage = 1;
+    // Ocultar paginación (no se necesita con datos en tiempo real)
+    const paginationContainer = document.querySelector('.pagination-container');
+    if (paginationContainer) paginationContainer.style.display = 'none';
 
-    let groupsData = [
-        { 
-            id: 1, 
-            name: 'Equipo de Diseño', 
-            members: 8, 
-            users: [
-                { id: 101, avatar: '../public/images/grupo.svg' },
-                { id: 102, avatar: '../public/images/grupo.svg' }
-            ], 
-            description: 'Grupo dedicado al diseño de interfaces y experiencia de usuario para Uni2Go.',
-            events: ['Reunión semanal', 'Sprint review'] 
-        },
-        { 
-            id: 2, 
-            name: 'Desarrollo Frontend', 
-            members: 12, 
-            users: [
-                { id: 201, avatar: '../public/images/grupo.svg' }
-            ], 
-            description: 'Equipo encargado del desarrollo de la plataforma web utilizando React y Vite.',
-            events: ['Daily standup', 'Tech talk'] 
-        },
-        { 
-            id: 3, 
-            name: 'Marketing Digital', 
-            members: 5, 
-            users: [
-                { id: 301, avatar: '../public/images/grupo.svg' }
-            ], 
-            description: 'Estrategias de comunicación y posicionamiento de la aplicación.',
-            events: ['Campaña marzo'] 
-        },
-    ];
+    // ── Auth ──────────────────────────────────────────────
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUser = user;
+            startListeningGroups();
+        }
+    });
 
-    function calculateItemsPerPage() {
-        const container = document.querySelector('.groups-container');
-        if (!container) return;
-        const availableWidth = container.clientWidth;
-        const cardWidth = 300; 
-        const gapX = 40;
-        let cols = Math.floor((availableWidth + gapX) / (cardWidth + gapX));
-        if (cols < 1) cols = 1;
-        ITEMS_PER_PAGE = Math.max(6, cols * 2);
+    function startListeningGroups() {
+        if (unsubscribeGroups) unsubscribeGroups();
+        unsubscribeGroups = gruposService.listenMyGroups(currentUser.uid, (groups) => {
+            groupsData = groups;
+            updateUI();
+        });
     }
 
-    function showGroupModal(group) {
-        let modal = document.getElementById('groupModal');
-        if (!modal) {
-            modal = document.createElement('div');
-            modal.id = 'groupModal';
-            modal.className = 'modal-overlay';
-            document.body.appendChild(modal);
+    // ── UI Update ─────────────────────────────────────────
+    function updateUI() {
+        const term = groupSearchInput.value.toLowerCase();
+        const filter = groupFilter.value;
+
+        let filtered = groupsData.filter(g =>
+            g.name.toLowerCase().includes(term)
+        );
+
+        if (filter === 'recent') {
+            filtered = [...filtered].sort((a, b) => {
+                const ta = a.created_at?.seconds ?? 0;
+                const tb = b.created_at?.seconds ?? 0;
+                return tb - ta;
+            });
         }
 
-        const renderModalContent = () => {
-            modal.innerHTML = `
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h2>${group.name}</h2>
-                        <i class="bx bx-x modal-close"></i>
-                    </div>
-                    <div class="modal-body">
-                        <div class="modal-section">
-                            <div class="section-header">
-                                <h3>Descripción</h3>
-                                <i class="bx bx-pencil edit-desc-btn"></i>
-                            </div>
-                            <div id="descContainer">
-                                <p class="desc-text">${group.description || 'Sin descripción.'}</p>
-                            </div>
-                        </div>
-                        <div class="modal-section">
-                            <h3>Usuarios en este grupo</h3>
-                            <div class="modal-users-container">
-                                <button class="modal-add-user-btn">
-                                    <i class="bx bx-plus"></i>
-                                </button>
-                                <div class="modal-users-list">
-                                    ${group.users.map(u => `
-                                        <div class="user-avatar-wrapper" data-user-id="${u.id}">
-                                            <img src="${u.avatar}" class="user-avatar-modal">
-                                            <div class="user-action-menu">
-                                                <button class="user-delete-btn">Eliminar</button>
-                                            </div>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
+        renderGroups(filtered);
+    }
 
-            // Close modal
-            modal.querySelector('.modal-close').onclick = () => modal.style.display = 'none';
-            
-            // Edit description
-            modal.querySelector('.edit-desc-btn').onclick = () => {
-                const container = modal.querySelector('#descContainer');
-                const p = container.querySelector('.desc-text');
-                const textarea = document.createElement('textarea');
-                textarea.className = 'modal-desc-input';
-                textarea.value = group.description;
-                container.replaceChild(textarea, p);
-                textarea.focus();
-                textarea.onblur = () => {
-                    group.description = textarea.value.trim();
-                    renderModalContent();
-                };
-            };
+    function renderGroups(groups) {
+        groupsGrid.innerHTML = '';
+        groupsGrid.appendChild(createAddCard());
 
-            // Add user
-            modal.querySelector('.modal-add-user-btn').onclick = () => {
-                const userId = Date.now();
-                group.users.push({ id: userId, avatar: '../public/images/grupo.svg' });
-                group.members = group.users.length;
-                renderModalContent();
-                updateUI();
-            };
+        if (groups.length === 0 && groupSearchInput.value) {
+            groupsGrid.appendChild(emptyState('bx-search-alt', 'No se encontraron grupos'));
+            return;
+        }
+        if (groups.length === 0) {
+            groupsGrid.appendChild(emptyState('bx-group', '¡Aún no tienes grupos. Crea el primero!'));
+            return;
+        }
 
-            // User context menu (toggle)
-            modal.querySelectorAll('.user-avatar-modal').forEach(img => {
-                img.onclick = (e) => {
-                    e.stopPropagation();
-                    const menu = img.nextElementSibling;
-                    document.querySelectorAll('.user-action-menu').forEach(m => {
-                        if (m !== menu) m.classList.remove('active');
-                    });
-                    menu.classList.toggle('active');
-                };
-            });
+        groups.forEach(g => groupsGrid.appendChild(createGroupCard(g)));
+    }
 
-            // Delete user
-            modal.querySelectorAll('.user-delete-btn').forEach(btn => {
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    const userId = parseInt(btn.closest('.user-avatar-wrapper').dataset.userId);
-                    group.users = group.users.filter(u => u.id !== userId);
-                    group.members = group.users.length;
-                    renderModalContent();
-                    updateUI();
-                };
-            });
-        };
+    function emptyState(icon, text) {
+        const el = document.createElement('div');
+        el.className = 'empty-state';
+        el.innerHTML = `<i class="bx ${icon}"></i><p>${text}</p>`;
+        return el;
+    }
 
-        renderModalContent();
-        modal.style.display = 'flex';
-        modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+    // ── Color / initials helpers ──────────────────────────
+    const COLORS = ['#4f46e5', '#0284c7', '#0891b2', '#059669', '#d97706', '#0056FF', '#7c3aed', '#db2777'];
+
+    function avatarColor(str) {
+        if (!str) return COLORS[0];
+        let h = 0;
+        for (const c of str) h = ((h << 5) - h) + c.charCodeAt(0);
+        return COLORS[Math.abs(h) % COLORS.length];
+    }
+
+    function initials(name, surname) {
+        const n = (name || '').trim();
+        const s = (surname || '').trim();
+        if (n && s) return (n[0] + s[0]).toUpperCase();
+        if (n) return n.substring(0, 2).toUpperCase();
+        return '?';
+    }
+
+    function groupInitials(groupName) {
+        if (!groupName) return '?';
+        const words = groupName.trim().split(/\s+/);
+        return words.length === 1
+            ? words[0].substring(0, 2).toUpperCase()
+            : (words[0][0] + words[1][0]).toUpperCase();
+    }
+
+    // ── Cards ─────────────────────────────────────────────
+    function createAddCard() {
+        const card = document.createElement('div');
+        card.className = 'group-card add-card';
+        card.innerHTML = `
+            <div class="add-card-icon"><i class="bx bx-plus"></i></div>
+            <div class="group-card-info">
+                <span class="group-card-name add-card-label">Nuevo grupo</span>
+                <span class="group-card-members">Crear un nuevo grupo</span>
+            </div>
+        `;
+        card.addEventListener('click', () => showCreateGroupModal());
+        return card;
     }
 
     function createGroupCard(group) {
-        const groupCardWrapper = document.createElement('div');
-        groupCardWrapper.className = 'group-card-wrapper';
-        groupCardWrapper.dataset.id = group.id;
+        const card = document.createElement('div');
+        card.className = 'group-card';
 
-        const groupCard = document.createElement('div');
-        groupCard.className = 'group-card';
-        groupCard.onclick = () => showGroupModal(group);
+        const color = avatarColor(group.name);
+        const inits = groupInitials(group.name);
 
-        const groupContent = document.createElement('div');
-        groupContent.className = 'group-content';
-        
-        // Only user avatar in bottom right, no centered plus
-        const userIconsContainer = document.createElement('div');
-        userIconsContainer.className = 'group-card-users';
-        const userImg = document.createElement('img');
-        userImg.className = 'user-avatar-inside';
-        userImg.src = '../public/images/grupo.svg';
-        userIconsContainer.appendChild(userImg);
-        groupContent.appendChild(userIconsContainer);
-
-        const menuBtn = document.createElement('button');
-        menuBtn.className = 'group-menu-btn';
-        menuBtn.innerHTML = '<i class="bx bx-dots-vertical-rounded"></i>';
-        
-        const submenu = document.createElement('div');
-        submenu.className = 'group-submenu';
-        submenu.innerHTML = `
-            <button class="submenu-item action-favorite">Añadir a favoritas</button>
-            <button class="submenu-item delete action-delete">Eliminar</button>
+        card.innerHTML = `
+            <div class="group-card-avatar" style="background-color:${color}">${inits}</div>
+            <div class="group-card-info">
+                <span class="group-card-name" title="${group.name}">${group.name}</span>
+                <span class="group-card-members">${group.description || 'Sin descripción'}</span>
+            </div>
+            <button class="group-card-menu-btn" title="Opciones">
+                <i class="bx bx-dots-vertical-rounded"></i>
+            </button>
+            <div class="group-card-submenu">
+                <button class="submenu-item delete action-delete">
+                    <i class="bx bx-trash"></i> Eliminar grupo
+                </button>
+            </div>
         `;
 
-        menuBtn.onclick = (e) => {
+        // Abrir modal al hacer clic en avatar o info
+        ['group-card-avatar', 'group-card-info'].forEach(cls => {
+            card.querySelector('.' + cls).addEventListener('click', () => showGroupModal(group));
+        });
+
+        // Menú de tres puntos
+        const menuBtn = card.querySelector('.group-card-menu-btn');
+        const submenu = card.querySelector('.group-card-submenu');
+
+        menuBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            document.querySelectorAll('.group-submenu').forEach(m => {
+            document.querySelectorAll('.group-card-submenu.active').forEach(m => {
                 if (m !== submenu) m.classList.remove('active');
             });
             submenu.classList.toggle('active');
-        };
+        });
 
-        submenu.querySelector('.action-favorite').onclick = (e) => {
+        card.querySelector('.action-delete').addEventListener('click', (e) => {
             e.stopPropagation();
             submenu.classList.remove('active');
-            alert('Añadido a favoritas');
-        };
+            showConfirmDialog(
+                `¿Eliminar "${group.name}"?`,
+                'Esta acción no se puede deshacer.',
+                async () => {
+                    try {
+                        await gruposService.deleteGroup(group.id);
+                        showToast('Grupo eliminado', 'success');
+                    } catch {
+                        showToast('Error al eliminar el grupo', 'error');
+                    }
+                }
+            );
+        });
 
-        submenu.querySelector('.action-delete').onclick = (e) => {
-            e.stopPropagation();
-            if(confirm('¿Seguro que quieres eliminar este grupo?')) {
-                groupsData = groupsData.filter(g => g.id !== group.id);
-                updateUI();
-            }
-        };
+        return card;
+    }
 
-        groupCard.appendChild(menuBtn);
-        groupCard.appendChild(submenu);
-        groupCard.appendChild(groupContent);
+    // ── Group detail modal ────────────────────────────────
+    async function showGroupModal(group) {
+        const modal = getOrCreateModal('groupDetailModal');
+        modal.querySelector('.modal-title').textContent = group.name;
+        modal.querySelector('.modal-body').innerHTML = `
+            <div class="modal-loading">
+                <div class="loading-spinner"></div>
+                <p>Cargando miembros...</p>
+            </div>
+        `;
+        modal.classList.add('active');
 
-        const groupFooter = document.createElement('div');
-        groupFooter.className = 'group-footer';
-        const groupNameContainer = document.createElement('div');
-        groupNameContainer.className = 'group-name-container';
-        groupNameContainer.innerHTML = `
-            <span class="group-name" title="${group.name}">${group.name}</span>
-            <i class="bx bx-pencil edit-name-btn"></i>
+        try {
+            // 1. Obtener documentos de la subcolección members
+            const memberDocs = await gruposService.getGroupMembers(group.id);
+            // 2. Obtener datos de usuario (name, surname, friend_code, thumbnail)
+            const userIds = memberDocs.map(m => m.id);
+            const userDetails = await gruposService.getMemberDetails(userIds);
+            // 3. Combinar rol con datos de usuario
+            const members = memberDocs.map(md => {
+                const user = userDetails.find(u => u.id === md.id) || { id: md.id };
+                return { ...user, role: md.role, joined_at: md.joined_at };
+            });
+
+            renderGroupModalBody(modal, group, members);
+        } catch (e) {
+            console.error(e);
+            modal.querySelector('.modal-body').innerHTML =
+                '<p style="color:#aaa;text-align:center;padding:40px">Error al cargar los miembros.</p>';
+        }
+    }
+
+    function renderGroupModalBody(modal, group, members) {
+        const color = avatarColor(group.name);
+        const isAdmin = members.some(m => m.id === currentUser.uid && m.role === 'admin');
+
+        modal.querySelector('.modal-title').textContent = group.name;
+        modal.querySelector('.modal-body').innerHTML = `
+            <div class="modal-group-header">
+                <div class="modal-group-avatar" style="background-color:${color}">
+                    ${groupInitials(group.name)}
+                </div>
+                <div class="modal-group-title-area">
+                    <h2 class="modal-group-name">${group.name}</h2>
+                    <p class="modal-group-desc">${group.description || 'Sin descripción'}</p>
+                </div>
+                ${isAdmin
+                    ? '<button class="modal-edit-btn" title="Editar grupo"><i class="bx bx-pencil"></i></button>'
+                    : ''}
+            </div>
+
+            <div class="modal-members-section">
+                <div class="modal-members-header">
+                    <h3>Miembros (${members.length})</h3>
+                    ${isAdmin
+                        ? `<button class="modal-add-member-btn">
+                               <i class="bx bx-user-plus"></i> Añadir
+                           </button>`
+                        : ''}
+                </div>
+
+                ${isAdmin
+                    ? `<div class="add-member-form" id="addMemberForm" style="display:none">
+                           <input type="text" id="addMemberCodeInput" class="member-code-input" placeholder="Código de amigo">
+                           <button class="add-member-submit-btn" id="addMemberSubmitBtn"><i class="bx bx-check"></i></button>
+                           <button class="add-member-cancel-btn" id="addMemberCancelBtn"><i class="bx bx-x"></i></button>
+                       </div>`
+                    : ''}
+
+                <ul class="modal-members-list">
+                    ${members.map(m => {
+                        const hasName = m.name || m.surname;
+                        const displayName = hasName
+                            ? `${m.name || ''} ${m.surname || ''}`.trim()
+                            : m.id;
+                        const inits = initials(m.name, m.surname);
+                        const memberColor = avatarColor(m.name || m.id);
+                        const isMe = m.id === currentUser.uid;
+                        const canRemove = isAdmin && !isMe && m.role !== 'admin';
+
+                        return `
+                        <li class="modal-member-item">
+                            <div class="member-avatar" style="background-color:${memberColor}">${inits}</div>
+                            <div class="member-info">
+                                <span class="member-name">${displayName}</span>
+                                <span class="member-code">${m.friend_code ? '#' + m.friend_code : ''}</span>
+                            </div>
+                            ${isMe
+                                ? '<span class="member-you-badge">Tú</span>'
+                                : m.role === 'admin'
+                                    ? '<span class="member-role-badge">Admin</span>'
+                                    : ''
+                            }
+                            ${canRemove
+                                ? `<button class="member-remove-btn" data-uid="${m.id}" title="Eliminar del grupo">
+                                       <i class="bx bx-user-minus"></i>
+                                   </button>`
+                                : ''}
+                        </li>`;
+                    }).join('')}
+                </ul>
+            </div>
         `;
 
-        groupNameContainer.querySelector('.edit-name-btn').onclick = (e) => {
-            e.stopPropagation();
-            const span = groupNameContainer.querySelector('.group-name');
-            const currentPencil = groupNameContainer.querySelector('.edit-name-btn');
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.className = 'group-name-input';
-            input.value = group.name;
-            groupNameContainer.replaceChild(input, span);
-            currentPencil.style.display = 'none';
-            input.focus();
-            const save = () => {
-                const newName = input.value.trim();
-                if (newName) group.name = newName;
-                updateUI();
-            };
-            input.onblur = save;
-            input.onkeydown = (ev) => { if (ev.key === 'Enter') save(); };
-        };
+        // Botón editar (solo admin)
+        const editBtn = modal.querySelector('.modal-edit-btn');
+        if (editBtn) {
+            editBtn.addEventListener('click', () => showEditGroupForm(modal, group));
+        }
 
-        groupFooter.appendChild(groupNameContainer);
-        groupFooter.insertAdjacentHTML('beforeend', `<span class="group-members">${group.members} miembros</span>`);
+        // Toggle form añadir miembro (solo admin)
+        const addBtn = modal.querySelector('.modal-add-member-btn');
+        if (addBtn) {
+            addBtn.addEventListener('click', () => {
+                const form = modal.querySelector('#addMemberForm');
+                const hidden = form.style.display === 'none';
+                form.style.display = hidden ? 'flex' : 'none';
+                if (hidden) modal.querySelector('#addMemberCodeInput').focus();
+            });
 
-        groupCardWrapper.appendChild(groupCard);
-        groupCardWrapper.appendChild(groupFooter);
-        return groupCardWrapper;
+            modal.querySelector('#addMemberCodeInput').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') modal.querySelector('#addMemberSubmitBtn').click();
+            });
+
+            const submitBtn = modal.querySelector('#addMemberSubmitBtn');
+            submitBtn.addEventListener('click', async () => {
+                const code = modal.querySelector('#addMemberCodeInput').value.trim();
+                if (!code) return;
+                submitBtn.disabled = true;
+                try {
+                    await gruposService.addMemberByCode(group.id, code);
+                    showToast('Miembro añadido', 'success');
+                    await refreshGroupModal(modal, group.id);
+                } catch (e) {
+                    showToast(e.message || 'Error al añadir miembro', 'error');
+                    submitBtn.disabled = false;
+                }
+            });
+
+            modal.querySelector('#addMemberCancelBtn').addEventListener('click', () => {
+                modal.querySelector('#addMemberForm').style.display = 'none';
+            });
+        }
+
+        // Eliminar miembro (solo admin, solo no-admins)
+        modal.querySelectorAll('.member-remove-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const uid = btn.dataset.uid;
+                const member = members.find(m => m.id === uid);
+                const displayName = member?.name
+                    ? `${member.name} ${member.surname || ''}`.trim()
+                    : 'este miembro';
+
+                showConfirmDialog(
+                    `¿Eliminar a ${displayName}?`,
+                    'El miembro será eliminado del grupo.',
+                    async () => {
+                        try {
+                            await gruposService.removeMember(group.id, uid);
+                            showToast('Miembro eliminado', 'success');
+                            await refreshGroupModal(modal, group.id);
+                        } catch {
+                            showToast('Error al eliminar miembro', 'error');
+                        }
+                    }
+                );
+            });
+        });
     }
 
-    function createAddGroupCard() {
-        const addGroupWrapper = document.createElement('div');
-        addGroupWrapper.className = 'group-card-wrapper';
-        const addGroupCard = document.createElement('div');
-        addGroupCard.className = 'group-card add-group-card-main';
-        addGroupCard.innerHTML = `<img src="../public/images/Plus.1.svg" class="create-plus-icon" alt="Add">`;
-        
-        const addGroupFooter = document.createElement('div');
-        addGroupFooter.className = 'group-footer';
-        addGroupFooter.innerHTML = `<div class="group-info"><span class="group-name">nuevo grupo</span></div>`;
+    async function refreshGroupModal(modal, groupId) {
+        try {
+            const updatedGroup = await gruposService.getGroupById(groupId);
+            if (!updatedGroup) return;
+            const memberDocs = await gruposService.getGroupMembers(groupId);
+            const userDetails = await gruposService.getMemberDetails(memberDocs.map(m => m.id));
+            const members = memberDocs.map(md => ({
+                ...userDetails.find(u => u.id === md.id) || { id: md.id },
+                role: md.role,
+                joined_at: md.joined_at
+            }));
+            renderGroupModalBody(modal, updatedGroup, members);
+        } catch (e) {
+            console.error('Error al refrescar modal:', e);
+        }
+    }
 
-        addGroupCard.onclick = () => {
-            const newName = prompt('Nombre del nuevo grupo:');
-            if (newName) {
-                groupsData.unshift({
-                    id: Date.now(),
-                    name: newName,
-                    members: 0,
-                    users: [],
-                    description: '',
-                    events: []
-                });
-                updateUI();
+    // ── Edit group form ───────────────────────────────────
+    function showEditGroupForm(modal, group) {
+        modal.querySelector('.modal-body').innerHTML = `
+            <div class="edit-group-form">
+                <div class="form-group">
+                    <label>Nombre del grupo</label>
+                    <input type="text" id="editGroupName" class="edit-group-input" value="${group.name}">
+                </div>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea id="editGroupDesc" class="edit-group-textarea">${group.description || ''}</textarea>
+                </div>
+                <div class="edit-form-actions">
+                    <button class="btn-cancel" id="cancelEditBtn">Cancelar</button>
+                    <button class="btn-save" id="saveEditBtn">Guardar</button>
+                </div>
+            </div>
+        `;
+
+        modal.querySelector('#cancelEditBtn').addEventListener('click', async () => {
+            await refreshGroupModal(modal, group.id);
+        });
+
+        modal.querySelector('#saveEditBtn').addEventListener('click', async () => {
+            const newName = modal.querySelector('#editGroupName').value.trim();
+            const newDesc = modal.querySelector('#editGroupDesc').value.trim();
+            if (!newName) { showToast('El nombre no puede estar vacío', 'error'); return; }
+
+            const saveBtn = modal.querySelector('#saveEditBtn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Guardando...';
+
+            try {
+                await gruposService.updateGroup(group.id, { name: newName, description: newDesc });
+                showToast('Grupo actualizado', 'success');
+                await refreshGroupModal(modal, group.id);
+            } catch {
+                showToast('Error al actualizar el grupo', 'error');
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Guardar';
             }
-        };
-
-        addGroupWrapper.appendChild(addGroupCard);
-        addGroupWrapper.appendChild(addGroupFooter);
-        return addGroupWrapper;
+        });
     }
 
-    function renderGroups(groups, isFirstPage) {
-        groupsGrid.innerHTML = '';
-        if (isFirstPage) groupsGrid.appendChild(createAddGroupCard());
-        groups.forEach(group => groupsGrid.appendChild(createGroupCard(group)));
+    // ── Create group modal ────────────────────────────────
+    function showCreateGroupModal() {
+        const modal = getOrCreateModal('createGroupModal');
+        modal.querySelector('.modal-title').textContent = 'Nuevo grupo';
+        modal.querySelector('.modal-body').innerHTML = `
+            <div class="create-group-form">
+                <div class="form-group">
+                    <label>Nombre del grupo *</label>
+                    <input type="text" id="newGroupName" class="form-input" placeholder="Ej: Compañeros de piso">
+                </div>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea id="newGroupDesc" class="form-textarea" placeholder="Descripción opcional..."></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-cancel" id="cancelCreateBtn">Cancelar</button>
+                    <button class="btn-save" id="submitCreateBtn">Crear grupo</button>
+                </div>
+            </div>
+        `;
+        modal.classList.add('active');
+        modal.querySelector('#newGroupName').focus();
+
+        modal.querySelector('#cancelCreateBtn').addEventListener('click', () => {
+            modal.classList.remove('active');
+        });
+
+        modal.querySelector('#newGroupName').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') modal.querySelector('#submitCreateBtn').click();
+        });
+
+        modal.querySelector('#submitCreateBtn').addEventListener('click', async () => {
+            const name = modal.querySelector('#newGroupName').value.trim();
+            const desc = modal.querySelector('#newGroupDesc').value.trim();
+            if (!name) { showToast('El nombre es obligatorio', 'error'); return; }
+
+            const btn = modal.querySelector('#submitCreateBtn');
+            btn.disabled = true;
+            btn.textContent = 'Creando...';
+
+            try {
+                await gruposService.createGroup(name, desc, currentUser.uid);
+                modal.classList.remove('active');
+                showToast('Grupo creado', 'success');
+            } catch {
+                showToast('Error al crear el grupo', 'error');
+                btn.disabled = false;
+                btn.textContent = 'Crear grupo';
+            }
+        });
     }
 
-    function renderPagination(totalItems) {
-        const totalPages = Math.ceil((totalItems + 1) / ITEMS_PER_PAGE);
-        paginationList.innerHTML = '';
-        if (totalPages <= 1) {
-            paginationList.style.display = 'none';
-            return;
+    // ── Modal factory ─────────────────────────────────────
+    function getOrCreateModal(id) {
+        let modal = document.getElementById(id);
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = id;
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <span class="modal-title"></span>
+                        <button class="modal-close-btn"><i class="bx bx-x"></i></button>
+                    </div>
+                    <div class="modal-body"></div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.querySelector('.modal-close-btn').addEventListener('click', () =>
+                modal.classList.remove('active')
+            );
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.classList.remove('active');
+            });
         }
-        paginationList.style.display = 'flex';
-        const prev = document.createElement('i');
-        prev.className = `bx bx-chevron-left pagination-item ${currentPage === 1 ? 'disabled' : ''}`;
-        prev.onclick = () => { if(currentPage > 1) { currentPage--; updateUI(); } };
-        paginationList.appendChild(prev);
-        for (let i = 1; i <= totalPages; i++) {
-            const span = document.createElement('span');
-            span.className = `pagination-item ${i === currentPage ? 'active' : ''}`;
-            span.textContent = i;
-            span.onclick = () => { currentPage = i; updateUI(); };
-            paginationList.appendChild(span);
-        }
-        const next = document.createElement('i');
-        next.className = `bx bx-chevron-right pagination-item ${currentPage === totalPages ? 'disabled' : ''}`;
-        next.onclick = () => { if(currentPage < totalPages) { currentPage++; updateUI(); } };
-        paginationList.appendChild(next);
+        return modal;
     }
 
-    function updateUI() {
-        calculateItemsPerPage();
-        const term = groupSearchInput.value.toLowerCase();
-        const filtered = groupsData.filter(group => group.name.toLowerCase().includes(term));
-        let pageItems;
-        if (currentPage === 1) {
-            pageItems = filtered.slice(0, ITEMS_PER_PAGE - 1);
-        } else {
-            const startIndex = (currentPage - 1) * ITEMS_PER_PAGE - 1;
-            pageItems = filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-        }
-        renderGroups(pageItems, currentPage === 1);
-        renderPagination(filtered.length);
+    // ── Confirm dialog ────────────────────────────────────
+    function showConfirmDialog(title, message, onConfirm) {
+        const overlay = document.createElement('div');
+        overlay.className = 'confirm-overlay';
+        overlay.innerHTML = `
+            <div class="confirm-dialog">
+                <h3>${title}</h3>
+                <p>${message}</p>
+                <div class="confirm-actions">
+                    <button class="btn-cancel" id="confirmCancelBtn">Cancelar</button>
+                    <button class="btn-confirm-delete" id="confirmOkBtn">Eliminar</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        overlay.querySelector('#confirmCancelBtn').addEventListener('click', () => overlay.remove());
+        overlay.querySelector('#confirmOkBtn').addEventListener('click', async () => {
+            overlay.remove();
+            await onConfirm();
+        });
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
     }
+
+    // ── Toast ─────────────────────────────────────────────
+    function showToast(message, type = 'success') {
+        let container = document.querySelector('.toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'toast-container';
+            document.body.appendChild(container);
+        }
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    // ── Event listeners ───────────────────────────────────
+    groupSearchInput.addEventListener('input', () => updateUI());
+    groupFilter.addEventListener('change', () => updateUI());
 
     document.addEventListener('click', () => {
-        document.querySelectorAll('.group-submenu, .user-action-menu').forEach(m => m.classList.remove('active'));
+        document.querySelectorAll('.group-card-submenu.active').forEach(m => m.classList.remove('active'));
     });
-
-    groupSearchInput.addEventListener('input', () => { currentPage = 1; updateUI(); });
-    window.addEventListener('resize', updateUI);
-    updateUI();
 });
