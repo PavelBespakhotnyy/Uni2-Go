@@ -5,21 +5,25 @@
  * position:fixed funcione siempre, sin importar el layout.
  */
 
-// ─── Configuración ────────────────────────────────────────────────────────────
+import { auth } from '../../firebase/firebase.js';
+import { updateUserProfile } from '../../services/userService.js';
+
+// ─── Configuración de campos ───────────────────────────────────────────────────
+// firestoreKey: nombre exacto del campo en Firestore
 const FIELD_CONFIG = {
   name: {
-    spanSelector:    '#user-name .field-text',
-    title:           'Editar nombre de usuario',
-    label:           'Nombre usuario',
-    footerLabel:     'Guardar nuevo nombre de usuario',
-    localStorageKey: 'user_name',
+    spanSelector: '#user-name .field-text',
+    title:        'Editar nombre de usuario',
+    label:        'Nombre usuario',
+    footerLabel:  'Guardar nuevo nombre de usuario',
+    firestoreKey: 'name',
   },
   lastname: {
-    spanSelector:    '#user-lastname .field-text',
-    title:           'Editar apellido de usuario',
-    label:           'Apellido usuario',
-    footerLabel:     'Guardar nuevo apellido de usuario',
-    localStorageKey: 'user_lastname',
+    spanSelector: '#user-lastname .field-text',
+    title:        'Editar apellido de usuario',
+    label:        'Apellido usuario',
+    footerLabel:  'Guardar nuevo apellido de usuario',
+    firestoreKey: 'surname',
   },
 };
 
@@ -303,7 +307,7 @@ function closeModal() {
 }
 
 // ─── Confirmar ────────────────────────────────────────────────────────────────
-function handleConfirm() {
+async function handleConfirm() {
   const input     = document.getElementById('modal-input');
   const validated = validate(input.value);
 
@@ -314,11 +318,20 @@ function handleConfirm() {
     return;
   }
 
-  const cfg = FIELD_CONFIG[activeField];
+  const cfg  = FIELD_CONFIG[activeField];
   const span = document.querySelector(cfg.spanSelector);
   if (span) span.textContent = validated.value;
 
-  localStorage.setItem(cfg.localStorageKey, validated.value);
+  // Guardar en Firestore si hay usuario autenticado
+  const user = auth.currentUser;
+  if (user) {
+    try {
+      await updateUserProfile(user.uid, { [cfg.firestoreKey]: validated.value });
+    } catch (err) {
+      console.error('Error al guardar en Firestore:', err);
+    }
+  }
+
   updateAvatar();
   closeModal();
 }

@@ -104,6 +104,35 @@
   opacity: 0.85;
 }
 
+/* ---------- Código de amigo ---------- */
+.friend-code-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.friend-code-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #555;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.friend-code-box {
+  background-color: #fff;
+  border: 2px solid #4D67AF;
+  border-radius: 10px;
+  padding: 0.55rem 2rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #4D67AF;
+  letter-spacing: 0.18em;
+  user-select: all;
+}
+
 /* ---------- Botones de información ---------- */
 .info-container {
   display: flex;
