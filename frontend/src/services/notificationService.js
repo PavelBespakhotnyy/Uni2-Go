@@ -5,7 +5,13 @@ import {
 } from "firebase/firestore";
 
 class NotificationService {
-    async createNotification(userId, type, senderName, action, data = {}) {
+    async createNotification(userId, type, senderName, action, data = {}, senderId = null) {
+        // No enviar notificaciones a uno mismo
+        if (senderId && userId === senderId) {
+            console.log("🚫 Skipping self-notification for user:", userId);
+            return;
+        }
+
         console.log(`🚀 Tentative de création de notification pour ${userId}:`, { type, senderName, action });
         try {
             const docRef = await addDoc(collection(db, "notifications"), {

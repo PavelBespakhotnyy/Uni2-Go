@@ -40,11 +40,23 @@ class ChatService {
         initialUnreadCount[currentUser.uid] = 0;
         initialUnreadCount[friendId] = 0;
 
-        const senderName = currentUser.displayName || currentUser.email;
+        // Obtener perfil del remitente para nombre completo
+        let senderName = currentUser.displayName || currentUser.email;
+        try {
+            const senderDoc = await getDoc(doc(db, "users", currentUser.uid));
+            if (senderDoc.exists()) {
+                const sData = senderDoc.data();
+                senderName = `${sData.name || ''} ${sData.surname || ''}`.trim() || senderName;
+            }
+        } catch (e) {
+            console.warn("No se pudo obtener el perfil del remitente:", e);
+        }
+
+        const friendFullName = `${friendData.name || ''} ${friendData.surname || ''}`.trim() || friendData.name || "Amigo";
 
         const newChat = await addDoc(collection(db, "chats"), {
             participants: [currentUser.uid, friendId],
-            participantNames: [senderName, friendData.name],
+            participantNames: [senderName, friendFullName],
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
             lastMessage: null,
@@ -58,7 +70,8 @@ class ChatService {
             'new_chat', 
             senderName, 
             'te ha añadido a un nuevo chat', 
-            { chatId: newChat.id }
+            { chatId: newChat.id },
+            currentUser.uid
         );
 
         return newChat.id;
@@ -150,7 +163,9 @@ class ChatService {
         const targetParticipants = (participants && participants.length > 0) ? participants : [];
 
         targetParticipants.forEach(pId => {
-            // ВРЕМЕННО: Убрал проверку (pId !== senderId), чтобы вы видели уведомление сами
+            // No enviar notificaciones ni incrementar contador para el remitente
+            if (pId === senderId) return;
+
             updateData[`unreadCount.${pId}`] = increment(1);
             
             console.log(`🔔 Создание уведомления для пользователя: ${pId}`);
@@ -160,7 +175,8 @@ class ChatService {
                     'new_message', 
                     senderName || 'Alguien', 
                     `te envió un mensaje: "${text.substring(0, 30)}${text.length > 30 ? '...' : ''}"`, 
-                    { chatId }
+                    { chatId },
+                    senderId
                 )
             );
         });

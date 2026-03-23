@@ -2,6 +2,7 @@
 import { auth } from '../../firebase/firebase.js';
 import { onAuthStateChanged } from "firebase/auth";
 import { chatService } from '../../services/chatService.js';
+import { getUserProfile } from '../../services/userService.js';
 
 // Seleccionamos los elementos del DOM
 const contactsListEl = document.getElementById('contacts-list');
@@ -13,16 +14,25 @@ const chatMessagesEl = document.getElementById('chat-messages');
 const searchForm = document.querySelector('.chat-search-container form');
 
 let currentUser = null;
+let currentUserProfile = null;
 let activeChatId = null;
 let activeChatName = '';
 let activeChatParticipants = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUser = user;
             console.log("✅ Usuario autenticado:", currentUser.uid);
+            
+            // Cargar perfil del usuario para tener nombre completo
+            try {
+                currentUserProfile = await getUserProfile(user.uid);
+            } catch (err) {
+                console.warn("No se pudo cargar el perfil del usuario:", err);
+            }
+            
             initChatList();
         } else {
             console.log("❌ Usuario no autenticado");
@@ -44,9 +54,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            const myName = currentUserProfile 
+                ? `${currentUserProfile.name || ''} ${currentUserProfile.surname || ''}`.trim() 
+                : (currentUser.displayName || currentUser.email);
+
             chats.forEach(chat => {
                 // Buscamos el nombre del otro participante
-                const otherName = chat.participantNames?.find(name => name !== (currentUser.displayName || currentUser.email)) || "Amigo";
+                const otherName = chat.participantNames?.find(name => 
+                    name !== myName && 
+                    name !== currentUser.email && 
+                    name !== currentUser.displayName
+                ) || "Amigo";
                 
                 const li = document.createElement('li');
                 li.className = `chat-contact-item ${chat.id === activeChatId ? 'active' : ''}`;
@@ -144,7 +162,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         try {
-            const senderName = currentUser.displayName || currentUser.email;
+            const senderName = currentUserProfile 
+                ? `${currentUserProfile.name || ''} ${currentUserProfile.surname || ''}`.trim() 
+                : (currentUser.displayName || currentUser.email);
+
             await chatService.sendMessage(activeChatId, text, currentUser.uid, activeChatParticipants, senderName);
             if (messageInputEl) messageInputEl.value = '';
             console.log("✅ Mensaje enviado al chat:", activeChatId);
@@ -216,7 +237,16 @@ document.addEventListener('DOMContentLoaded', () => {
             // Obtener información del contacto para abrir el chat
             const chatInfo = await chatService.getChatInfo(chatId);
             if (chatInfo) {
-                const otherName = chatInfo.participantNames?.find(name => name !== (currentUser.displayName || currentUser.email)) || "Nuevo Amigo";
+                const myName = currentUserProfile 
+                    ? `${currentUserProfile.name || ''} ${currentUserProfile.surname || ''}`.trim() 
+                    : (currentUser.displayName || currentUser.email);
+
+                const otherName = chatInfo.participantNames?.find(name => 
+                    name !== myName && 
+                    name !== currentUser.email && 
+                    name !== currentUser.displayName
+                ) || "Nuevo Amigo";
+                
                 // Передаем весь массив участников
                 selectContact(chatId, otherName, chatInfo.participants);
             }

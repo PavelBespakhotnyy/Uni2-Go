@@ -3,9 +3,6 @@ import { onAuthStateChanged } from "firebase/auth";
 import { notificationService } from '../../services/notificationService.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    localStorage.setItem('hasNewNotification', 'false');
-    if (window.updateNotificationBadge) window.updateNotificationBadge();
-
     const searchInput = document.getElementById('notificationSearch');
     const statusFilter = document.getElementById('statusFilter');
     const notificationsList = document.getElementById('notificationsList');
