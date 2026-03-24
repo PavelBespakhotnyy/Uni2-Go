@@ -1,14 +1,30 @@
 import { db, auth } from '../firebase/firebase';
-import { 
-  collection, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  doc, 
-  serverTimestamp 
+import {
+  collection,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  serverTimestamp,
+  query,
+  where,
+  getDocs
 } from "firebase/firestore";
 
 const COLLECTION_NAME = "events";
+
+/**
+ * Busca un usuario por su código de amigo.
+ * @returns {{ id, name, surname }} o lanza error
+ */
+export async function findUserByFriendCode(friendCode) {
+  const q = query(collection(db, "users"), where("friend_code", "==", friendCode.trim()));
+  const snap = await getDocs(q);
+  if (snap.empty) throw new Error("No se encontró ningún usuario con ese código");
+  const d = snap.docs[0];
+  const data = d.data();
+  return { id: d.id, name: data.name || '', surname: data.surname || '' };
+}
 
 /**
  * Adds a new event to Firestore with the updated schema.
@@ -28,6 +44,8 @@ export async function addEvent(eventData) {
       userId: user.uid,
       location: eventData.location || "",
       eventType: eventData.eventType || "meeting",
+      groupIds: eventData.groupIds || [],
+      sharedWith: eventData.sharedWith || [],
       attendees: eventData.attendees || [
         {
           userId: user.uid,
