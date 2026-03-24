@@ -64,7 +64,7 @@ body.sidebar-collapsed .sidebar-logo {
 }
 
 body.sidebar-collapsed .sidebar-button {
-    transform: rotate(180deg);
+    transform: none;
 }
 
 .buttons-list {

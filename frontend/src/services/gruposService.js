@@ -93,7 +93,7 @@ class GruposService {
                     id: uid,
                     name: u.name || '',
                     surname: u.surname || '',
-                    friend_code: u.friend_code || '',
+                    username: u.username || '',
                     thumbnail_url: p.thumbnail_url || p.image_url || ''
                 });
             } catch (e) {
@@ -131,6 +131,22 @@ class GruposService {
         ]);
 
         return { id: userId, ...userDoc.data() };
+    }
+
+    async addMemberByUid(groupId, userId) {
+        const memberRef = doc(db, "interest_groups", groupId, "members", userId);
+        const memberSnap = await getDoc(memberRef);
+        if (memberSnap.exists()) throw new Error("Este usuario ya es miembro del grupo");
+
+        const userSnap = await getDoc(doc(db, "users", userId));
+        if (!userSnap.exists()) throw new Error("Usuario no encontrado");
+
+        await Promise.all([
+            updateDoc(doc(db, "interest_groups", groupId), { member_ids: arrayUnion(userId) }),
+            setDoc(memberRef, { user_id: userId, role: 'member', joined_at: serverTimestamp() })
+        ]);
+
+        return { id: userId, ...userSnap.data() };
     }
 
     /**

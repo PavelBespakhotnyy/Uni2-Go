@@ -7,6 +7,7 @@ const PROTECTED_PAGES = [
   "carpetas.html",
   "chat.html",
   "grupos.html",
+  "friends.html",
   "lista_de_compras.html",
   "notifications.html",
   "user.html",
@@ -23,11 +24,11 @@ const AUTH_PAGES = [
 function updateUserUI(data) {
   const nameSpan     = document.querySelector('#user-name .field-text');
   const surnameSpan  = document.querySelector('#user-lastname .field-text');
-  const friendCodeEl = document.getElementById('friend-code');
+  const usernameEl   = document.getElementById('user-username');
 
-  if (nameSpan)     nameSpan.textContent     = data?.name    || "Usuario";
-  if (surnameSpan)  surnameSpan.textContent  = data?.surname || "";
-  if (friendCodeEl) friendCodeEl.textContent = data?.friend_code || "—";
+  if (nameSpan)    nameSpan.textContent    = data?.name    || "Usuario";
+  if (surnameSpan) surnameSpan.textContent = data?.surname || "";
+  if (usernameEl)  usernameEl.textContent  = data?.username ? `@${data.username}` : "—";
 }
 
 // Функция для редиректа
@@ -37,7 +38,7 @@ function redirectIfNeeded(user, currentPath, isProtected, isAuthPage) {
     window.location.href = "/pages/login.html";
     return true;
   } else if (user && isAuthPage) {
-    // Уже залогинен -> на календарь
+    if (sessionStorage.getItem('registering')) return false;
     window.location.href = "/pages/calendar.html";
     return true;
   }

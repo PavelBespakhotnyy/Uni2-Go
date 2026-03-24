@@ -5,6 +5,7 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  getDoc,
   serverTimestamp,
   query,
   where,
@@ -14,16 +15,14 @@ import {
 const COLLECTION_NAME = "events";
 
 /**
- * Busca un usuario por su código de amigo.
- * @returns {{ id, name, surname }} o lanza error
+ * Obtiene datos de un usuario por UID.
+ * @returns {{ id, name, surname, username }}
  */
-export async function findUserByFriendCode(friendCode) {
-  const q = query(collection(db, "users"), where("friend_code", "==", friendCode.trim()));
-  const snap = await getDocs(q);
-  if (snap.empty) throw new Error("No se encontró ningún usuario con ese código");
-  const d = snap.docs[0];
-  const data = d.data();
-  return { id: d.id, name: data.name || '', surname: data.surname || '' };
+export async function getUserById(uid) {
+  const snap = await getDoc(doc(db, "users", uid));
+  if (!snap.exists()) throw new Error("Usuario no encontrado");
+  const data = snap.data();
+  return { id: snap.id, name: data.name || '', surname: data.surname || '', username: data.username || '' };
 }
 
 /**

@@ -1,10 +1,7 @@
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { auth, db } from "../firebase/firebase.js"; // ← ВАЖНО: используем configNew.js
-
-function generateFriendshipCode() {
-  return Math.floor(10000000 + Math.random() * 90000000).toString();
-}
+import { auth, db } from "../firebase/firebase.js";
+import { friendsService } from "./friendsService.js";
 
 export async function registerUser(formData) {
   const {
@@ -15,45 +12,48 @@ export async function registerUser(formData) {
     surname,
     phone,
     dateOfBirth,
+    username,
   } = formData;
 
   if (password !== confirmPassword) {
     throw new Error("Passwords do not match");
   }
 
-  console.log("🚀 Попытка создания пользователя в Firebase Auth:", email);
-  const userCredential = await createUserWithEmailAndPassword(
-    auth,
-    email,
-    password
-  );
+  if (!username || !username.trim()) throw new Error("username-required");
+  const normalizedUsername = username.toLowerCase().trim();
+  if (!/^[a-z0-9_\.]{3,20}$/.test(normalizedUsername)) throw new Error("username-invalid");
 
+  const taken = await friendsService.isUsernameTaken(normalizedUsername);
+  if (taken) throw new Error("username-already-taken");
+
+  sessionStorage.setItem('registering', '1');
+  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
-  console.log("✅ Пользователь создан в Auth, UID:", user.uid);
 
-  const friend_code = generateFriendshipCode();
-
-  console.log("📝 Запись данных в Firestore (коллекция users)...");
   try {
-    await setDoc(doc(db, "users", user.uid), {
-      name,
-      surname,
-      phone,
-      dateOfBirth,
-      email,
-      friend_code,
-      isActive: true,
-      avatarUrl: "",
-      bio: "",
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
-    console.log("✅ Данные успешно записаны в Firestore!");
+    await Promise.all([
+      setDoc(doc(db, "users", user.uid), {
+        name,
+        surname,
+        phone,
+        dateOfBirth,
+        email,
+        username: normalizedUsername,
+        isActive: true,
+        avatarUrl: "",
+        bio: "",
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      }),
+      friendsService.reserveUsername(normalizedUsername, user.uid),
+    ]);
   } catch (fsError) {
-    console.error("❌ Ошибка при записи в Firestore:", fsError);
+    sessionStorage.removeItem('registering');
+    await signOut(auth);
     throw fsError;
   }
 
+  sessionStorage.removeItem('registering');
   return user;
 }
 
