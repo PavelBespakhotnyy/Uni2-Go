@@ -1,6 +1,7 @@
 import { auth } from '../../firebase/firebase.js';
 import { onAuthStateChanged } from "firebase/auth";
 import { shoppingService } from '../../services/shoppingService.js';
+import { Picker } from 'emoji-mart';
 
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
@@ -18,6 +19,65 @@ document.addEventListener('DOMContentLoaded', () => {
     const noteTitleInput = document.getElementById('note-title-input');
     const noteContentInput = document.getElementById('note-content-input');
     const saveStatusEl = document.getElementById('save-status');
+
+    // Emoji Picker Setup
+    let pickerTargetIdx = null;
+    let lastClickedEmoji = null;
+    let lastClickTime = 0;
+
+    const pickerContainer = document.createElement('div');
+    pickerContainer.id = 'emoji-picker-container';
+    pickerContainer.style.position = 'fixed';
+    pickerContainer.style.zIndex = '2000';
+    pickerContainer.style.display = 'none';
+    document.body.appendChild(pickerContainer);
+    
+    const picker = new Picker({
+        parent: pickerContainer,
+        categories: ['foods', 'objects', 'symbols'], // Еда, хозтовары, канцелярия
+        onEmojiSelect: (emojiData) => {
+            const now = Date.now();
+            const emoji = emojiData.native;
+            
+            // Detect double click on the same emoji inside the picker
+            if (lastClickedEmoji === emoji && (now - lastClickTime) < 500) {
+                if (pickerTargetIdx !== null && selectedListId) {
+                    const item = data.lists[selectedListId].items[pickerTargetIdx];
+                    item.emoji = emoji; 
+                    renderProducts();
+                    triggerAutoSave();
+                    
+                    // After picking emoji, focus name input if empty
+                    const card = productsView.querySelector(`.product-card[data-index="${pickerTargetIdx}"]`);
+                    if (card && (!item.name || item.name === '')) {
+                        const nameSpan = card.querySelector('.product-name');
+                        if (nameSpan) nameSpan.click();
+                    }
+                }
+                pickerContainer.style.display = 'none';
+                lastClickedEmoji = null;
+            } else {
+                lastClickedEmoji = emoji;
+                lastClickTime = now;
+            }
+        },
+        onClickOutside: () => {
+            if (pickerContainer.style.display === 'block') {
+                pickerContainer.style.display = 'none';
+                lastClickedEmoji = null;
+            }
+        }
+    });
+
+    // Close picker when clicking outside
+    document.addEventListener('click', (e) => {
+        if (pickerContainer.style.display === 'block' && 
+            !pickerContainer.contains(e.target) && 
+            !e.target.closest('.product-img-container')) {
+            pickerContainer.style.display = 'none';
+            lastClickedEmoji = null;
+        }
+    });
 
     // State
     let currentUser = null;
@@ -143,18 +203,25 @@ document.addEventListener('DOMContentLoaded', () => {
             filterStyle = `style="filter: hue-rotate(${Math.abs(hash % 360)}deg)"`;
         }
 
+        const iconContent = item.emoji 
+            ? `<span class="product-emoji">${item.emoji}</span>`
+            : `<img src="${iconData.url}" class="product-img" alt="Product" ${filterStyle}>`;
+
         div.innerHTML = `
-            <div class="product-img-container">
-                <img src="${iconData.url}" class="product-img" alt="Product" ${filterStyle}>
+            <div class="product-img-container" title="Cambiar icono/emoji">
+                ${iconContent}
             </div>
             <div class="product-info">
-                <span class="product-name">${item.name}</span>
+                <span class="product-name">${item.name || 'Nuevo producto'}</span>
                 ${item.notes ? `<small class="product-note">${item.notes}</small>` : ''}
             </div>
             <div class="product-qty-container">
                 <span class="product-qty">${item.quantity} ${item.unit || ''}</span>
             </div>
-            <i class='bx ${item.is_purchased ? 'bx-check-circle' : 'bx-circle'} check-btn'></i>
+            <div class="product-actions">
+                <i class='bx bx-trash delete-btn'></i>
+                <i class='bx ${item.is_purchased ? 'bx-check-circle' : 'bx-circle'} check-btn'></i>
+            </div>
         `;
         return div;
     }
@@ -264,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 triggerAutoSave();
             };
             textarea.onblur = save;
-            textarea.onkeydown = (ev) => { if (ev.key === 'Enter') save(); };
+            textarea.onkeydown = (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); textarea.blur(); } };
         });
     }
 
@@ -307,8 +374,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     addProductBtn.onclick = () => {
         if (!selectedListId) return;
-        data.lists[selectedListId].items.push({ name: 'Nuevo producto', quantity: 1, unit: 'uds.', is_purchased: false });
-        renderProducts(); triggerAutoSave();
+        const newIdx = data.lists[selectedListId].items.length;
+        data.lists[selectedListId].items.push({ name: '', quantity: 1, unit: 'uds.', is_purchased: false });
+        renderProducts();
+        
+        // Auto-open picker for the new product
+        const cards = productsView.querySelectorAll('.product-card');
+        const lastCard = Array.from(cards).find(c => c.dataset.index == newIdx);
+        if (lastCard) {
+            const imgContainer = lastCard.querySelector('.product-img-container');
+            if (imgContainer) {
+                pickerTargetIdx = newIdx;
+                const rect = imgContainer.getBoundingClientRect();
+                pickerContainer.style.display = 'block';
+                
+                // Position logic
+                let top = rect.bottom + 5;
+                let left = rect.left;
+                if (left + 350 > window.innerWidth) left = window.innerWidth - 360;
+                if (top + 430 > window.innerHeight) top = rect.top - 440;
+                
+                pickerContainer.style.top = `${top}px`;
+                pickerContainer.style.left = `${left}px`;
+            }
+        }
     };
 
     productsView.onclick = (e) => {
@@ -317,19 +406,46 @@ document.addEventListener('DOMContentLoaded', () => {
         const idx = card.dataset.index;
         const item = data.lists[selectedListId].items[idx];
 
-        if (e.target.classList.contains('check-btn')) {
+        if (e.target.classList.contains('delete-btn')) {
+            data.lists[selectedListId].items.splice(idx, 1);
+            renderProducts(); triggerAutoSave();
+        } else if (e.target.classList.contains('check-btn')) {
             item.is_purchased = !item.is_purchased;
             renderProducts(); triggerAutoSave();
         } else if (e.target.classList.contains('product-name')) {
             const input = document.createElement('input');
             input.value = item.name; input.className = 'edit-product-input';
             e.target.replaceWith(input); input.focus();
-            input.onblur = () => { item.name = input.value || "Nuevo"; renderProducts(); triggerAutoSave(); };
+            input.onblur = () => { item.name = input.value || "Nuevo producto"; renderProducts(); triggerAutoSave(); };
+            input.onkeydown = (ev) => { if (ev.key === 'Enter') input.blur(); };
         } else if (e.target.classList.contains('product-qty')) {
             const input = document.createElement('input');
             input.type = 'number'; input.value = item.quantity; input.className = 'edit-qty-input';
             e.target.replaceWith(input); input.focus();
             input.onblur = () => { item.quantity = parseInt(input.value) || 1; renderProducts(); triggerAutoSave(); };
+            input.onkeydown = (ev) => { if (ev.key === 'Enter') input.blur(); };
         }
     };
+
+    // Double click handler for changing icon to emoji
+    productsView.addEventListener('dblclick', (e) => {
+        const imgContainer = e.target.closest('.product-img-container');
+        if (imgContainer) {
+            const card = imgContainer.closest('.product-card');
+            const idx = card.dataset.index;
+            pickerTargetIdx = idx;
+            const rect = imgContainer.getBoundingClientRect();
+            pickerContainer.style.display = 'block';
+            
+            // Adjust position to stay within viewport
+            let top = rect.bottom + 5;
+            let left = rect.left;
+            
+            if (left + 350 > window.innerWidth) left = window.innerWidth - 360;
+            if (top + 430 > window.innerHeight) top = rect.top - 440;
+            
+            pickerContainer.style.top = `${top}px`;
+            pickerContainer.style.left = `${left}px`;
+        }
+    });
 });

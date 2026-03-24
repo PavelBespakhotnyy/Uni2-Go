@@ -348,6 +348,17 @@
     border-right: 1px solid #eee;
     margin-right: 15px;
     padding-right: 10px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.product-img-container:hover {
+    background-color: #f0f0f0;
+    border-radius: 15px 0 0 15px;
+}
+
+.product-emoji {
+    font-size: 32px;
 }
 
 .product-img {
@@ -393,9 +404,30 @@
     text-decoration: line-through;
 }
 
+.product-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: 15px;
+}
+
+.delete-btn, .emoji-btn {
+    font-size: 20px;
+    cursor: pointer;
+    color: #888;
+    transition: 0.2s;
+}
+
+.delete-btn:hover {
+    color: #e74c3c;
+}
+
+.emoji-btn:hover {
+    color: #f28c18;
+}
+
 .check-btn {
     font-size: 24px;
-    margin-left: 15px;
     cursor: pointer;
     color: #f28c18;
 }
