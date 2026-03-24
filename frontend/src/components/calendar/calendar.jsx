@@ -36,7 +36,8 @@ import {
   AlertCircle,
   LucideWavesArrowDown
 } from 'lucide-react';
-import { addEvent, updateEvent, deleteEvent, findUserByFriendCode } from '../../services/calendarService';
+import { addEvent, updateEvent, deleteEvent, getUserById } from '../../services/calendarService';
+import { friendsService } from '../../services/friendsService';
 import { gruposService } from '../../services/gruposService';
 
 const VIEWS = {
@@ -74,9 +75,9 @@ export default function Calendar() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showGroupDropdown, setShowGroupDropdown] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [friendCodeInput, setFriendCodeInput] = useState('');
+  const [friendsList, setFriendsList] = useState([]);
+  const [selectedFriendUid, setSelectedFriendUid] = useState('');
   const [codeSearchError, setCodeSearchError] = useState('');
-  const [searchingCode, setSearchingCode] = useState(false);
   const [formData, setFormData] = useState({
     title: '', start: '', end: '', allDay: false, sharedWith: [], groupIds: [], description: ''
   });
@@ -213,16 +214,17 @@ export default function Calendar() {
     });
     setSelectedEvent(null);
     setErrorMsg('');
-    setFriendCodeInput('');
+    setSelectedFriendUid('');
     setCodeSearchError('');
     setShowGroupDropdown(false);
+    loadFriendsList();
     setIsModalOpen(true);
   };
 
   const openEditModal = async (event) => {
     setSelectedEvent(event);
     setErrorMsg('');
-    setFriendCodeInput('');
+    setSelectedFriendUid('');
     setCodeSearchError('');
     setShowGroupDropdown(false);
 
@@ -249,31 +251,32 @@ export default function Calendar() {
       groupIds: event.groupIds || [],
       description: event.description || ''
     });
+    loadFriendsList();
     setIsModalOpen(true);
   };
 
-  const handleAddByCode = async () => {
-    if (!friendCodeInput.trim()) return;
-    setCodeSearchError('');
-    setSearchingCode(true);
+  const loadFriendsList = async () => {
+    const currentUserId = auth.currentUser?.uid;
+    if (!currentUserId) return;
     try {
-      const user = await findUserByFriendCode(friendCodeInput.trim());
-      const currentUserId = auth.currentUser?.uid;
-      if (user.id === currentUserId) {
-        setCodeSearchError('No puedes añadirte a ti mismo');
-        return;
-      }
-      if (formData.sharedWith.some(u => u.id === user.id)) {
-        setCodeSearchError('Esta persona ya fue añadida');
-        return;
-      }
-      setFormData(prev => ({ ...prev, sharedWith: [...prev.sharedWith, user] }));
-      setFriendCodeInput('');
+      const friends = await friendsService.getFriends(currentUserId);
+      setFriendsList(friends);
     } catch (e) {
-      setCodeSearchError(e.message);
-    } finally {
-      setSearchingCode(false);
+      console.error('Error loading friends:', e);
     }
+  };
+
+  const handleAddFriend = () => {
+    if (!selectedFriendUid) return;
+    setCodeSearchError('');
+    const friend = friendsList.find(f => f.uid === selectedFriendUid);
+    if (!friend) return;
+    if (formData.sharedWith.some(u => u.id === friend.uid)) {
+      setCodeSearchError('Esta persona ya fue añadida');
+      return;
+    }
+    setFormData(prev => ({ ...prev, sharedWith: [...prev.sharedWith, { id: friend.uid, name: friend.name, surname: friend.surname }] }));
+    setSelectedFriendUid('');
   };
 
   const handleSubmit = async (e) => {
@@ -414,21 +417,29 @@ export default function Calendar() {
                 <div>
                   <label className="block text-[10px] font-black mb-1.5 text-gray-400 uppercase tracking-widest flex items-center gap-1.5"><Users size={12} /> Personas</label>
                   <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Código de amigo..."
+                    <select
                       className="flex-1 border border-gray-300 rounded px-3 py-2 focus:border-[#1a1a1a] outline-none text-xs bg-gray-50"
-                      value={friendCodeInput}
-                      onChange={(e) => { setFriendCodeInput(e.target.value); setCodeSearchError(''); }}
-                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddByCode(); }}}
-                    />
+                      value={selectedFriendUid}
+                      onChange={(e) => { setSelectedFriendUid(e.target.value); setCodeSearchError(''); }}
+                    >
+                      <option value="">
+                        {friendsList.length === 0 ? 'Sin amigos aún...' : 'Selecciona un amigo...'}
+                      </option>
+                      {friendsList
+                        .filter(f => !formData.sharedWith.some(u => u.id === f.uid))
+                        .map(f => (
+                          <option key={f.uid} value={f.uid}>
+                            {f.name} {f.surname} @{f.username}
+                          </option>
+                        ))}
+                    </select>
                     <button
                       type="button"
-                      onClick={handleAddByCode}
-                      disabled={searchingCode || !friendCodeInput.trim()}
+                      onClick={handleAddFriend}
+                      disabled={!selectedFriendUid}
                       className="px-3 py-2 bg-[#1a1a1a] text-white text-xs font-black rounded hover:bg-black disabled:opacity-40 transition-all uppercase tracking-wider"
                     >
-                      {searchingCode ? '...' : <Plus size={14} />}
+                      <Plus size={14} />
                     </button>
                   </div>
                   {codeSearchError && <p className="text-[10px] text-red-500 font-bold mt-1">{codeSearchError}</p>}
@@ -436,7 +447,7 @@ export default function Calendar() {
                     <div className="flex flex-wrap gap-1 mt-1.5">
                       {formData.sharedWith.map(u => (
                         <span key={u.id} className="inline-flex items-center gap-1 bg-[#1a1a1a] text-white text-[9px] font-bold px-2 py-0.5 rounded">
-                          {u.name} {u.surname}
+                          {u.name} {u.surname}{u.username ? ` @${u.username}` : ''}
                           <button type="button" onClick={() => setFormData(prev => ({ ...prev, sharedWith: prev.sharedWith.filter(x => x.id !== u.id) }))} className="hover:opacity-70"><X size={9} /></button>
                         </span>
                       ))}

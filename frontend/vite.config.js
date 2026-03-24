@@ -21,6 +21,7 @@ export default defineConfig({
         notifications: resolve(__dirname, "pages/notifications.html"),
         lista_de_compras: resolve(__dirname, "pages/lista_de_compras.html"),
         user: resolve(__dirname, "pages/user.html"),
+        friends: resolve(__dirname, "pages/friends.html"),
         sobre_nosotros: resolve(__dirname, "pages/sobre_nosotros.html"),
       },
     },

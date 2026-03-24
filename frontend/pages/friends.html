@@ -3,16 +3,15 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Usuario</title>
-        <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+        <title>Amigos</title>
+        <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet"/>
         <link rel="stylesheet" href="../src/style.css" id="main-style" />
         <link rel="stylesheet" href="../src/components/navbar/navbar.css" />
-        <link rel="stylesheet" href="../src/components/user/user.css" />
-        <link rel="stylesheet" href="../src/components/user/editModal.css" />
+        <link rel="stylesheet" href="../src/components/friends/friends.css" />
     </head>
     <body>
         <div id="preloader">
-            <div class="loader"></div>
+          <div class="loader"></div>
         </div>
 
         <div class="main-container">
@@ -50,7 +49,7 @@
                         </a>
                     </li>
                     <li class="friends">
-                        <a href="./friends.html">
+                        <a class="button-change-page-active" href="./friends.html">
                             <i class="bx bx-sm bx-user-plus"></i>
                             <span class="font-bold">Amigos</span>
                         </a>
@@ -74,7 +73,7 @@
                         </a>
                     </li>
                     <li class="usuario">
-                        <a class="button-change-page-active" href="./user.html">
+                        <a href="./user.html">
                             <i class="bx bx-sm bx-user"></i>
                             <span class="font-bold">Usuario</span>
                         </a>
@@ -83,73 +82,41 @@
             </nav>
 
             <div class="content-wrapper">
+                <div class="friends-page">
 
-                <div class="user-profile">
-                    <img id="user-avatar" src="" alt="Avatar de usuario" />
+                    <!-- Search -->
+                    <section class="friends-search-section">
+                        <h2>Buscar por @username</h2>
+                        <div class="friends-search-row">
+                            <input type="text" id="username-search-input" placeholder="@username" />
+                            <button id="username-search-btn">Buscar</button>
+                        </div>
+                        <div id="search-result" class="search-result hidden"></div>
+                    </section>
+
+                    <!-- Incoming requests -->
+                    <section class="friends-section">
+                        <h2>Solicitudes recibidas <span id="requests-badge" class="hidden"></span></h2>
+                        <ul id="requests-list" class="friends-list">
+                            <li class="friends-empty">No tienes solicitudes pendientes</li>
+                        </ul>
+                    </section>
+
+                    <!-- Friends list -->
+                    <section class="friends-section">
+                        <h2>Mis amigos</h2>
+                        <ul id="friends-list" class="friends-list">
+                            <li class="friends-empty">No tienes amigos aún</li>
+                        </ul>
+                    </section>
+
                 </div>
-
-                <div class="user-content">
-                    <div>
-                        <h1>Nombre</h1>
-                        <h1 id="user-name" title="Haz click para editar">
-                            <span class="field-text"></span>
-                            <img
-                                class="icon-edit"
-                                src="../public/images/editar-texto.png"
-                                alt="Editar nombre"
-                            />
-                        </h1>
-                    </div>
-                    <div>
-                        <h1>Apellido</h1>
-                        <h1 id="user-lastname" title="Haz click para editar">
-                            <span class="field-text"></span>
-                            <img
-                                class="icon-edit"
-                                src="../public/images/editar-texto.png"
-                                alt="Editar apellido"
-                            />
-                        </h1>
-                    </div>
-                </div>
-
-                <div class="friend-code-container">
-                    <p class="friend-code-label">Tu nombre de perfil</p>
-                    <div class="friend-code-box">
-                        <span id="user-username">—</span>
-                    </div>
-                </div>
-
-                <div class="info-container">
-                    <div class="info-item">
-                        <button type="button" id="btn-info" class="btn-primary">
-                            Informacion personal
-                        </button>
-                    </div>
-                    <div class="info-item">
-                        <button type="button" id="btn-privacy" class="btn-secondary">
-                            Datos y Privacidad
-                        </button>
-                    </div>
-                </div>
-
-                <div class="button-sign-out">
-                    <button type="button" id="btn-logout" class="btn-tertiary">
-                        <img
-                            class="icon-logout"
-                            src="../public/images/cerrar-sesion.png"
-                            alt="Cerrar sesión"
-                        />
-                        Cerrar Sesión
-                    </button>
-                </div>
-
             </div>
         </div>
 
         <script type="module" src="../src/components/preloader/preloader.js"></script>
         <script type="module" src="../src/services/authGuard.js"></script>
         <script type="module" src="../src/components/navbar/navbar.js"></script>
-        <script type="module" src="../src/components/user/user.js"></script>
+        <script type="module" src="../src/components/friends/friends.js"></script>
     </body>
 </html>

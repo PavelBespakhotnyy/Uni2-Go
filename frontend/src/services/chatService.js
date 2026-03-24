@@ -90,6 +90,49 @@ class ChatService {
         return newChat.id;
     }
 
+    async createChatWithUser(friendId, currentUser) {
+        // Check if chat already exists
+        const cQuery = query(
+            collection(db, "chats"),
+            where("participants", "array-contains", currentUser.uid)
+        );
+        const existingChats = await getDocs(cQuery);
+        let existingChatId = null;
+        existingChats.forEach(d => {
+            if (d.data().participants.includes(friendId)) existingChatId = d.id;
+        });
+        if (existingChatId) return existingChatId;
+
+        const [senderSnap, friendSnap] = await Promise.all([
+            getDoc(doc(db, "users", currentUser.uid)),
+            getDoc(doc(db, "users", friendId)),
+        ]);
+
+        const sData = senderSnap.exists() ? senderSnap.data() : {};
+        const fData = friendSnap.exists() ? friendSnap.data() : {};
+        const senderName = `${sData.name || ''} ${sData.surname || ''}`.trim() || currentUser.email;
+        const friendName = `${fData.name || ''} ${fData.surname || ''}`.trim() || "Amigo";
+
+        const initialUnreadCount = { [currentUser.uid]: 0, [friendId]: 0 };
+
+        const newChat = await addDoc(collection(db, "chats"), {
+            participants: [currentUser.uid, friendId],
+            participantNames: [senderName, friendName],
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            lastMessage: null,
+            messageCount: 0,
+            unreadCount: initialUnreadCount,
+        });
+
+        await notificationService.createNotification(
+            friendId, 'new_chat', senderName, 'te ha añadido a un nuevo chat',
+            { chatId: newChat.id }, currentUser.uid
+        );
+
+        return newChat.id;
+    }
+
     async getChatInfo(chatId) {
         try {
             console.log('🔍 Obteniendo información del chat:', chatId);

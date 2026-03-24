@@ -1,6 +1,7 @@
 import { auth } from '../../firebase/firebase.js';
 import { onAuthStateChanged } from 'firebase/auth';
 import { gruposService } from '../../services/gruposService.js';
+import { friendsService } from '../../services/friendsService.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     let currentUser = null;
@@ -247,7 +248,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 ${isAdmin
                     ? `<div class="add-member-form" id="addMemberForm" style="display:none">
-                           <input type="text" id="addMemberCodeInput" class="member-code-input" placeholder="Código de amigo">
+                           <select id="addMemberSelect" class="member-code-input">
+                               <option value="">Cargando amigos...</option>
+                           </select>
                            <button class="add-member-submit-btn" id="addMemberSubmitBtn"><i class="bx bx-check"></i></button>
                            <button class="add-member-cancel-btn" id="addMemberCancelBtn"><i class="bx bx-x"></i></button>
                        </div>`
@@ -269,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="member-avatar" style="background-color:${memberColor}">${inits}</div>
                             <div class="member-info">
                                 <span class="member-name">${displayName}</span>
-                                <span class="member-code">${m.friend_code ? '#' + m.friend_code : ''}</span>
+                                <span class="member-code">${m.username ? '@' + m.username : ''}</span>
                             </div>
                             ${isMe
                                 ? '<span class="member-you-badge">Tú</span>'
@@ -297,24 +300,39 @@ document.addEventListener('DOMContentLoaded', () => {
         // Toggle form añadir miembro (solo admin)
         const addBtn = modal.querySelector('.modal-add-member-btn');
         if (addBtn) {
-            addBtn.addEventListener('click', () => {
+            addBtn.addEventListener('click', async () => {
                 const form = modal.querySelector('#addMemberForm');
                 const hidden = form.style.display === 'none';
                 form.style.display = hidden ? 'flex' : 'none';
-                if (hidden) modal.querySelector('#addMemberCodeInput').focus();
-            });
-
-            modal.querySelector('#addMemberCodeInput').addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') modal.querySelector('#addMemberSubmitBtn').click();
+                if (hidden) {
+                    const select = modal.querySelector('#addMemberSelect');
+                    select.innerHTML = '<option value="">Cargando...</option>';
+                    try {
+                        const currentMemberIds = members.map(m => m.id);
+                        const friends = await friendsService.getFriends(currentUser.uid);
+                        const available = friends.filter(f => !currentMemberIds.includes(f.uid));
+                        if (available.length === 0) {
+                            select.innerHTML = '<option value="">No hay amigos para añadir</option>';
+                        } else {
+                            select.innerHTML = '<option value="">Selecciona un amigo</option>' +
+                                available.map(f =>
+                                    `<option value="${f.uid}">${f.name} ${f.surname} @${f.username}</option>`
+                                ).join('');
+                        }
+                    } catch {
+                        select.innerHTML = '<option value="">Error al cargar amigos</option>';
+                    }
+                    select.focus();
+                }
             });
 
             const submitBtn = modal.querySelector('#addMemberSubmitBtn');
             submitBtn.addEventListener('click', async () => {
-                const code = modal.querySelector('#addMemberCodeInput').value.trim();
-                if (!code) return;
+                const uid = modal.querySelector('#addMemberSelect').value;
+                if (!uid) return;
                 submitBtn.disabled = true;
                 try {
-                    await gruposService.addMemberByCode(group.id, code);
+                    await gruposService.addMemberByUid(group.id, uid);
                     showToast('Miembro añadido', 'success');
                     await refreshGroupModal(modal, group.id);
                 } catch (e) {
