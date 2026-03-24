@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './index.css';
 import { 
   format, 
@@ -37,6 +37,7 @@ import {
   LucideWavesArrowDown
 } from 'lucide-react';
 import { addEvent, updateEvent, deleteEvent } from '../../services/calendarService';
+import { gruposService } from '../../services/gruposService';
 
 const VIEWS = {
   MONTH: 'month',
@@ -44,6 +45,7 @@ const VIEWS = {
   DAY: 'day'
 };
 import { auth, db } from '../../firebase/firebase.js';
+import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 
 const EVENT_COLORS = [
@@ -66,44 +68,94 @@ export default function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState(VIEWS.MONTH);
   const [events, setEvents] = useState([]);
+  const [myGroups, setMyGroups] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showGroupDropdown, setShowGroupDropdown] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [formData, setFormData] = useState({
-    title: '', start: '', end: '', allDay: false, people: '', groups: '', description: ''
+    title: '', start: '', end: '', allDay: false, people: '', groupIds: [], description: ''
   });
 
+  const ownEventsMapRef = useRef(new Map());
+  const groupEventsMapRef = useRef(new Map());
+
+  const mergeAndSet = useCallback(() => {
+    const merged = new Map([...ownEventsMapRef.current, ...groupEventsMapRef.current]);
+    setEvents(Array.from(merged.values()));
+  }, []);
+
+  const parseEvent = useCallback((docSnap) => {
+    const data = docSnap.data();
+    return {
+      id: docSnap.id,
+      ...data,
+      start: data.start?.toDate ? data.start.toDate() : new Date(data.start),
+      end: data.end?.toDate ? data.end.toDate() : new Date(data.end)
+    };
+  }, []);
+
+  // Cargar grupos del usuario y eventos propios cuando el auth esté listo
   useEffect(() => {
-  const user = auth.currentUser;
-  if (user) {
-    const eventsRef = collection(db, "events");
-    const q = query(eventsRef, where("userId", "==", user.uid));
+    let unsubGroups = null;
+    let unsubEvents = null;
 
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const userEvents = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        // IMPORTANTE: Convertir Timestamps de Firebase a Date de JS
-        userEvents.push({ 
-          id: doc.id, 
-          ...data,
-          start: data.start?.toDate ? data.start.toDate() : new Date(data.start),
-          end: data.end?.toDate ? data.end.toDate() : new Date(data.end)
-        });
+    const unsubAuth = onAuthStateChanged(auth, (user) => {
+      if (!user) return;
+
+      unsubGroups = gruposService.listenMyGroups(user.uid, (groups) => {
+        setMyGroups(groups);
       });
-      setEvents(userEvents);
+
+      const q = query(collection(db, "events"), where("userId", "==", user.uid));
+      unsubEvents = onSnapshot(q, (snapshot) => {
+        snapshot.docChanges().forEach(({ type, doc }) => {
+          if (type === 'removed') ownEventsMapRef.current.delete(doc.id);
+          else ownEventsMapRef.current.set(doc.id, parseEvent(doc));
+        });
+        mergeAndSet();
+      });
     });
 
-    return () => unsubscribe();
-  }
-}, [auth.currentUser]);/*
-    
-    const unsubscribeEvents = subscribeToEvents((fetchedEvents) => {
-      setEvents(fetchedEvents);
+    return () => {
+      unsubAuth();
+      unsubGroups?.();
+      unsubEvents?.();
+    };
+  }, [mergeAndSet, parseEvent]);
+
+  // Suscribirse a eventos de grupos del usuario
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (!user || myGroups.length === 0) {
+      groupEventsMapRef.current.clear();
+      mergeAndSet();
+      return;
+    }
+
+    const groupIds = myGroups.map(g => g.id);
+    groupEventsMapRef.current.clear();
+
+    // Firestore array-contains-any soporta hasta 30 valores
+    const q = query(
+      collection(db, "events"),
+      where("groupIds", "array-contains-any", groupIds.slice(0, 30))
+    );
+
+    const unsub = onSnapshot(q, (snapshot) => {
+      snapshot.docChanges().forEach(({ type, doc }) => {
+        if (type === 'removed') {
+          groupEventsMapRef.current.delete(doc.id);
+        } else if (doc.data().userId !== user.uid) {
+          groupEventsMapRef.current.set(doc.id, { ...parseEvent(doc), isGroupEvent: true });
+        }
+      });
+      mergeAndSet();
     });
-    return () => unsubscribeEvents();
-  }, []);*/
+
+    return () => unsub();
+  }, [myGroups, mergeAndSet, parseEvent]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -143,10 +195,11 @@ export default function Calendar() {
     const start = startOfDay(date);
     setFormData({
       title: '', start: format(start, "yyyy-MM-dd'T'09:00"), end: format(start, "yyyy-MM-dd'T'10:00"),
-      allDay: false, people: '', groups: '', description: ''
+      allDay: false, people: '', groupIds: [], description: ''
     });
     setSelectedEvent(null);
     setErrorMsg('');
+    setShowGroupDropdown(false);
     setIsModalOpen(true);
   };
 
@@ -154,9 +207,10 @@ export default function Calendar() {
     setSelectedEvent(event);
     setFormData({
       title: event.title, start: format(event.start, "yyyy-MM-dd'T'HH:mm"), end: format(event.end, "yyyy-MM-dd'T'HH:mm"),
-      allDay: event.allDay || false, people: event.people || '', groups: event.groups || '', description: event.description || ''
+      allDay: event.allDay || false, people: event.people || '', groupIds: event.groupIds || [], description: event.description || ''
     });
     setErrorMsg('');
+    setShowGroupDropdown(false);
     setIsModalOpen(true);
   };
 
@@ -291,7 +345,61 @@ export default function Calendar() {
               
               <div className="grid grid-cols-2 gap-4">
                 <div><label className="block text-[10px] font-black mb-1.5 text-gray-400 uppercase tracking-widest flex items-center gap-1.5"><Users size={12} /> Personas</label><input type="text" className="w-full border border-gray-300 rounded px-4 py-2.5 focus:border-[#1a1a1a] outline-none text-xs bg-gray-50" value={formData.people} onChange={(e) => setFormData({ ...formData, people: e.target.value })} /></div>
-                <div><label className="block text-[10px] font-black mb-1.5 text-gray-400 uppercase tracking-widest flex items-center gap-1.5"><Layers size={12} /> Grupos</label><input type="text" className="w-full border border-gray-300 rounded px-4 py-2.5 focus:border-[#1a1a1a] outline-none text-xs bg-gray-50" value={formData.groups} onChange={(e) => setFormData({ ...formData, groups: e.target.value })} /></div>
+                <div className="relative">
+                  <label className="block text-[10px] font-black mb-1.5 text-gray-400 uppercase tracking-widest flex items-center gap-1.5"><Layers size={12} /> Grupos</label>
+                  <button
+                    type="button"
+                    onClick={() => setShowGroupDropdown(v => !v)}
+                    className="w-full border border-gray-300 rounded px-3 py-2.5 text-left text-xs bg-gray-50 focus:border-[#1a1a1a] outline-none flex items-center justify-between"
+                  >
+                    <span className="truncate text-gray-500">
+                      {formData.groupIds.length === 0
+                        ? 'Seleccionar...'
+                        : `${formData.groupIds.length} grupo${formData.groupIds.length > 1 ? 's' : ''}`}
+                    </span>
+                    <ChevronRight size={12} className={`shrink-0 transition-transform ${showGroupDropdown ? 'rotate-90' : ''}`} />
+                  </button>
+                  {showGroupDropdown && (
+                    <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-white border-2 border-[#1a1a1a] rounded shadow-xl max-h-48 overflow-y-auto">
+                      {myGroups.length === 0 ? (
+                        <div className="px-3 py-3 text-xs text-gray-400 text-center">No perteneces a ningún grupo</div>
+                      ) : (
+                        myGroups.map(group => {
+                          const checked = formData.groupIds.includes(group.id);
+                          return (
+                            <label key={group.id} className="flex items-center gap-2 px-3 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0">
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() => {
+                                  const next = checked
+                                    ? formData.groupIds.filter(id => id !== group.id)
+                                    : [...formData.groupIds, group.id];
+                                  setFormData({ ...formData, groupIds: next });
+                                }}
+                                className="w-3.5 h-3.5 accent-[#1a1a1a] cursor-pointer"
+                              />
+                              <span className="text-xs font-bold text-[#1a1a1a] truncate">{group.name}</span>
+                            </label>
+                          );
+                        })
+                      )}
+                    </div>
+                  )}
+                  {formData.groupIds.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1.5">
+                      {formData.groupIds.map(id => {
+                        const g = myGroups.find(gr => gr.id === id);
+                        return g ? (
+                          <span key={id} className="inline-flex items-center gap-1 bg-[#1a1a1a] text-white text-[9px] font-bold px-2 py-0.5 rounded">
+                            {g.name}
+                            <button type="button" onClick={() => setFormData({ ...formData, groupIds: formData.groupIds.filter(x => x !== id) })} className="hover:opacity-70"><X size={9} /></button>
+                          </span>
+                        ) : null;
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
               
               <div className="flex gap-4 pt-4 border-t border-gray-100">

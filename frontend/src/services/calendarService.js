@@ -28,6 +28,7 @@ export async function addEvent(eventData) {
       userId: user.uid,
       location: eventData.location || "",
       eventType: eventData.eventType || "meeting",
+      groupIds: eventData.groupIds || [],
       attendees: eventData.attendees || [
         {
           userId: user.uid,
