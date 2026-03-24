@@ -4,14 +4,12 @@ import { getUserProfile } from "./userService.js";
 
 const PROTECTED_PAGES = [
   "calendar.html",
-  "carpetas.html",
   "chat.html",
   "grupos.html",
   "friends.html",
   "lista_de_compras.html",
   "notifications.html",
   "user.html",
-  "navbartest.html",
 ];
 
 const AUTH_PAGES = [
