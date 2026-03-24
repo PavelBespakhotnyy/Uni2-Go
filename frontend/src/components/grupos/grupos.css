@@ -22,35 +22,25 @@
     flex-shrink: 0;
 }
 
-.controls-bar h1 {
-    font-size: 22px;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin: 0;
-    white-space: nowrap;
-}
-
 .search-container {
-    flex: 1;
     position: relative;
-    max-width: 380px;
+    width: 320px;
 }
 
 .search-input {
     width: 100%;
     padding: 10px 15px 10px 40px;
-    background-color: #f5f5f5;
-    border: 1px solid #e0e0e0;
-    border-radius: 20px;
+    background-color: #fff;
+    border: 1.5px solid #d0d0d0;
+    border-radius: 30px;
     font-size: 14px;
     outline: none;
-    transition: border-color 0.2s, background-color 0.2s;
+    transition: border-color 0.2s;
     box-sizing: border-box;
 }
 
 .search-input:focus {
     border-color: #0056FF;
-    background-color: #fff;
 }
 
 .search-icon {
@@ -63,148 +53,167 @@
     pointer-events: none;
 }
 
-.filters-select {
-    background-color: #f0f4ff;
-    border: 1px solid #d0d8f0;
-    border-radius: 20px;
-    padding: 10px 35px 10px 15px;
-    font-size: 14px;
-    font-weight: 500;
-    color: #0056FF;
-    outline: none;
-    cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='%230056FF'%3E%3Cpath d='M16.293 9.293 12 13.586 7.707 9.293l-1.414 1.414L12 16.414l5.707-5.707z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    transition: background-color 0.2s;
-    white-space: nowrap;
-}
-
-.filters-select:hover {
-    background-color: #e8eeff;
-}
-
 /* ── Groups scroll area ── */
 .groups-container {
     flex: 1;
     overflow-y: auto;
-    padding: 25px 30px;
+    padding: 28px 32px;
 }
 
 .groups-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
     align-content: start;
 }
 
-/* ── Group card ── */
+/* ── Group card (tile style) ── */
 .group-card {
-    background: #fff;
-    border-radius: 16px;
-    padding: 18px 16px;
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    display: flex;
-    align-items: center;
-    gap: 14px;
     position: relative;
+    border-radius: 16px;
+    height: 180px;
+    cursor: pointer;
     overflow: visible;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
 }
 
 .group-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.12);
 }
 
-.group-card-avatar {
-    width: 50px;
-    height: 50px;
-    border-radius: 14px;
+/* Placeholder image box inside card */
+.card-image-placeholder {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    width: 78px;
+    height: 78px;
+    background: rgba(0,0,0,0.12);
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 17px;
+    font-size: 28px;
+    color: rgba(0,0,0,0.35);
+}
+
+/* Group name at top-left */
+.card-group-name {
+    position: absolute;
+    top: 14px;
+    left: 16px;
+    font-size: 16px;
     font-weight: 700;
-    color: #fff;
-    flex-shrink: 0;
-    letter-spacing: 0.5px;
-}
-
-.group-card-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.group-card-name {
-    display: block;
-    font-size: 15px;
-    font-weight: 600;
-    color: #1a1a1a;
-    white-space: nowrap;
+    color: rgba(0,0,0,0.65);
+    max-width: calc(100% - 52px);
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-bottom: 3px;
+    white-space: nowrap;
 }
 
-.group-card-members {
-    font-size: 13px;
-    color: #999;
+/* Member avatars strip at bottom-right */
+.card-members-strip {
+    position: absolute;
+    bottom: 14px;
+    right: 14px;
+    display: flex;
+    align-items: center;
+    flex-direction: row-reverse;
 }
 
-/* Add card */
+.card-members-strip .card-member-avatar {
+    margin-left: 0;
+    margin-right: -7px;
+}
+
+.card-members-strip .card-member-avatar:last-child {
+    margin-right: 0;
+}
+
+.card-member-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    border: 2px solid #fff;
+    margin-left: -7px;
+    flex-shrink: 0;
+}
+
+.card-member-avatar:first-child {
+    margin-left: 0;
+}
+
+.card-member-extra {
+    background: rgba(0,0,0,0.18) !important;
+    color: rgba(0,0,0,0.55) !important;
+    font-size: 10px;
+}
+
+/* ── Add card ── */
 .add-card {
-    border: 2px dashed #0056FF;
-    background: #f0f4ff;
-    box-shadow: none;
-    cursor: pointer;
+    background: #e0e0e0 !important;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 22px;
+    overflow: hidden;
+    height: 180px;
+    position: relative;
 }
 
 .add-card:hover {
-    background: #e8eeff;
-    box-shadow: none;
-    transform: translateY(-2px);
+    background: #d4d4d4 !important;
 }
 
-.add-card-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 14px;
-    background: #0056FF;
+.add-card-placeholder {
+    width: 78px;
+    height: 78px;
+    background: rgba(0,0,0,0.12);
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 26px;
-    color: #fff;
+    font-size: 32px;
+    color: rgba(0,0,0,0.4);
     flex-shrink: 0;
 }
 
 .add-card-label {
-    color: #0056FF !important;
+    font-size: 17px;
+    font-weight: 600;
+    color: rgba(0,0,0,0.55);
 }
 
 /* Three-dot menu on card */
 .group-card-menu-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
     background: none;
     border: none;
     cursor: pointer;
     font-size: 20px;
-    color: #bbb;
+    color: rgba(0,0,0,0.5);
     padding: 4px;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: background 0.15s, color 0.15s;
-    flex-shrink: 0;
     z-index: 5;
 }
 
 .group-card-menu-btn:hover {
-    background: #f0f0f0;
-    color: #555;
+    background: rgba(0,0,0,0.08);
+    color: rgba(0,0,0,0.75);
 }
 
 .group-card-submenu {
@@ -602,11 +611,6 @@
     justify-content: center;
     transition: all 0.15s;
     flex-shrink: 0;
-    opacity: 0;
-}
-
-.modal-member-item:hover .member-remove-btn {
-    opacity: 1;
 }
 
 .member-remove-btn:hover {

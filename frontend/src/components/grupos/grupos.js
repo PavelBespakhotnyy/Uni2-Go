@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const groupsGrid = document.getElementById('groupsGrid');
     const groupSearchInput = document.getElementById('groupSearch');
-    const groupFilter = document.getElementById('groupFilter');
 
     // Ocultar paginación (no se necesita con datos en tiempo real)
     const paginationContainer = document.querySelector('.pagination-container');
@@ -34,20 +33,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── UI Update ─────────────────────────────────────────
     function updateUI() {
         const term = groupSearchInput.value.toLowerCase();
-        const filter = groupFilter.value;
-
-        let filtered = groupsData.filter(g =>
+        const filtered = groupsData.filter(g =>
             g.name.toLowerCase().includes(term)
         );
-
-        if (filter === 'recent') {
-            filtered = [...filtered].sort((a, b) => {
-                const ta = a.created_at?.seconds ?? 0;
-                const tb = b.created_at?.seconds ?? 0;
-                return tb - ta;
-            });
-        }
-
         renderGroups(filtered);
     }
 
@@ -75,13 +63,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ── Color / initials helpers ──────────────────────────
-    const COLORS = ['#4f46e5', '#0284c7', '#0891b2', '#059669', '#d97706', '#0056FF', '#7c3aed', '#db2777'];
+    const CARD_COLORS = ['#fce4e4', '#dce8f8', '#d8f0d8', '#fddcb0', '#f8d8f0', '#e8e0f8', '#fef3cc', '#d8f0f0'];
+    const MEMBER_COLORS = ['#4f46e5', '#0284c7', '#059669', '#d97706', '#7c3aed', '#db2777', '#0891b2', '#0056FF'];
 
     function avatarColor(str) {
-        if (!str) return COLORS[0];
+        if (!str) return CARD_COLORS[0];
         let h = 0;
         for (const c of str) h = ((h << 5) - h) + c.charCodeAt(0);
-        return COLORS[Math.abs(h) % COLORS.length];
+        return CARD_COLORS[Math.abs(h) % CARD_COLORS.length];
+    }
+
+    function memberAvatarColor(str) {
+        if (!str) return MEMBER_COLORS[0];
+        let h = 0;
+        for (const c of str) h = ((h << 5) - h) + c.charCodeAt(0);
+        return MEMBER_COLORS[Math.abs(h) % MEMBER_COLORS.length];
     }
 
     function initials(name, surname) {
@@ -105,11 +101,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const card = document.createElement('div');
         card.className = 'group-card add-card';
         card.innerHTML = `
-            <div class="add-card-icon"><i class="bx bx-plus"></i></div>
-            <div class="group-card-info">
-                <span class="group-card-name add-card-label">Nuevo grupo</span>
-                <span class="group-card-members">Crear un nuevo grupo</span>
-            </div>
+            <div class="add-card-placeholder"><i class="bx bx-plus"></i></div>
+            <span class="add-card-label">Nuevo grupo</span>
         `;
         card.addEventListener('click', () => showCreateGroupModal());
         return card;
@@ -120,17 +113,18 @@ document.addEventListener('DOMContentLoaded', () => {
         card.className = 'group-card';
 
         const color = avatarColor(group.name);
-        const inits = groupInitials(group.name);
 
+        const displayName = group.name
+            ? group.name.charAt(0).toUpperCase() + group.name.slice(1)
+            : group.name;
+
+        card.style.backgroundColor = color;
         card.innerHTML = `
-            <div class="group-card-avatar" style="background-color:${color}">${inits}</div>
-            <div class="group-card-info">
-                <span class="group-card-name" title="${group.name}">${group.name}</span>
-                <span class="group-card-members">${group.description || 'Sin descripción'}</span>
-            </div>
+            <span class="card-group-name" title="${displayName}">${displayName}</span>
             <button class="group-card-menu-btn" title="Opciones">
                 <i class="bx bx-dots-vertical-rounded"></i>
             </button>
+            <div class="card-members-strip"></div>
             <div class="group-card-submenu">
                 <button class="submenu-item delete action-delete">
                     <i class="bx bx-trash"></i> Eliminar grupo
@@ -138,10 +132,10 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
-        // Abrir modal al hacer clic en avatar o info
-        ['group-card-avatar', 'group-card-info'].forEach(cls => {
-            card.querySelector('.' + cls).addEventListener('click', () => showGroupModal(group));
-        });
+        loadCardMembers(card, group);
+
+        // Abrir modal al hacer clic en la tarjeta (excepto botón de menú)
+        card.addEventListener('click', () => showGroupModal(group));
 
         // Menú de tres puntos
         const menuBtn = card.querySelector('.group-card-menu-btn');
@@ -173,6 +167,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         return card;
+    }
+
+    async function loadCardMembers(card, group) {
+        const strip = card.querySelector('.card-members-strip');
+        if (!strip) return;
+        const ids = (group.member_ids || []).slice(0, 4);
+        if (ids.length === 0) return;
+        try {
+            const members = await gruposService.getMemberDetails(ids);
+            strip.innerHTML = members.map(m => {
+                const inits = initials(m.name, m.surname);
+                const c = memberAvatarColor(m.name || m.id);
+                return `<div class="card-member-avatar" style="background-color:${c}">${inits}</div>`;
+            }).join('');
+        } catch { /* fallo silencioso */ }
     }
 
     // ── Group detail modal ────────────────────────────────
@@ -526,7 +535,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Event listeners ───────────────────────────────────
     groupSearchInput.addEventListener('input', () => updateUI());
-    groupFilter.addEventListener('change', () => updateUI());
 
     document.addEventListener('click', () => {
         document.querySelectorAll('.group-card-submenu.active').forEach(m => m.classList.remove('active'));
