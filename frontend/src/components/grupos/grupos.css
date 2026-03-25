@@ -16,6 +16,7 @@
     padding: 18px 30px;
     display: flex;
     align-items: center;
+    justify-content: center; /* Center content */
     gap: 15px;
     border-bottom: 1px solid #e8e8e8;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
@@ -24,7 +25,7 @@
 
 .search-container {
     position: relative;
-    width: 320px;
+    width: 640px; /* Doubled from 320px */
 }
 
 .search-input {
@@ -855,10 +856,91 @@
 .pagination-item.active { background-color: #0056FF; color: #fff; }
 .pagination-item.disabled { opacity: 0.3; pointer-events: none; }
 
-/* ── Animations ── */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-4px); }
-    to   { opacity: 1; transform: translateY(0); }
+/* ── Emoji & Friend Selector in Modal ── */
+.emoji-picker {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 5px;
+}
+
+.emoji-option {
+    font-size: 24px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 10px;
+    transition: background 0.2s;
+    border: 2px solid transparent;
+}
+
+.emoji-option:hover {
+    background: #f0f0f0;
+}
+
+.emoji-option.active {
+    background: #e0e8ff;
+    border-color: #0056FF;
+}
+
+.card-emoji-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 84px;
+    opacity: 0.6;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.friend-selector-container {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-add-friend {
+    background: #0056FF;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.selected-friends-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.selected-friend-tag {
+    background: #f0f4ff;
+    color: #0056FF;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid #e0e8ff;
+}
+
+.selected-friend-tag .remove-friend {
+    cursor: pointer;
+    font-size: 16px;
+    color: #0056FF;
+    opacity: 0.6;
+}
+
+.selected-friend-tag .remove-friend:hover {
+    opacity: 1;
 }
 
 @keyframes overlayIn {

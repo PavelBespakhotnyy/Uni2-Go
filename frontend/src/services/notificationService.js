@@ -8,11 +8,9 @@ class NotificationService {
     async createNotification(userId, type, senderName, action, data = {}, senderId = null) {
         // No enviar notificaciones a uno mismo
         if (senderId && userId === senderId) {
-            console.log("🚫 Skipping self-notification for user:", userId);
             return;
         }
 
-        console.log(`🚀 Tentative de création de notification pour ${userId}:`, { type, senderName, action });
         try {
             const docRef = await addDoc(collection(db, "notifications"), {
                 userId,
@@ -23,25 +21,22 @@ class NotificationService {
                 read: false,
                 createdAt: serverTimestamp()
             });
-            console.log("✅ Notification créée avec ID:", docRef.id);
         } catch (error) {
-            console.error("❌ Erreur lors de la création de la notification:", error);
+            console.error("Erreur lors de la création de la notification:", error);
         }
     }
 
     listenMyNotifications(userId, callback) {
-        console.log("👂 Démarrage de l'écoute des notifications pour:", userId);
         const q = query(
             collection(db, "notifications"), 
-            where("userId", "==", userId),
-            orderBy("createdAt", "desc")
+            where("userId", "==", userId)
+            // orderBy removed to avoid needing a composite index for now
         );
         return onSnapshot(q, (snapshot) => {
             const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            console.log(`📥 Mise à jour des notifications (${notifications.length} reçues)`);
             callback(notifications);
         }, (error) => {
-            console.error("❌ Erreur dans listenMyNotifications:", error);
+            console.error("Erreur dans listenMyNotifications:", error);
         });
     }
 

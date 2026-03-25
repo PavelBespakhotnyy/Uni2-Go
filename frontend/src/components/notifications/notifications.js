@@ -14,9 +14,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            console.log("🔔 Listening to notifications for:", user.uid);
+            console.log("Listening to notifications for:", user.uid);
             notificationService.listenMyNotifications(user.uid, (data) => {
-                console.log("📥 Received notifications:", data.length);
+                console.log("Received notifications:", data.length);
                 // Sort by createdAt desc in frontend to avoid index requirement for now
                 const sortedData = data.sort((a, b) => {
                     const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;

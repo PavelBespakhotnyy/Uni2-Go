@@ -1,7 +1,7 @@
 import { db } from '../firebase/firebase.js';
 import { 
     collection, query, where, getDocs, addDoc, 
-    onSnapshot, orderBy, serverTimestamp, doc, updateDoc, increment, getDoc 
+    onSnapshot, orderBy, serverTimestamp, doc, updateDoc, increment, getDoc, deleteDoc 
 } from "firebase/firestore";
 import { notificationService } from './notificationService.js';
 
@@ -77,7 +77,7 @@ class ChatService {
             unreadCount: initialUnreadCount
         });
 
-        console.log("📨 Envoi de notification de nuevo chat à:", friendId);
+        console.log("Envoi de notification de nuevo chat a:", friendId);
         await notificationService.createNotification(
             friendId, 
             'new_chat', 
@@ -135,24 +135,24 @@ class ChatService {
 
     async getChatInfo(chatId) {
         try {
-            console.log('🔍 Obteniendo información del chat:', chatId);
+            console.log('Obteniendo informacion del chat:', chatId);
             const chatRef = doc(db, "chats", chatId);
             const chatSnap = await getDoc(chatRef);
             
             if (!chatSnap.exists()) {
-                console.log('❌ Chat no encontrado');
+                console.log('Chat no encontrado');
                 return null;
             }
             
             const chatData = chatSnap.data();
-            console.log('✅ Chat encontrado:', chatData);
+            console.log('Chat encontrado:', chatData);
             
             return {
                 id: chatSnap.id,
                 ...chatData
             };
         } catch (error) {
-            console.error('❌ Error en getChatInfo:', error);
+            console.error('Error en getChatInfo:', error);
             throw error;
         }
     }
@@ -189,7 +189,7 @@ class ChatService {
     }
 
     async sendMessage(chatId, text, senderId, participants, senderName) {
-        console.log("📤 Envoi de message au chat:", chatId, "Participants:", participants);
+        console.log("Envoi de message au chat:", chatId, "Participants:", participants);
         const chatRef = doc(db, "chats", chatId);
         const messagesRef = collection(db, "chats", chatId, "messages");
         
@@ -231,7 +231,7 @@ class ChatService {
 
             updateData[`unreadCount.${pId}`] = increment(1);
             
-            console.log(`🔔 Создание уведомления для пользователя: ${pId}`);
+            console.log(`Creacion de notificacion para el usuario: ${pId}`);
             notificationPromises.push(
                 notificationService.createNotification(
                     pId, 
@@ -248,7 +248,7 @@ class ChatService {
             updateDoc(chatRef, updateData),
             ...notificationPromises
         ]);
-        console.log("✅ Message et notifications traités.");
+        console.log("Message et notifications traites.");
     }
 
     async markAsRead(chatId, userId) {
@@ -256,6 +256,20 @@ class ChatService {
         const updateData = {};
         updateData[`unreadCount.${userId}`] = 0;
         await updateDoc(chatRef, updateData);
+    }
+
+    async deleteChat(chatId) {
+        console.log("Eliminando chat:", chatId);
+        
+        // 1. Eliminar mensajes de la subcolección
+        const messagesRef = collection(db, "chats", chatId, "messages");
+        const messagesSnap = await getDocs(messagesRef);
+        const deletePromises = messagesSnap.docs.map(d => deleteDoc(d.ref));
+        await Promise.all(deletePromises);
+        
+        // 2. Eliminar el documento del chat
+        await deleteDoc(doc(db, "chats", chatId));
+        console.log("Chat eliminado por completo");
     }
 }
 

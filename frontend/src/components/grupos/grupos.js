@@ -66,6 +66,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── Color / initials helpers ──────────────────────────
     const CARD_COLORS = ['#fce4e4', '#dce8f8', '#d8f0d8', '#fddcb0', '#f8d8f0', '#e8e0f8', '#fef3cc', '#d8f0f0'];
     const MEMBER_COLORS = ['#4f46e5', '#0284c7', '#059669', '#d97706', '#7c3aed', '#db2777', '#0891b2', '#0056FF'];
+    const EMOJIS = [
+        '👥', '🏠', '🎓', '🏀', '🍕', '✈️', '🎮', '💡', '🎉', '💼',
+        '❤️', '🌟', '🔥', '📚', '🎨', '🎬', '🎸', '🌈', '🐶', '🐱',
+        '🍎', '🍺', '⚽', '🚗', '📱', '💻', '🔒', '🛠️', '🌍', '🚀'
+    ];
 
     function avatarColor(str) {
         if (!str) return CARD_COLORS[0];
@@ -121,6 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         card.style.backgroundColor = color;
         card.innerHTML = `
+            <div class="card-emoji-container">${group.emoji || '👥'}</div>
             <span class="card-group-name" title="${displayName}">${displayName}</span>
             <button class="group-card-menu-btn" title="Opciones">
                 <i class="bx bx-dots-vertical-rounded"></i>
@@ -225,7 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.querySelector('.modal-body').innerHTML = `
             <div class="modal-group-header">
                 <div class="modal-group-avatar" style="background-color:${color}">
-                    ${groupInitials(group.name)}
+                    ${group.emoji || groupInitials(group.name)}
                 </div>
                 <div class="modal-group-title-area">
                     <h2 class="modal-group-name">${group.name}</h2>
@@ -392,8 +398,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Edit group form ───────────────────────────────────
     function showEditGroupForm(modal, group) {
+        let selectedEmoji = group.emoji || '👥';
+
         modal.querySelector('.modal-body').innerHTML = `
             <div class="edit-group-form">
+                <div class="form-group emoji-selection-group">
+                    <label>Icono del grupo</label>
+                    <div class="emoji-picker">
+                        ${EMOJIS.map(e => `<span class="emoji-option ${e === selectedEmoji ? 'active' : ''}" data-emoji="${e}">${e}</span>`).join('')}
+                    </div>
+                </div>
                 <div class="form-group">
                     <label>Nombre del grupo</label>
                     <input type="text" id="editGroupName" class="edit-group-input" value="${group.name}">
@@ -409,6 +423,15 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
+        const emojiOptions = modal.querySelectorAll('.emoji-option');
+        emojiOptions.forEach(opt => {
+            opt.addEventListener('click', () => {
+                emojiOptions.forEach(o => o.classList.remove('active'));
+                opt.classList.add('active');
+                selectedEmoji = opt.dataset.emoji;
+            });
+        });
+
         modal.querySelector('#cancelEditBtn').addEventListener('click', async () => {
             await refreshGroupModal(modal, group.id);
         });
@@ -423,7 +446,11 @@ document.addEventListener('DOMContentLoaded', () => {
             saveBtn.textContent = 'Guardando...';
 
             try {
-                await gruposService.updateGroup(group.id, { name: newName, description: newDesc });
+                await gruposService.updateGroup(group.id, { 
+                    name: newName, 
+                    description: newDesc,
+                    emoji: selectedEmoji
+                });
                 showToast('Grupo actualizado', 'success');
                 await refreshGroupModal(modal, group.id);
             } catch {
@@ -435,11 +462,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ── Create group modal ────────────────────────────────
-    function showCreateGroupModal() {
+    async function showCreateGroupModal() {
         const modal = getOrCreateModal('createGroupModal');
+        let selectedFriends = [];
+        let selectedEmoji = '👥';
+
         modal.querySelector('.modal-title').textContent = 'Nuevo grupo';
         modal.querySelector('.modal-body').innerHTML = `
             <div class="create-group-form">
+                <div class="form-group emoji-selection-group">
+                    <label>Icono del grupo</label>
+                    <div class="emoji-picker">
+                        ${EMOJIS.map(e => `<span class="emoji-option ${e === selectedEmoji ? 'active' : ''}" data-emoji="${e}">${e}</span>`).join('')}
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label>Nombre del grupo *</label>
                     <input type="text" id="newGroupName" class="form-input" placeholder="Ej: Compañeros de piso">
@@ -448,6 +485,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     <label>Descripción</label>
                     <textarea id="newGroupDesc" class="form-textarea" placeholder="Descripción opcional..."></textarea>
                 </div>
+
+                <div class="form-group">
+                    <label>Añadir amigos</label>
+                    <div class="friend-selector-container">
+                        <select id="friendSelect" class="form-input">
+                            <option value="">Cargando amigos...</option>
+                        </select>
+                        <button type="button" class="btn-add-friend" id="btnAddFriendToGroup"><i class="bx bx-plus"></i></button>
+                    </div>
+                    <div class="selected-friends-list" id="selectedFriendsList">
+                        <!-- Selected friends will appear here -->
+                    </div>
+                </div>
+
                 <div class="modal-actions">
                     <button class="btn-cancel" id="cancelCreateBtn">Cancelar</button>
                     <button class="btn-save" id="submitCreateBtn">Crear grupo</button>
@@ -455,14 +506,60 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
         modal.classList.add('active');
-        modal.querySelector('#newGroupName').focus();
+        
+        const emojiOptions = modal.querySelectorAll('.emoji-option');
+        emojiOptions.forEach(opt => {
+            opt.addEventListener('click', () => {
+                emojiOptions.forEach(o => o.classList.remove('active'));
+                opt.classList.add('active');
+                selectedEmoji = opt.dataset.emoji;
+            });
+        });
+
+        const friendSelect = modal.querySelector('#friendSelect');
+        let friends = [];
+        try {
+            friends = await friendsService.getFriends(currentUser.uid);
+            friendSelect.innerHTML = '<option value="">Selecciona un amigo</option>' +
+                friends.map(f => `<option value="${f.uid}">${f.name} ${f.surname}</option>`).join('');
+        } catch {
+            friendSelect.innerHTML = '<option value="">Error al cargar amigos</option>';
+        }
+
+        const friendsListEl = modal.querySelector('#selectedFriendsList');
+        const updateFriendsUI = () => {
+            friendsListEl.innerHTML = selectedFriends.map(f => `
+                <div class="selected-friend-tag">
+                    <span>${f.name} ${f.surname}</span>
+                    <i class="bx bx-x remove-friend" data-uid="${f.uid}"></i>
+                </div>
+            `).join('');
+            
+            friendsListEl.querySelectorAll('.remove-friend').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    selectedFriends = selectedFriends.filter(sf => sf.uid !== btn.dataset.uid);
+                    updateFriendsUI();
+                });
+            });
+        };
+
+        modal.querySelector('#btnAddFriendToGroup').addEventListener('click', () => {
+            const uid = friendSelect.value;
+            if (!uid) return;
+            if (selectedFriends.some(f => f.uid === uid)) {
+                showToast('Este amigo уже добавлен', 'error');
+                return;
+            }
+            const friend = friends.find(f => f.uid === uid);
+            if (friend) {
+                selectedFriends.push(friend);
+                updateFriendsUI();
+                friendSelect.value = '';
+            }
+        });
 
         modal.querySelector('#cancelCreateBtn').addEventListener('click', () => {
             modal.classList.remove('active');
-        });
-
-        modal.querySelector('#newGroupName').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') modal.querySelector('#submitCreateBtn').click();
         });
 
         modal.querySelector('#submitCreateBtn').addEventListener('click', async () => {
@@ -475,10 +572,12 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.textContent = 'Creando...';
 
             try {
-                await gruposService.createGroup(name, desc, currentUser.uid);
+                const memberIds = selectedFriends.map(f => f.uid);
+                await gruposService.createGroup(name, desc, currentUser.uid, selectedEmoji, memberIds);
                 modal.classList.remove('active');
                 showToast('Grupo creado', 'success');
-            } catch {
+            } catch (e) {
+                console.error(e);
                 showToast('Error al crear el grupo', 'error');
                 btn.disabled = false;
                 btn.textContent = 'Crear grupo';

@@ -30,22 +30,36 @@ class GruposService {
      * Crea grupo. Guarda member_ids (array para queries) y
      * subcolección members (para rol y fecha de entrada).
      */
-    async createGroup(name, description, creatorId) {
+    async createGroup(name, description, creatorId, emoji = '👥', memberIds = []) {
+        const allMemberIds = Array.from(new Set([creatorId, ...memberIds]));
         const groupRef = await addDoc(collection(db, "interest_groups"), {
             name,
             description: description || '',
+            emoji: emoji || '👥',
             created_by_user_id: creatorId,
             created_at: serverTimestamp(),
             is_private: false,
             cover_image_url: '',
-            member_ids: [creatorId]
+            member_ids: allMemberIds
         });
 
+        // Add creator as admin
         await setDoc(doc(db, "interest_groups", groupRef.id, "members", creatorId), {
             user_id: creatorId,
             role: 'admin',
             joined_at: serverTimestamp()
         });
+
+        // Add other selected members
+        for (const mid of memberIds) {
+            if (mid !== creatorId) {
+                await setDoc(doc(db, "interest_groups", groupRef.id, "members", mid), {
+                    user_id: mid,
+                    role: 'member',
+                    joined_at: serverTimestamp()
+                });
+            }
+        }
 
         return groupRef.id;
     }
