@@ -2,6 +2,7 @@
 import { auth } from '../../firebase/firebase.js';
 import { onAuthStateChanged } from "firebase/auth";
 import { chatService } from '../../services/chatService.js';
+import { friendsService } from '../../services/friendsService.js';
 import { getUserProfile } from '../../services/userService.js';
 
 // Seleccionamos los elementos del DOM
@@ -11,6 +12,7 @@ const searchInputEl = document.querySelector('.chat-search-input');
 const messageInputEl = document.querySelector('.chat-input-field');
 const sendBtnEl = document.querySelector('.chat-send-btn');
 const chatMessagesEl = document.getElementById('chat-messages');
+const chatInputAreaEl = document.querySelector('.chat-input-area');
 const searchForm = document.querySelector('.chat-search-container form');
 
 let currentUser = null;
@@ -18,13 +20,15 @@ let currentUserProfile = null;
 let activeChatId = null;
 let activeChatName = '';
 let activeChatParticipants = [];
+let allChats = [];
+let allFriends = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUser = user;
-            console.log("✅ Usuario autenticado:", currentUser.uid);
+            console.log("Usuario autenticado:", currentUser.uid);
             
             // Cargar perfil del usuario para tener nombre completo
             try {
@@ -35,89 +39,258 @@ document.addEventListener('DOMContentLoaded', () => {
             
             initChatList();
         } else {
-            console.log("❌ Usuario no autenticado");
+            console.log("Usuario no autenticado");
             window.location.href = "/pages/login.html";
         }
     });
 
-    function initChatList() {
+    async function initChatList() {
         console.log("Iniciando escucha de chats...");
         
+        // Ocultar input area inicialmente
+        if (chatInputAreaEl) chatInputAreaEl.style.display = 'none';
+
+        // Obtener amigos para el buscador
+        try {
+            allFriends = await friendsService.getFriends(currentUser.uid);
+        } catch (err) {
+            console.warn("Error al cargar amigos:", err);
+        }
+
         chatService.listenMyChats(currentUser.uid, (chats) => {
-            console.log("📥 Количество загруженных чатов:", chats.length);
-            if (!contactsListEl) return;
-            contactsListEl.innerHTML = ''; 
-
-            if (chats.length === 0) {
-                contactsListEl.innerHTML = '<li class="no-chats">No tienes chats aún</li>';
-                return;
-            }
-
-            if (chats.length === 0) {
-                const emptyLi = document.createElement('li');
-                emptyLi.className = 'chat-empty';
-                emptyLi.textContent = 'No hay chats aún. Busca un amigo por código.';
-                contactsListEl.appendChild(emptyLi);
-                return;
-            }
-
-            const myName = currentUserProfile 
-                ? `${currentUserProfile.name || ''} ${currentUserProfile.surname || ''}`.trim() 
-                : (currentUser.displayName || currentUser.email);
-
-            chats.forEach(chat => {
-                // Buscamos el nombre del otro participante
-                const otherName = chat.participantNames?.find(name => 
-                    name !== myName && 
-                    name !== currentUser.email && 
-                    name !== currentUser.displayName
-                ) || "Amigo";
-                
-                const li = document.createElement('li');
-                li.className = `chat-contact-item ${chat.id === activeChatId ? 'active' : ''}`;
-                li.setAttribute('data-chat-id', chat.id);
-                
-                li.addEventListener('click', () => {
-                    document.querySelectorAll('.chat-contact-item').forEach(el => el.classList.remove('active'));
-                    li.classList.add('active');
-                    selectContact(chat.id, otherName, chat.participants);
-                });
-
-                // Mostrar último mensaje si existe
-                const lastMessageText = chat.lastMessage?.text 
-                    ? (chat.lastMessage.senderId === currentUser.uid ? 'Tú: ' : '') + chat.lastMessage.text 
-                    : 'No hay mensajes aún';
-                
-                li.innerHTML = `
-                    <div class="chat-contact-avatar">
-                        <img src="../../public/images/default-avatar.svg" alt="${otherName}">
-                    </div>
-                    <div class="chat-contact-info">
-                        <div class="chat-contact-name">${otherName}</div>
-                        <div class="chat-last-message">${lastMessageText}</div>
-                    </div>
-                    ${chat.unreadCount?.[currentUser.uid] > 0 ? '<span class="chat-unread-badge">' + chat.unreadCount[currentUser.uid] + '</span>' : ''}
-                `;
-                contactsListEl.appendChild(li);
-            });
-            
-            // Si hay un chat activo, aseguramos que esté seleccionado en la UI
-            if (activeChatId) {
-                const activeLi = document.querySelector(`[data-chat-id="${activeChatId}"]`);
-                if (activeLi) activeLi.classList.add('active');
-            }
+            allChats = chats;
+            updateContactsUI();
         });
     }
 
+    function updateContactsUI() {
+        if (!contactsListEl) return;
+        const searchTerm = searchInputEl?.value.toLowerCase().trim() || '';
+        contactsListEl.innerHTML = '';
+
+        const myName = currentUserProfile 
+            ? `${currentUserProfile.name || ''} ${currentUserProfile.surname || ''}`.trim() 
+            : (currentUser.displayName || currentUser.email);
+
+        // 1. Filtrar chats existentes
+        const filteredChats = allChats.filter(chat => {
+            const otherName = chat.participantNames?.find(name => 
+                name !== myName && 
+                name !== currentUser.email && 
+                name !== currentUser.displayName
+            ) || "Amigo";
+            return otherName.toLowerCase().includes(searchTerm);
+        });
+
+        // 2. Filtrar amigos que NO tienen chat aún (solo si hay término de búsqueda)
+        let friendSuggestions = [];
+        if (searchTerm) {
+            friendSuggestions = allFriends.filter(friend => {
+                const fullName = `${friend.name} ${friend.surname}`.toLowerCase();
+                const matchesName = fullName.includes(searchTerm) || friend.username?.toLowerCase().includes(searchTerm);
+                // Verificar si ya existe un chat con este amigo
+                const alreadyHasChat = allChats.some(chat => chat.participants.includes(friend.uid));
+                return matchesName && !alreadyHasChat;
+            });
+        }
+
+        if (filteredChats.length === 0 && friendSuggestions.length === 0 && searchTerm) {
+            contactsListEl.innerHTML = '<li class="no-chats">No se encontraron resultados</li>';
+            renderInitialState(allFriends, allChats);
+            return;
+        }
+
+        // Renderizar chats existentes
+        filteredChats.forEach(chat => {
+            const otherName = chat.participantNames?.find(name => 
+                name !== myName && 
+                name !== currentUser.email && 
+                name !== currentUser.displayName
+            ) || "Amigo";
+            
+            const li = createContactLi(chat.id, otherName, chat.participants, chat.lastMessage, chat.unreadCount?.[currentUser.uid], false);
+            contactsListEl.appendChild(li);
+        });
+
+        // Renderizar sugerencias de amigos
+        friendSuggestions.forEach(friend => {
+            const friendName = `${friend.name} ${friend.surname}`.trim();
+            const li = createContactLi(null, friendName, [currentUser.uid, friend.uid], null, 0, true, friend.uid);
+            contactsListEl.appendChild(li);
+        });
+
+        // Manejar estado inicial si no hay búsqueda
+        if (!searchTerm && !activeChatId) {
+            renderInitialState(allFriends, allChats);
+        }
+        
+        // Mantener activo el seleccionado
+        if (activeChatId) {
+            const activeLi = document.querySelector(`[data-chat-id="${activeChatId}"]`);
+            if (activeLi) activeLi.classList.add('active');
+        }
+    }
+
+    function createContactLi(chatId, otherName, participants, lastMessage, unreadCount, isFriendSuggestion, friendUid = null) {
+        const li = document.createElement('li');
+        li.className = `chat-contact-item ${chatId === activeChatId ? 'active' : ''}`;
+        if (chatId) li.setAttribute('data-chat-id', chatId);
+        
+        li.addEventListener('click', async (e) => {
+            if (e.target.closest('.group-menu-btn') || e.target.closest('.group-submenu')) return;
+            
+            document.querySelectorAll('.chat-contact-item').forEach(el => el.classList.remove('active'));
+            li.classList.add('active');
+
+            if (isFriendSuggestion) {
+                try {
+                    // Crear chat automáticamente al hacer clic en un amigo buscado
+                    const newChatId = await chatService.createChatWithUser(friendUid, currentUser);
+                    selectContact(newChatId, otherName, participants);
+                } catch (err) {
+                    console.error("Error al crear chat con amigo:", err);
+                    alert("No se pudo iniciar el chat");
+                }
+            } else {
+                selectContact(chatId, otherName, participants);
+            }
+        });
+
+        const lastMessageText = isFriendSuggestion 
+            ? '<span style="color: #0056FF">Amigo (clic para chatear)</span>'
+            : lastMessage?.text 
+                ? (lastMessage.senderId === currentUser.uid ? 'Tú: ' : '') + lastMessage.text 
+                : 'No hay mensajes aún';
+        
+        li.innerHTML = `
+            <div class="chat-contact-avatar">
+                <img src="../public/images/av5c8336583e291842624 1.svg" alt="${otherName}">
+            </div>
+            <div class="chat-contact-info">
+                <div class="chat-contact-name">${otherName}</div>
+                <div class="chat-last-message">${lastMessageText}</div>
+            </div>
+            ${unreadCount > 0 ? '<span class="chat-unread-badge">' + unreadCount + '</span>' : ''}
+            ${!isFriendSuggestion ? `
+                <button class="group-menu-btn" title="Opciones">
+                    <i class="bx bx-dots-vertical-rounded"></i>
+                </button>
+                <div class="group-submenu">
+                    <button class="submenu-item delete">
+                        <i class="bx bx-trash"></i> Eliminar chat
+                    </button>
+                </div>
+            ` : ''}
+        `;
+
+        if (!isFriendSuggestion) {
+            const menuBtn = li.querySelector('.group-menu-btn');
+            const submenu = li.querySelector('.group-submenu');
+            
+            menuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.querySelectorAll('.group-submenu.active').forEach(m => {
+                    if (m !== submenu) m.classList.remove('active');
+                });
+                submenu.classList.toggle('active');
+            });
+
+            li.querySelector('.submenu-item.delete').addEventListener('click', async (e) => {
+                e.stopPropagation();
+                if (confirm(`¿Estás seguro de que deseas eliminar el chat con ${otherName}?`)) {
+                    try {
+                        const idToDelete = chatId;
+                        if (activeChatId === idToDelete) {
+                            activeChatId = null;
+                        }
+                        await chatService.deleteChat(idToDelete);
+                    } catch (err) {
+                        console.error("Error al eliminar chat:", err);
+                        alert("No se pudo eliminar el chat");
+                    }
+                }
+            });
+        }
+
+        return li;
+    }
+
+    function renderInitialState(friends, chats) {
+        if (!chatMessagesEl) return;
+        
+        // Limpiar header y quitar borde
+        if (chatHeaderEl) {
+            chatHeaderEl.innerHTML = '';
+            chatHeaderEl.style.borderBottom = 'none';
+        }
+        
+        let content = '';
+        
+        if (friends.length === 0 && chats.length === 0) {
+            // Escenario 1: Sin amigos y sin chats
+            content = `
+                <div class="chat-empty-state">
+                    <div class="empty-state-emoji">🥺</div>
+                    <h2>Parece que no tienes amigos aún...</h2>
+                    <p>¡Añade amigos para empezar a chatear!</p>
+                    <a href="./friends.html" class="empty-state-btn">Ir a Amigos</a>
+                </div>
+            `;
+        } else if (friends.length > 0 && chats.length === 0) {
+            // Escenario 2: Tiene amigos pero sin chats
+            content = `
+                <div class="chat-empty-state clickable-state" id="start-chat-state">
+                    <div class="empty-state-icons">
+                        <i class='bx bx-plus'></i>
+                        <i class='bx bx-conversation'></i>
+                    </div>
+                    <h2>Empieza un chat</h2>
+                    <p>Busca a tus amigos arriba a la izquierda para empezar a hablar.</p>
+                </div>
+            `;
+            setTimeout(() => {
+                document.getElementById('start-chat-state')?.addEventListener('click', () => {
+                    searchInputEl?.focus();
+                    // Efecto visual para resaltar el buscador
+                    const searchContainer = document.querySelector('.chat-search-container');
+                    searchContainer?.classList.add('highlight-search');
+                    setTimeout(() => searchContainer?.classList.remove('highlight-search'), 2000);
+                });
+            }, 100);
+        } else {
+            // Escenario 3: Tiene amigos y chats
+            content = `
+                <div class="chat-empty-state">
+                    <div class="empty-state-icons">
+                        <i class='bx bx-plus'></i>
+                        <i class='bx bx-conversation'></i>
+                    </div>
+                    <h2>Selecciona un chat</h2>
+                    <p>¡Tus amigos están esperando!</p>
+                </div>
+            `;
+        }
+        
+        chatMessagesEl.innerHTML = content;
+        if (chatInputAreaEl) chatInputAreaEl.style.display = 'none';
+    }
+
     function selectContact(chatId, contactName, participants) {
-        console.log("📱 Seleccionando chat:", chatId, "con:", contactName);
+        console.log("Seleccionando chat:", chatId, "con:", contactName);
         activeChatId = chatId;
         activeChatName = contactName;
         activeChatParticipants = participants;
 
+        // Mostrar el área de input y restaurar borde al seleccionar un chat
+        if (chatInputAreaEl) chatInputAreaEl.style.display = 'flex';
+        if (chatHeaderEl) chatHeaderEl.style.borderBottom = '2px solid #d1d1d1';
+
         // Actualizar UI del header
         if (chatHeaderEl) {
             chatHeaderEl.innerHTML = `
+                <div class="chat-contact-avatar">
+                    <img src="../public/images/av5c8336583e291842624 1.svg" alt="${contactName}">
+                </div>
                 <div class="chat-header-info">
                     <h2>${contactName}</h2>
                     <span class="chat-header-status">En línea</span>
@@ -175,9 +348,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             await chatService.sendMessage(activeChatId, text, currentUser.uid, activeChatParticipants, senderName);
             if (messageInputEl) messageInputEl.value = '';
-            console.log("✅ Mensaje enviado al chat:", activeChatId);
+            console.log("Mensaje enviado al chat:", activeChatId);
         } catch (error) {
-            console.error("❌ Error al enviar:", error);
+            console.error("Error al enviar:", error);
             alert("Error al enviar mensaje: " + error.message);
         }
     }
@@ -236,7 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 searchBtn.textContent = 'Buscando...';
             }
             
-            console.log("🔍 Buscando código:", code);
+            console.log("Buscando código:", code);
             const chatId = await chatService.createChatByCode(code, currentUser);
             
             if (searchInputEl) searchInputEl.value = '';
@@ -261,7 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
             alert("✅ ¡Chat creado exitosamente!");
             
         } catch (error) {
-            console.error("❌ Error en búsqueda:", error);
+            console.error("Error en búsqueda:", error);
             alert(error.message || "Error al buscar usuario");
         } finally {
             if (searchBtn) {
@@ -280,6 +453,17 @@ document.addEventListener('DOMContentLoaded', () => {
             handleSendMessage();
         }
     });
+
+    // Evento de búsqueda en tiempo real
+    searchInputEl?.addEventListener('input', () => {
+        updateContactsUI();
+    });
+
+    // Cerrar submenús al hacer clic fuera
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.group-submenu.active').forEach(m => m.classList.remove('active'));
+    });
+
     const initEvents = () => {
     console.log("Asignando eventos de botones...");
     
@@ -305,4 +489,3 @@ document.addEventListener('DOMContentLoaded', () => {
 };
 
 });
-//29910128

@@ -9,8 +9,8 @@ console.log('CalendarPage imported');
 
 // Запуск инициализации коллекций
 initializeFirebaseCollections()
-  .then(() => console.log('✅ Инициализация Firebase завершена'))
-  .catch(err => console.error('❌ Ошибка инициализации:', err));
+  .then(() => console.log('Инициализация Firebase завершена'))
+  .catch(err => console.error('Ошибка инициализации:', err));
 
 const calendarRoot = document.getElementById('calendar-root');
 

@@ -3,6 +3,8 @@ import {
     collection, query, where, getDocs, addDoc, onSnapshot,
     serverTimestamp, doc, getDoc, deleteDoc, updateDoc, setDoc
 } from "firebase/firestore";
+import { notificationService } from './notificationService.js';
+import { getUserProfile } from './userService.js';
 
 class FriendsService {
 
@@ -52,6 +54,21 @@ class FriendsService {
             created_at: serverTimestamp(),
             updated_at: serverTimestamp(),
         });
+
+        // Get sender profile for name
+        const sender = await getUserProfile(fromUid);
+        const senderName = sender ? `${sender.name || ''} ${sender.surname || ''}`.trim() : 'Un usuario';
+
+        console.log(`Creating notification for friend request from ${fromUid} to ${toUid}`);
+        // Send notification
+        await notificationService.createNotification(
+            toUid,
+            'friend_request',
+            senderName,
+            'te ha enviado una solicitud de amistad',
+            { fromUid },
+            fromUid
+        );
     }
 
     async acceptFriendRequest(requestDocId, fromUid, toUid) {
@@ -80,6 +97,21 @@ class FriendsService {
                 updated_at: serverTimestamp(),
             });
         }
+
+        // Get acceptor profile for name
+        const acceptor = await getUserProfile(toUid);
+        const acceptorName = acceptor ? `${acceptor.name || ''} ${acceptor.surname || ''}`.trim() : 'Un usuario';
+
+        console.log(`Creating notification for friend acceptance from ${toUid} to ${fromUid}`);
+        // Notify the person who sent the request
+        await notificationService.createNotification(
+            fromUid,
+            'friend_accepted',
+            acceptorName,
+            'ha aceptado tu solicitud de amistad',
+            { acceptorUid: toUid },
+            toUid
+        );
     }
 
     async declineFriendRequest(requestDocId) {
@@ -113,7 +145,7 @@ class FriendsService {
             where("status", "==", "accepted")
         );
         return onSnapshot(q, async (snapshot) => {
-            const friends = await this._enrichContacts(snapshot.docs);
+            const friends = await this._enrichContacts(snapshot.docs, userId);
             callback(friends);
         });
     }
@@ -125,24 +157,26 @@ class FriendsService {
             where("status", "==", "pending")
         );
         return onSnapshot(q, async (snapshot) => {
-            const requests = await this._enrichContacts(snapshot.docs);
+            const requests = await this._enrichContacts(snapshot.docs, userId);
             callback(requests);
         });
     }
 
     // ── Helpers ───────────────────────────────────────────────
 
-    async _enrichContacts(docs) {
+    async _enrichContacts(docs, currentUserId) {
         const results = [];
         for (const d of docs) {
             const data = d.data();
-            const uid = data.contact_user_id || data.user_id;
+            // Identificar el ID del OTRO usuario
+            const otherUid = (data.user_id === currentUserId) ? data.contact_user_id : data.user_id;
+            
             try {
-                const userSnap = await getDoc(doc(db, "users", uid));
+                const userSnap = await getDoc(doc(db, "users", otherUid));
                 const u = userSnap.exists() ? userSnap.data() : {};
                 results.push({
                     contactDocId: d.id,
-                    uid,
+                    uid: otherUid,
                     name: u.name || '',
                     surname: u.surname || '',
                     username: u.username || '',
@@ -150,7 +184,7 @@ class FriendsService {
                     requested_by: data.requested_by,
                 });
             } catch (e) {
-                console.error("Error enriching contact:", uid, e);
+                console.error("Error enriching contact:", otherUid, e);
             }
         }
         return results;
@@ -164,8 +198,9 @@ class FriendsService {
             where("status", "==", "accepted")
         );
         const snap = await getDocs(q);
-        return this._enrichContacts(snap.docs);
+        return this._enrichContacts(snap.docs, userId);
     }
 }
 
 export const friendsService = new FriendsService();
+
