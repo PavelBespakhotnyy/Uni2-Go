@@ -191,15 +191,6 @@ header img {
     font-weight: normal;
 }
 
-#content > div:nth-of-type(5) > div::after {
-    content: "▾";
-    position: absolute;
-    right: 6px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 22px;
-}
-
 #content > div:nth-of-type(5) p:empty {
     display: none;
 }
