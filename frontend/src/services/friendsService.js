@@ -43,7 +43,7 @@ class FriendsService {
             if (status === "pending") throw new Error("Solicitud ya enviada");
         }
 
-        await addDoc(collection(db, "contacts"), {
+        const docRef = await addDoc(collection(db, "contacts"), {
             user_id: fromUid,
             contact_user_id: toUid,
             status: "pending",
@@ -66,7 +66,7 @@ class FriendsService {
             'friend_request',
             senderName,
             'te ha enviado una solicitud de amistad',
-            { fromUid },
+            { fromUid, contactDocId: docRef.id },
             fromUid
         );
     }

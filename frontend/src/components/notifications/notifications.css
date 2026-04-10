@@ -113,6 +113,55 @@ html, body {
     color: #000;
 }
 
+.notification-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 1;
+    margin-right: 40px; /* Space to separate from date/time */
+}
+
+.notification-main-text {
+    flex: 1;
+}
+
+.notification-action-btn {
+    padding: 6px 20px;
+    background-color: transparent;
+    border: 1px solid #333;
+    border-radius: 25px;
+    color: #333;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+.notification-action-btn:hover {
+    background-color: rgba(0, 86, 255, 0.1);
+    border-color: #0056FF;
+    color: #0056FF;
+    transform: scale(1.05);
+}
+
+.notification-action-btn.secondary {
+    color: #666;
+    border-color: #999;
+}
+
+.notification-action-btn.secondary:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-color: #333;
+    color: #333;
+}
+
+.notification-action-group {
+    display: flex;
+    gap: 12px;
+}
+
 /* Unread: White background */
 .notification-panel.unread {
     background-color: #ffffff;
@@ -123,12 +172,6 @@ html, body {
 .notification-panel.read {
     background-color: #E0E0E0;
     font-weight: normal;
-}
-
-/* Main text structure */
-.notification-main-text {
-    flex: 1;
-    padding-right: 20px;
 }
 
 /* Usernames are ALWAYS bold */

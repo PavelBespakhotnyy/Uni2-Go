@@ -1,6 +1,7 @@
 import { auth } from '../../firebase/firebase.js';
 import { onAuthStateChanged } from "firebase/auth";
 import { notificationService } from '../../services/notificationService.js';
+import { friendsService } from '../../services/friendsService.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('notificationSearch');
@@ -11,9 +12,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let ITEMS_PER_PAGE = 8;
     let currentPage = 1;
     let notifications = [];
+    let currentUser = null;
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
+            currentUser = user;
             console.log("Listening to notifications for:", user.uid);
             notificationService.listenMyNotifications(user.uid, (data) => {
                 console.log("Received notifications:", data.length);
@@ -30,7 +33,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     action: n.action,
                     date: n.createdAt?.toDate ? n.createdAt.toDate().toLocaleDateString() : '',
                     time: n.createdAt?.toDate ? n.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
-                    read: n.read
+                    read: n.read,
+                    type: n.type,
+                    data: n.data
                 }));
                 updateUI();
             });
@@ -115,6 +120,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const panel = document.createElement('div');
             panel.className = `notification-panel ${notif.read ? 'read' : 'unread'}`;
             panel.dataset.id = notif.id;
+            panel.dataset.type = notif.type || '';
+            if (notif.data && notif.data.chatId) {
+                panel.dataset.chatId = notif.data.chatId;
+            }
+            if (notif.data && notif.data.groupId) {
+                panel.dataset.groupId = notif.data.groupId;
+            }
+            if (notif.data && notif.data.fromUid) {
+                panel.dataset.fromUid = notif.data.fromUid;
+            }
+            if (notif.data && notif.data.contactDocId) {
+                panel.dataset.contactDocId = notif.data.contactDocId;
+            }
 
             const menuContent = notif.read
                 ? `<button class="notification-menu-item action-unread">Marcar como no leído</button>
@@ -122,9 +140,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 : `<button class="notification-menu-item action-read">Leer</button>
                    <button class="notification-menu-item delete action-delete">Eliminar</button>`;
 
+            let actionButtons = '';
+            if (!notif.read) {
+                if (notif.type === 'new_chat' || notif.type === 'new_message') {
+                    actionButtons = `<button class="notification-action-btn btn-read-redirect">Ir al chat</button>`;
+                } else if (notif.type === 'group_invitation') {
+                    actionButtons = `<button class="notification-action-btn btn-accept-group">Aceptar invitación</button>`;
+                } else if (notif.type === 'friend_request') {
+                    actionButtons = `
+                        <div class="notification-action-group">
+                            <button class="notification-action-btn btn-accept-friend">Aceptar</button>
+                            <button class="notification-action-btn btn-decline-friend secondary">Rechazar</button>
+                        </div>
+                    `;
+                }
+            }
+
             panel.innerHTML = `
-                <div class="notification-main-text">
-                    <span class="username">${notif.name}</span> ${notif.action}
+                <div class="notification-content">
+                    <div class="notification-main-text">
+                        <span class="username">${notif.name}</span> ${notif.action}
+                    </div>
+                    ${actionButtons}
                 </div>
                 <div class="notification-meta">
                     <span>${notif.date}</span>
@@ -141,11 +178,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    notificationsList.addEventListener('click', (e) => {
+    notificationsList.addEventListener('click', async (e) => {
         const panel = e.target.closest('.notification-panel');
         if (!panel) return;
         const id = panel.dataset.id;
+        const type = panel.dataset.type;
+        const chatId = panel.dataset.chatId;
+        const groupId = panel.dataset.groupId;
+        const fromUid = panel.dataset.fromUid;
+        const contactDocId = panel.dataset.contactDocId;
 
+        // Handle menu button click
         if (e.target.closest('.notification-menu-btn')) {
             document.querySelectorAll('.notification-menu').forEach(m => {
                 if (m !== panel.querySelector('.notification-menu')) m.classList.remove('active');
@@ -154,16 +197,82 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Handle menu item actions
         if (e.target.classList.contains('action-read')) {
             notificationService.markAsRead(id);
+            return;
         }
 
         if (e.target.classList.contains('action-unread')) {
             notificationService.markAsUnread(id);
+            return;
         }
 
         if (e.target.classList.contains('action-delete')) {
             notificationService.deleteNotification(id);
+            return;
+        }
+
+        // Handle specific action buttons
+        if (e.target.classList.contains('btn-read-redirect')) {
+            await notificationService.markAsRead(id);
+            window.location.href = `./chat.html${chatId ? `?id=${chatId}` : ''}`;
+            return;
+        }
+
+        if (e.target.classList.contains('btn-accept-group')) {
+            await notificationService.markAsRead(id);
+            window.location.href = `./grupos.html${groupId ? `?id=${groupId}` : ''}`;
+            return;
+        }
+
+        if (e.target.classList.contains('btn-accept-friend')) {
+            try {
+                if (contactDocId && fromUid && currentUser) {
+                    const btnGroup = e.target.closest('.notification-action-group');
+                    if (btnGroup) btnGroup.innerHTML = '<span class="action-status">Solicitud aceptada</span>';
+                    
+                    await friendsService.acceptFriendRequest(contactDocId, fromUid, currentUser.uid);
+                    await notificationService.markAsRead(id);
+                } else {
+                    await notificationService.markAsRead(id);
+                    window.location.href = `./friends.html`;
+                }
+            } catch (err) {
+                console.error("Error accepting friend:", err);
+                alert("Error al aceptar solicitud");
+            }
+            return;
+        }
+
+        if (e.target.classList.contains('btn-decline-friend')) {
+            try {
+                if (contactDocId) {
+                    const btnGroup = e.target.closest('.notification-action-group');
+                    if (btnGroup) btnGroup.innerHTML = '<span class="action-status">Solicitud rechazada</span>';
+                    
+                    await friendsService.declineFriendRequest(contactDocId);
+                    await notificationService.markAsRead(id);
+                } else {
+                    await notificationService.markAsRead(id);
+                    window.location.href = `./friends.html`;
+                }
+            } catch (err) {
+                console.error("Error declining friend:", err);
+            }
+            return;
+        }
+
+        // Click on the panel itself (outside the menu and buttons)
+        if (type === 'new_chat' || type === 'new_message') {
+            notificationService.markAsRead(id);
+            window.location.href = `./chat.html${chatId ? `?id=${chatId}` : ''}`;
+        } else if (type === 'friend_request' || type === 'friend_accepted') {
+            notificationService.markAsRead(id);
+            window.location.href = `./friends.html`;
+        } else if (type === 'group_invitation') {
+            notificationService.markAsRead(id);
+            window.location.href = `./grupos.html${groupId ? `?id=${groupId}` : ''}`;
         }
     });
 
