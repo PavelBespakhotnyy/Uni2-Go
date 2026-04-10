@@ -44,6 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    let autoOpenedChatId = null;
+
     async function initChatList() {
         console.log("Iniciando escucha de chats...");
         
@@ -60,6 +62,28 @@ document.addEventListener('DOMContentLoaded', () => {
         chatService.listenMyChats(currentUser.uid, (chats) => {
             allChats = chats;
             updateContactsUI();
+
+            // Handle URL parameter to open specific chat only once
+            const urlParams = new URLSearchParams(window.location.search);
+            const chatIdParam = urlParams.get('id');
+            
+            if (chatIdParam && !activeChatId && !autoOpenedChatId) {
+                const targetChat = chats.find(c => c.id === chatIdParam);
+                if (targetChat) {
+                    autoOpenedChatId = chatIdParam;
+                    const myName = currentUserProfile 
+                        ? `${currentUserProfile.name || ''} ${currentUserProfile.surname || ''}`.trim() 
+                        : (currentUser.displayName || currentUser.email);
+
+                    const otherName = targetChat.participantNames?.find(name => 
+                        name !== myName && 
+                        name !== currentUser.email && 
+                        name !== currentUser.displayName
+                    ) || "Amigo";
+                    
+                    selectContact(targetChat.id, otherName, targetChat.participants);
+                }
+            }
         });
     }
 
