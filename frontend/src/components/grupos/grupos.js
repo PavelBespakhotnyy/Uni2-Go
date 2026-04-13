@@ -338,7 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!uid) return;
                 submitBtn.disabled = true;
                 try {
-                    await gruposService.addMemberByUid(group.id, uid);
+                    await gruposService.addMemberByUid(group.id, uid, currentUser.uid);
                     showToast('Miembro añadido', 'success');
                     await refreshGroupModal(modal, group.id);
                 } catch (e) {

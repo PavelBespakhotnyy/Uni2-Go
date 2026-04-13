@@ -6,12 +6,11 @@
  *   - Botones de info y privacidad
  */
 
-import { openEditModal } from './editModal.js';
+iimport { openEditModal } from './editModal.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  // ── Iconos de editar nombre y apellido ─────────────────────────────────
-  // Hacer clicable tanto el pill entero como solo el icono
+  // ── EDITAR NOMBRE / APELLIDO ─────────────────────────────
   const namePill     = document.getElementById('user-name');
   const lastnamePill = document.getElementById('user-lastname');
 
@@ -22,22 +21,74 @@ document.addEventListener('DOMContentLoaded', () => {
     lastnamePill.addEventListener('click', () => openEditModal('lastname'));
   }
 
-  // ── Botón "Información personal" ───────────────────────────────────────
+  // ── PANEL INFORMACIÓN PERSONAL ────────────────────────────
   const btnInfo = document.getElementById('btn-info');
-  if (btnInfo) {
+  const panel = document.getElementById('info-panel');
+  const closePanel = document.getElementById('close-panel');
+
+  if (btnInfo && panel) {
     btnInfo.addEventListener('click', () => {
-      // TODO: navegar o abrir modal de info personal
-      console.log('Información personal');
+      panel.classList.add('active');
+      loadUserData();
     });
   }
 
-  // ── Botón "Datos y Privacidad" ──────────────────────────────────────────
-  const btnPrivacy = document.getElementById('btn-privacy');
-  if (btnPrivacy) {
-    btnPrivacy.addEventListener('click', () => {
-      // TODO: navegar o abrir modal de privacidad
-      console.log('Datos y privacidad');
+  if (closePanel) {
+    closePanel.addEventListener('click', () => {
+      panel.classList.remove('active');
     });
+  }
+
+  // ── PASSWORD SHOW/HIDE ────────────────────────────────────
+  const togglePassword = document.getElementById('toggle-password');
+  const passwordInput = document.getElementById('edit-password');
+
+  if (togglePassword && passwordInput) {
+    togglePassword.addEventListener('click', () => {
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        togglePassword.classList.replace('bx-hide', 'bx-show');
+      } else {
+        passwordInput.type = 'password';
+        togglePassword.classList.replace('bx-show', 'bx-hide');
+      }
+    });
+  }
+
+  // ── AVATAR INICIALES ─────────────────────────────────────
+  loadUserAvatar();
+
+  function loadUserAvatar() {
+    const user = JSON.parse(localStorage.getItem("user")) || {};
+
+    const name = user.name || "";
+    const surname = user.surname || "";
+
+    const initials = (name.charAt(0) + surname.charAt(0)).toUpperCase();
+
+    const avatarContainer = document.querySelector(".user-profile");
+
+    if (!avatarContainer) return;
+
+    avatarContainer.innerHTML = "";
+
+    const div = document.createElement("div");
+    div.classList.add("user-avatar-initials");
+    div.textContent = initials || "?";
+
+    avatarContainer.appendChild(div);
+  }
+
+  // ── CARGAR DATOS EN PANEL ────────────────────────────────
+  function loadUserData() {
+    const user = JSON.parse(localStorage.getItem("user")) || {};
+
+    document.getElementById("edit-name").value = user.name || "";
+    document.getElementById("edit-surname").value = user.surname || "";
+    document.getElementById("edit-username").value = user.username || "";
+    document.getElementById("edit-email").value = user.email || "";
+    document.getElementById("edit-phone").value = user.phone || "";
+    document.getElementById("edit-password").value = user.password || "";
   }
 
 });

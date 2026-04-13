@@ -4,6 +4,8 @@ import {
     getDocs, addDoc, onSnapshot, serverTimestamp,
     doc, getDoc, deleteDoc, updateDoc, setDoc, arrayUnion, arrayRemove
 } from "firebase/firestore";
+import { notificationService } from './notificationService.js';
+import { getUserProfile } from './userService.js';
 
 class GruposService {
     listenMyGroups(userId, callback) {
@@ -31,6 +33,7 @@ class GruposService {
      * subcolección members (para rol y fecha de entrada).
      */
     async createGroup(name, description, creatorId, emoji = '👥', memberIds = []) {
+        console.log("Creando grupo:", name, "con miembros:", memberIds);
         const allMemberIds = Array.from(new Set([creatorId, ...memberIds]));
         const groupRef = await addDoc(collection(db, "interest_groups"), {
             name,
@@ -50,6 +53,17 @@ class GruposService {
             joined_at: serverTimestamp()
         });
 
+        // Get creator profile for name
+        let creatorName = 'Un usuario';
+        try {
+            const creatorProfile = await getUserProfile(creatorId);
+            if (creatorProfile) {
+                creatorName = `${creatorProfile.name || ''} ${creatorProfile.surname || ''}`.trim() || creatorName;
+            }
+        } catch (e) {
+            console.warn("Error getting creator profile:", e);
+        }
+
         // Add other selected members
         for (const mid of memberIds) {
             if (mid !== creatorId) {
@@ -58,6 +72,17 @@ class GruposService {
                     role: 'member',
                     joined_at: serverTimestamp()
                 });
+
+                // Send notification
+                console.log("Enviando notificación de grupo a:", mid);
+                await notificationService.createNotification(
+                    mid,
+                    'group_invitation',
+                    creatorName,
+                    `te ha invitado al grupo "${name}"`,
+                    { groupId: groupRef.id },
+                    creatorId
+                ).catch(err => console.error("Error creating group notification:", err));
             }
         }
 
@@ -121,7 +146,7 @@ class GruposService {
      * Añade miembro por friend_code.
      * Actualiza member_ids (array) y crea doc en subcolección.
      */
-    async addMemberByCode(groupId, friendCode) {
+    async addMemberByCode(groupId, friendCode, currentUserId) {
         const q = query(collection(db, "users"), where("friend_code", "==", friendCode));
         const snapshot = await getDocs(q);
         if (snapshot.empty) throw new Error("No se encontró ningún usuario con ese código");
@@ -144,10 +169,27 @@ class GruposService {
             })
         ]);
 
+        // Send notification
+        const [groupSnap, senderProfile] = await Promise.all([
+            getDoc(doc(db, "interest_groups", groupId)),
+            getUserProfile(currentUserId)
+        ]);
+        const groupName = groupSnap.exists() ? groupSnap.data().name : 'un grupo';
+        const senderName = senderProfile ? `${senderProfile.name || ''} ${senderProfile.surname || ''}`.trim() : 'Un usuario';
+
+        await notificationService.createNotification(
+            userId,
+            'group_invitation',
+            senderName,
+            `te ha añadido al grupo "${groupName}"`,
+            { groupId: groupId },
+            currentUserId
+        );
+
         return { id: userId, ...userDoc.data() };
     }
 
-    async addMemberByUid(groupId, userId) {
+    async addMemberByUid(groupId, userId, currentUserId) {
         const memberRef = doc(db, "interest_groups", groupId, "members", userId);
         const memberSnap = await getDoc(memberRef);
         if (memberSnap.exists()) throw new Error("Este usuario ya es miembro del grupo");
@@ -159,6 +201,23 @@ class GruposService {
             updateDoc(doc(db, "interest_groups", groupId), { member_ids: arrayUnion(userId) }),
             setDoc(memberRef, { user_id: userId, role: 'member', joined_at: serverTimestamp() })
         ]);
+
+        // Send notification
+        const [groupSnap, senderProfile] = await Promise.all([
+            getDoc(doc(db, "interest_groups", groupId)),
+            getUserProfile(currentUserId)
+        ]);
+        const groupName = groupSnap.exists() ? groupSnap.data().name : 'un grupo';
+        const senderName = senderProfile ? `${senderProfile.name || ''} ${senderProfile.surname || ''}`.trim() : 'Un usuario';
+
+        await notificationService.createNotification(
+            userId,
+            'group_invitation',
+            senderName,
+            `te ha añadido al grupo "${groupName}"`,
+            { groupId: groupId },
+            currentUserId
+        );
 
         return { id: userId, ...userSnap.data() };
     }

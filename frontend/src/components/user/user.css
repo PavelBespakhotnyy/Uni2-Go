@@ -254,3 +254,85 @@
     height: 18px;
   }
 }
+
+/* ===== AVATAR CON INICIALES ===== */
+.user-avatar-initials {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background-color: #4D67AF;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: bold;
+  border: 6px solid #4D67AF;
+  box-shadow: 0 4px 16px rgba(87, 112, 155, 0.25);
+  text-transform: uppercase;
+}
+
+/* ===== PANEL LATERAL ===== */
+.info-panel {
+  position: fixed;
+  top: 0;
+  right: -350px;
+  width: 320px;
+  height: 100%;
+  background: #fff;
+  box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+  transition: right 0.3s ease;
+  z-index: 999;
+  padding: 20px;
+}
+
+.info-panel.active {
+  right: 0;
+}
+
+.info-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.close-btn {
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.field {
+  margin-top: 20px;
+}
+
+.field-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.field-box input {
+  flex: 1;
+  padding: 6px;
+}
+
+.field-box i {
+  cursor: pointer;
+}
+
+/* ===== AVATAR INICIALES ===== */
+.user-avatar-initials {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background-color: #4D67AF;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: bold;
+  border: 6px solid #4D67AF;
+  box-shadow: 0 4px 16px rgba(87, 112, 155, 0.25);
+  text-transform: uppercase;
+}

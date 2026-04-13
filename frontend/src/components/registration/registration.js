@@ -38,7 +38,7 @@ form.addEventListener("submit", async (e) => {
 
   let hasError = false;
 
-  // Валидация полей
+  // ── VALIDACIONES ─────────────────────────────────────────────
   if (!formData.name) { showFieldError("name", "Introduzca su nombre."); hasError = true; }
   if (!formData.surname) { showFieldError("surname", "Introduzca su apellido."); hasError = true; }
 
@@ -49,8 +49,9 @@ form.addEventListener("submit", async (e) => {
     showFieldError("username", "Solo letras, números, _ y . (3-20 caracteres).");
     hasError = true;
   }
+
   if (!formData.dateOfBirth) { showFieldError("dateOfBirth", "Introduzca su fecha de nacimiento."); hasError = true; }
-  
+
   if (!formData.email) {
     showFieldError("email", "Introduzca su correo.");
     hasError = true;
@@ -91,14 +92,27 @@ form.addEventListener("submit", async (e) => {
   if (hasError) return;
 
   try {
-    await registerUser(formData);
-    window.location.href = "./login.html"; 
-  } catch (err) {
+  await registerUser(formData);
+
+  localStorage.setItem("user", JSON.stringify({
+    name: formData.name,
+    surname: formData.surname,
+    username: formData.username,
+    email: formData.email,
+    phone: formData.phone,
+    password: formData.password
+  }));
+
+  window.location.href = "./login.html";
+
+} catch (err) {
     let message = "Error al crear la cuenta.";
+
     if (err.code === 'auth/email-already-in-use') message = "Este correo ya está registrado.";
     if (err.message === 'username-already-taken') message = "Este nombre de perfil ya está en uso.";
     if (err.message === 'username-required') message = "El nombre de perfil es obligatorio.";
     if (err.message === 'username-invalid') message = "Nombre de perfil inválido (3-20 caracteres, solo letras, números, _ y .).";
+
     showGlobalError(message);
   }
 });

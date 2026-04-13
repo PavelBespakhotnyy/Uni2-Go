@@ -8,8 +8,67 @@
         <link rel="stylesheet" href="../src/style.css" id="main-style" />
         <link rel="stylesheet" href="../src/components/navbar/navbar.css" />
         <link rel="stylesheet" href="../src/components/user/user.css" />
-        <link rel="stylesheet" href="../src/components/user/editModal.css" />
+        <link rel="stylesheet" href="../src/components/user/editModal.css" />gi
     </head>
+    <!-- Pantalla de datos -->
+    <div id="info-panel" class="info-panel">
+        <div class="info-panel-header">
+            <span id="close-panel" class="close-btn">←</span>
+            <h2>Información personal</h2>
+        </div>
+
+        <div class="info-panel-content">
+
+            <div class="field">
+                <label>Nombre</label>
+                <div class="field-box">
+                    <input type="text" id="edit-name">
+                    <i class='bx bx-pencil'></i>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Apellido</label>
+                <div class="field-box">
+                    <input type="text" id="edit-surname">
+                    <i class='bx bx-pencil'></i>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Usuario</label>
+                <div class="field-box">
+                    <input type="text" id="edit-username">
+                    <i class='bx bx-pencil'></i>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Email</label>
+                <div class="field-box">
+                    <input type="email" id="edit-email">
+                    <i class='bx bx-pencil'></i>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Teléfono</label>
+                <div class="field-box">
+                    <input type="text" id="edit-phone">
+                    <i class='bx bx-pencil'></i>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Contraseña</label>
+                <div class="field-box">
+                    <input type="password" id="edit-password">
+                    <i id="toggle-password" class='bx bx-hide'></i>
+                </div>
+            </div>
+
+        </div>
+    </div>
     <body>
         <div id="preloader">
             <div class="loader"></div>

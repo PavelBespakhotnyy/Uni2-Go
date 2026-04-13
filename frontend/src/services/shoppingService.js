@@ -90,6 +90,7 @@ export const shoppingService = {
 
     async saveNote(uid, noteId, noteData) {
         try {
+            
             const dataToSave = {
                 ...noteData,
                 user_id: uid,
