@@ -1,0 +1,67 @@
+/* src/components/calendar/index.css */
+
+/* 1. Reset box-sizing */
+* {
+    box-sizing: border-box !important;
+}
+
+/* 2. Root elements - only for calendar page */
+body.calendar-page {
+    overflow: hidden !important;
+}
+
+/* 3. Page container: Sidebar + Calendar - only for calendar page */
+body.calendar-page .main-container {
+    display: flex !important;
+    flex-direction: row !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    overflow: hidden !important;
+}
+
+/* 4. Sidebar: fixed width - only for calendar page */
+body.calendar-page #navbar.sidebar {
+    position: relative !important;
+    height: 100vh !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+    z-index: 100;
+}
+
+/* 5. Calendar root fills remaining space */
+#calendar-root {
+    flex: 1 !important;
+    min-width: 0 !important;
+    height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    background-color: #f5f5f5;
+}
+
+/* 6. Calendar wrapper */
+.calendar-wrapper {
+    flex: 1 !important;
+    min-width: 0 !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* 7. Scrollable grid area */
+.calendar-grid-scrollable {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    min-height: 0 !important;
+}
+
+/* Mobile version */
+@media (max-width: 768px) {
+    body.calendar-page #navbar.sidebar {
+        display: none !important;
+    }
+}

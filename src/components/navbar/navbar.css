@@ -1,0 +1,194 @@
+:root {
+    --sidebar-width-expanded: 220px;
+    --sidebar-width-collapsed: 80px;
+    --transition-speed: 0.3s;
+}
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    width: var(--sidebar-width-expanded);
+    border-right: solid #000000 1px;
+    z-index: 9990;
+    background-color: #ffffff;
+}
+
+/* Enable transitions only after page load to avoid initial animation */
+body.sidebar-ready .sidebar,
+body.sidebar-ready .sidebar-top-part,
+body.sidebar-ready .sidebar-logo,
+body.sidebar-ready .sidebar-button,
+body.sidebar-ready .buttons-list li a,
+body.sidebar-ready .buttons-list li a span,
+body.sidebar-ready .calendar-wrapper,
+body.sidebar-ready .content-wrapper {
+    transition: all var(--transition-speed) ease;
+}
+
+body.sidebar-collapsed .sidebar {
+    width: var(--sidebar-width-collapsed);
+}
+
+/* Logo with close/open sidebar button */
+.sidebar-top-part {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    height: auto;
+    padding: 10px 22px;
+    gap: 20px;
+}
+
+body.sidebar-collapsed .sidebar-top-part {
+    padding: 10px 26px;
+    gap: 0;
+}
+
+/* Logo size */
+.sidebar-logo {
+    scale: 1;
+    width: 120px;
+}
+
+body.sidebar-collapsed .sidebar-logo {
+    width: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.sidebar-button {
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+body.sidebar-collapsed .sidebar-button {
+    transform: none;
+}
+
+.buttons-list {
+    display: flex;
+    flex-direction: column;
+    margin: 20px 0 0 0;
+    gap: 30px;
+    height: calc(100vh - 100px);
+}
+
+/* Hide scrollbar for sidebar buttons */
+.buttons-list::-webkit-scrollbar {
+    width: 0px;
+}
+
+/* Button styles */
+.buttons-list li a {
+    margin: 0 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    position: relative;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 15px;
+    white-space: nowrap;
+    transition: background-color 0.2s ease;
+}
+
+.buttons-list li a i {
+    flex-shrink: 0;
+    width: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative; /* Added to anchor the badge */
+}
+
+.notification-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #ff0000;
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 4px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    z-index: 10;
+}
+
+body.sidebar-collapsed .buttons-list li a {
+    justify-content: flex-start;
+    margin: 0 10px;
+    padding: 10px 16px;
+}
+
+/* Button text */
+.buttons-list li a span {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Hide text when collapsed, but show on hover */
+body.sidebar-collapsed .buttons-list li a span {
+    position: absolute;
+    left: 40px;
+    opacity: 0;
+    visibility: hidden;
+    background-color: #333;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    pointer-events: none;
+    z-index: 10000;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    transform: translateX(-10px);
+}
+
+body.sidebar-collapsed .buttons-list li:hover a span {
+    opacity: 1;
+    visibility: visible;
+    left: 70px;
+    transform: translateX(0);
+}
+
+/* Button effects on hover */
+.buttons-list li a:hover:not(.button-change-page-active) {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Active buttons */
+.button-change-page-active {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Make USUARIO button at the bottom */
+.buttons-list > :last-child {
+    margin-top: auto;
+    margin-bottom: 20px;
+}
+
+/* Main container layout adjustment */
+.content-wrapper {
+    margin-left: var(--sidebar-width-expanded);
+    width: calc(100vw - var(--sidebar-width-expanded));
+    transition: all var(--transition-speed) ease;
+}
+
+body.sidebar-collapsed .content-wrapper {
+    margin-left: var(--sidebar-width-collapsed) !important;
+    width: calc(100vw - var(--sidebar-width-collapsed)) !important;
+    max-width: calc(100vw - var(--sidebar-width-collapsed)) !important;
+}
+
+body.sidebar-collapsed .calendar-wrapper {
+    margin-left: var(--sidebar-width-collapsed) !important;
+    width: calc(100vw - var(--sidebar-width-collapsed)) !important;
+    max-width: calc(100vw - var(--sidebar-width-collapsed)) !important;
+}
