@@ -100,6 +100,21 @@
     color: #4D67AF;
 }
 
+/* Footer del panel con botón guardar */
+.info-panel-footer {
+    padding: 16px 25px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.panel-save-msg {
+    font-size: 0.85rem;
+    min-height: 1.2em;
+    text-align: center;
+}
+
 /* Responsivo para pantallas pequeñas */
 @media (max-width: 450px) {
     .info-panel {
