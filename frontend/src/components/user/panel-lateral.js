@@ -77,16 +77,25 @@ export function initPanelLateral() {
     }
 
     function syncMainUI(user) {
-        // Actualizar textos en la pantalla principal
-        const nameTxt = document.querySelector('#user-name .field-text');
-        const surnameTxt = document.querySelector('#user-lastname .field-text');
-        const usernameTxt = document.getElementById('user-username');
+    // 1. Buscamos el SPAN que está dentro del H1 con ID "user-name"
+    const nameTxt = document.querySelector('#user-name .field-text');
+    // 2. Buscamos el SPAN que está dentro del H1 con ID "user-lastname"
+    const surnameTxt = document.querySelector('#user-lastname .field-text');
+    // 3. Buscamos el SPAN con ID "user-username" (el de la caja gris abajo)
+    const usernameTxt = document.getElementById('user-username');
 
-        if (nameTxt) nameTxt.textContent = user.name || "";
-        if (surnameTxt) surnameTxt.textContent = user.surname || "";
-        if (usernameTxt) usernameTxt.textContent = user.username || "";
-
-        // Actualizar el círculo de iniciales
-        loadUserAvatar();
+    if (nameTxt) {
+        nameTxt.textContent = user.name || "";
     }
+    if (surnameTxt) {
+        surnameTxt.textContent = user.surname || "";
+    }
+    if (usernameTxt) {
+        // En tu HTML, el nombre de perfil está en un span directo, no tiene .field-text
+        usernameTxt.textContent = user.username || "—";
+    }
+
+    // Actualizar también el círculo de iniciales
+    loadUserAvatar();
+}
 }

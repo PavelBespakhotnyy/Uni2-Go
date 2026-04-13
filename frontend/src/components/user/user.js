@@ -25,7 +25,4 @@ document.addEventListener('DOMContentLoaded', () => {
     if (surnameTxt) surnameTxt.textContent = user.surname || "";
     if (usernameTxt) usernameTxt.textContent = user.username || "";
 
-    // 4. Mantener funcionalidad de tus modales pequeños (opcional si ya usas el panel)
-    document.getElementById('user-name')?.addEventListener('click', () => openEditModal('name'));
-    document.getElementById('user-lastname')?.addEventListener('click', () => openEditModal('lastname'));
 });

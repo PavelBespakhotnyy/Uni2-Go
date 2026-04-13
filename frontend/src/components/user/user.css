@@ -79,10 +79,7 @@
   transition: background-color 0.2s ease;
 }
 
-.user-content h1#user-name:hover,
-.user-content h1#user-lastname:hover {
-  background-color: #bdbdbd;
-}
+
 
 /* Texto del campo */
 .user-content h1 .field-text {
@@ -99,10 +96,7 @@
   transition: opacity 0.2s ease;
 }
 
-.user-content h1#user-name:hover .icon-edit,
-.user-content h1#user-lastname:hover .icon-edit {
-  opacity: 0.85;
-}
+
 
 /* ---------- Código de amigo ---------- */
 .friend-code-container {
