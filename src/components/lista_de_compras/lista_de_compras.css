@@ -260,7 +260,7 @@
     font-style: italic;
 }
 
-.lists-header h2, 
+.lists-header h2,
 .edit-title-area {
     font-size: 20px;
     font-weight: 700;
@@ -269,6 +269,11 @@
     color: #111;
     line-height: 1.2;
     width: 200px;
+    cursor: text;
+}
+
+.lists-header h2:hover {
+    color: #f28c18;
 }
 
 .list-actions {
@@ -413,6 +418,7 @@
     border-radius: 25px;
     padding: 10px 20px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+    margin-bottom: 8px;
 }
 
 .product-img-container {
@@ -469,6 +475,19 @@
 .list-meta small {
     color: #888;
     font-size: 12px;
+}
+
+.sidebar-name-input {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    border: none;
+    border-bottom: 2px solid #f28c18;
+    background: transparent;
+    outline: none;
+    width: 100%;
+    padding: 2px 0;
+    font-family: inherit;
 }
 
 .product-card.purchased {

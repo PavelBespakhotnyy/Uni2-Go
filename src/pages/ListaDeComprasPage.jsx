@@ -33,6 +33,8 @@ export default function ListaDeComprasPage() {
   const [pickerPos, setPickerPos] = useState({ top: 0, left: 0 });
   const [pickerTargetIdx, setPickerTargetIdx] = useState(null);
   const [search, setSearch] = useState('');
+  const [editingListNameId, setEditingListNameId] = useState(null);
+  const [editingNoteNameId, setEditingNoteNameId] = useState(null);
 
   useEffect(() => {
     if (!user) return;
@@ -174,7 +176,27 @@ export default function ListaDeComprasPage() {
                     >
                       <div className="list-color" style={{ background: data.lists[id].color_tag || '#f28c18' }} />
                       <div className="list-meta">
-                        <h2>{data.lists[id].name}</h2>
+                        {editingListNameId === id ? (
+                          <input
+                            className="sidebar-name-input"
+                            defaultValue={data.lists[id].name}
+                            autoFocus
+                            onClick={(e) => e.stopPropagation()}
+                            onBlur={(e) => {
+                              const val = e.target.value.trim() || 'Nueva Lista';
+                              updateList(id, l => ({ ...l, name: val }));
+                              setEditingListNameId(null);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') e.target.blur();
+                              if (e.key === 'Escape') { setEditingListNameId(null); }
+                            }}
+                          />
+                        ) : (
+                          <h2 onClick={(e) => { e.stopPropagation(); setSelectedListId(id); setEditingListNameId(id); }}>
+                            {data.lists[id].name}
+                          </h2>
+                        )}
                         {data.lists[id].description && <small>{data.lists[id].description}</small>}
                       </div>
                       <div className="list-actions">
@@ -210,7 +232,27 @@ export default function ListaDeComprasPage() {
                       className={`lists-header${id === selectedNoteId ? ' active-list' : ''}`}
                       onClick={() => setSelectedNoteId(id)}
                     >
-                      <h2>{data.notes[id].title || 'Nota sin título'}</h2>
+                      {editingNoteNameId === id ? (
+                        <input
+                          className="sidebar-name-input"
+                          defaultValue={data.notes[id].title || ''}
+                          autoFocus
+                          onClick={(e) => e.stopPropagation()}
+                          onBlur={(e) => {
+                            const val = e.target.value.trim() || 'Nueva Nota';
+                            updateNote(id, n => ({ ...n, title: val }));
+                            setEditingNoteNameId(null);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') e.target.blur();
+                            if (e.key === 'Escape') { setEditingNoteNameId(null); }
+                          }}
+                        />
+                      ) : (
+                        <h2 onClick={(e) => { e.stopPropagation(); setSelectedNoteId(id); setEditingNoteNameId(id); }}>
+                          {data.notes[id].title || 'Nota sin título'}
+                        </h2>
+                      )}
                       <i className="bx bx-trash" onClick={(e) => {
                         e.stopPropagation();
                         if (!confirm('¿Eliminar nota?')) return;

@@ -111,7 +111,7 @@ export default function FriendsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            
+
             {/* Live Search Dropdown */}
             {(searchResults.length > 0 || searching) && (
               <div className="search-results-dropdown">
@@ -127,8 +127,8 @@ export default function FriendsPage() {
                     ) : sentRequests[result.id] === 'error' ? (
                       <span style={{ fontSize: '10px', color: '#c0392b', fontWeight: 'bold' }}>Error</span>
                     ) : (
-                      <button 
-                        className="btn-send-request" 
+                      <button
+                        className="btn-send-request"
                         style={{ padding: '5px 12px', fontSize: '10px' }}
                         onClick={() => handleSendRequest(result.id)}
                       >
