@@ -1,13 +1,13 @@
 import { db } from "../firebase/firebase.js";
-import { 
-    collection, 
-    doc, 
+import {
+    collection,
+    doc,
     addDoc,
-    getDoc, 
+    getDoc,
     getDocs,
-    onSnapshot, 
-    updateDoc, 
-    deleteDoc, 
+    onSnapshot,
+    updateDoc,
+    deleteDoc,
     serverTimestamp,
     query,
     where,
@@ -63,9 +63,16 @@ export const shoppingService = {
         }
     },
 
-    async deleteList(listId) {
+    async deleteList(listId, uid) {
         try {
-            await deleteDoc(doc(db, LISTS_COLLECTION, listId));
+            const docRef = doc(db, LISTS_COLLECTION, listId);
+            if (uid) {
+                const snap = await getDoc(docRef);
+                if (snap.exists() && snap.data().user_id !== uid) {
+                    throw new Error("No autorizado para eliminar esta lista");
+                }
+            }
+            await deleteDoc(docRef);
         } catch (error) {
             console.error("Error deleting list:", error);
             throw error;
@@ -115,9 +122,16 @@ export const shoppingService = {
         }
     },
 
-    async deleteNote(noteId) {
+    async deleteNote(noteId, uid) {
         try {
-            await deleteDoc(doc(db, NOTES_COLLECTION, noteId));
+            const docRef = doc(db, NOTES_COLLECTION, noteId);
+            if (uid) {
+                const snap = await getDoc(docRef);
+                if (snap.exists() && snap.data().user_id !== uid) {
+                    throw new Error("No autorizado para eliminar esta nota");
+                }
+            }
+            await deleteDoc(docRef);
         } catch (error) {
             console.error("Error deleting note:", error);
             throw error;

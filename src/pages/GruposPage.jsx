@@ -37,9 +37,7 @@ export default function GruposPage() {
   const [toast, setToast] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('all');
-  const [favorites, setFavorites] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('grupo_favorites') || '[]'); } catch { return []; }
-  });
+  const [favorites, setFavorites] = useState([]);
 
   useEffect(() => {
     if (!user) return;
@@ -47,12 +45,24 @@ export default function GruposPage() {
     return () => unsub && unsub();
   }, [user]);
 
-  const toggleFavorite = (groupId) => {
-    setFavorites(prev => {
-      const next = prev.includes(groupId) ? prev.filter(id => id !== groupId) : [...prev, groupId];
-      localStorage.setItem('grupo_favorites', JSON.stringify(next));
-      return next;
-    });
+  useEffect(() => {
+    if (!user) return;
+    gruposService.getFavorites(user.uid).then(setFavorites).catch(() => {});
+  }, [user]);
+
+  const toggleFavorite = async (groupId) => {
+    const isFav = favorites.includes(groupId);
+    setFavorites(prev => isFav ? prev.filter(id => id !== groupId) : [...prev, groupId]);
+    try {
+      if (isFav) {
+        await gruposService.removeFavorite(user.uid, groupId);
+      } else {
+        await gruposService.addFavorite(user.uid, groupId);
+      }
+    } catch {
+      // rollback on error
+      setFavorites(prev => isFav ? [...prev, groupId] : prev.filter(id => id !== groupId));
+    }
   };
 
   const showToast = (msg, type = 'success') => {
@@ -82,10 +92,10 @@ export default function GruposPage() {
   const handleDelete = async (group) => {
     if (!confirm(`¿Eliminar "${group.name}"? Esta acción no se puede deshacer.`)) return;
     try {
-      await gruposService.deleteGroup(group.id);
+      await gruposService.deleteGroup(group.id, user.uid);
       showToast('Grupo eliminado', 'success');
-    } catch {
-      showToast('Error al eliminar el grupo', 'error');
+    } catch (e) {
+      showToast(e.message || 'Error al eliminar el grupo', 'error');
     }
   };
 
@@ -221,6 +231,7 @@ function GroupCard({ group, currentUserId, isFavorite, onOpen, onDelete, onToggl
   const containerRef = useRef(null);
   const color = hashColor(CARD_COLORS, group.name);
   const displayName = group.name ? group.name.charAt(0).toUpperCase() + group.name.slice(1) : group.name;
+  const isCreator = group.created_by_user_id === currentUserId;
 
   useEffect(() => {
     const ids = (group.member_ids || []).slice(0, 4);
@@ -270,13 +281,15 @@ function GroupCard({ group, currentUserId, isFavorite, onOpen, onDelete, onToggl
             >
               <i className={`bx ${isFavorite ? 'bxs-star' : 'bx-star'}`} />
             </button>
-            <button
-              className="submenu-item icon-only delete"
-              title="Eliminar grupo"
-              onClick={() => { setMenuOpen(false); onDelete(group); }}
-            >
-              <i className="bx bx-trash" />
-            </button>
+            {isCreator && (
+              <button
+                className="submenu-item icon-only delete"
+                title="Eliminar grupo"
+                onClick={() => { setMenuOpen(false); onDelete(group); }}
+              >
+                <i className="bx bx-trash" />
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -298,6 +311,7 @@ function GroupCard({ group, currentUserId, isFavorite, onOpen, onDelete, onToggl
 
 function GroupDetailModal({ group, members, loading, currentUserId, showEditForm, onSetEditForm, onClose, onRefresh, onToast }) {
   const isAdmin = members.some(m => m.id === currentUserId && m.role === 'admin');
+  const isCreator = group.created_by_user_id === currentUserId;
   const color = hashColor(CARD_COLORS, group.name);
   const [addingMember, setAddingMember] = useState(false);
   const [friends, setFriends] = useState([]);
@@ -332,6 +346,17 @@ function GroupDetailModal({ group, members, loading, currentUserId, showEditForm
       onRefresh();
     } catch {
       onToast('Error al eliminar miembro', 'error');
+    }
+  };
+
+  const handleLeaveGroup = async () => {
+    if (!confirm(`¿Salir del grupo "${group.name}"?`)) return;
+    try {
+      await gruposService.leaveGroup(group.id, currentUserId);
+      onToast('Has salido del grupo', 'success');
+      onClose();
+    } catch (e) {
+      onToast(e.message || 'Error al salir del grupo', 'error');
     }
   };
 
@@ -444,6 +469,12 @@ function GroupDetailModal({ group, members, loading, currentUserId, showEditForm
                     );
                   })}
                 </ul>
+
+                {!isCreator && (
+                  <button className="btn-leave-group" onClick={handleLeaveGroup}>
+                    <i className="bx bx-log-out" /> Salir del grupo
+                  </button>
+                )}
               </div>
             </div>
           )}

@@ -89,7 +89,12 @@ class GruposService {
         return groupRef.id;
     }
 
-    async deleteGroup(groupId) {
+    async deleteGroup(groupId, userId) {
+        const groupSnap = await getDoc(doc(db, "interest_groups", groupId));
+        if (!groupSnap.exists()) return;
+        if (groupSnap.data().created_by_user_id !== userId) {
+            throw new Error("Solo el creador puede eliminar el grupo");
+        }
         const membersSnap = await getDocs(
             collection(db, "interest_groups", groupId, "members")
         );
@@ -232,6 +237,36 @@ class GruposService {
             }),
             deleteDoc(doc(db, "interest_groups", groupId, "members", userId))
         ]);
+    }
+
+    async leaveGroup(groupId, userId) {
+        const groupSnap = await getDoc(doc(db, "interest_groups", groupId));
+        if (!groupSnap.exists()) throw new Error("Grupo no encontrado");
+        if (groupSnap.data().created_by_user_id === userId) {
+            throw new Error("Eres el creador del grupo. Elimínalo si ya no lo necesitas.");
+        }
+        await Promise.all([
+            updateDoc(doc(db, "interest_groups", groupId), { member_ids: arrayRemove(userId) }),
+            deleteDoc(doc(db, "interest_groups", groupId, "members", userId))
+        ]);
+    }
+
+    async getFavorites(userId) {
+        const snap = await getDoc(doc(db, "users", userId));
+        if (snap.exists()) return snap.data().favorite_group_ids || [];
+        return [];
+    }
+
+    async addFavorite(userId, groupId) {
+        await updateDoc(doc(db, "users", userId), {
+            favorite_group_ids: arrayUnion(groupId)
+        });
+    }
+
+    async removeFavorite(userId, groupId) {
+        await updateDoc(doc(db, "users", userId), {
+            favorite_group_ids: arrayRemove(groupId)
+        });
     }
 }
 

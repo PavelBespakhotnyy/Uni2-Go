@@ -203,7 +203,7 @@ export default function ListaDeComprasPage() {
                         <i className="bx bx-trash" onClick={(e) => {
                           e.stopPropagation();
                           if (!confirm('¿Eliminar lista?')) return;
-                          shoppingService.deleteList(id);
+                          shoppingService.deleteList(id, user.uid);
                           setData(d => {
                             const lists = { ...d.lists };
                             delete lists[id];
@@ -256,7 +256,7 @@ export default function ListaDeComprasPage() {
                       <i className="bx bx-trash" onClick={(e) => {
                         e.stopPropagation();
                         if (!confirm('¿Eliminar nota?')) return;
-                        shoppingService.deleteNote(id);
+                        shoppingService.deleteNote(id, user.uid);
                         setData(d => {
                           const notes = { ...d.notes };
                           delete notes[id];

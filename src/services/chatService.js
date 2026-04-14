@@ -7,53 +7,28 @@ import { notificationService } from './notificationService.js';
 
 class ChatService {
     async createChatByCode(friendCode, currentUser) {
-    console.log("Buscando amigo con código:", friendCode);
+        // 1. Find user by friend code
+        const uQuery = query(collection(db, "users"), where("friend_code", "==", friendCode));
+        const querySnapshot = await getDocs(uQuery);
+        if (querySnapshot.empty) throw new Error("Código de amigo no encontrado");
 
-    // 1. Buscar al usuario amigo con ese código
-    const uQuery = query(collection(db, "users"), where("friend_code", "==", friendCode));
-    const querySnapshot = await getDocs(uQuery);
+        const friendDoc = querySnapshot.docs[0];
+        const friendData = friendDoc.data();
+        const friendId = friendDoc.id;
 
-    if (querySnapshot.empty) throw new Error("Código de amigo no encontrado");
-
-    const friendDoc = querySnapshot.docs[0];
-    const friendData = friendDoc.data();
-    const friendId = friendDoc.id;
-
-        existingChats.forEach(doc => {
-            const data = doc.data();
-            if (data.participants.includes(friendId)) {
-                existingChatId = doc.id;
-            }
+        // 2. Check if chat already exists
+        const cQuery = query(
+            collection(db, "chats"),
+            where("participants", "array-contains", currentUser.uid)
+        );
+        const existingChats = await getDocs(cQuery);
+        let existingChatId = null;
+        existingChats.forEach(d => {
+            if (d.data().participants.includes(friendId)) existingChatId = d.id;
         });
+        if (existingChatId) return existingChatId;
 
-    if (myDocSnap.exists()) {
-        myRealName = myDocSnap.data().name; // Sacamos tu nombre real de tu perfil
-    } else {
-        // Si no hay perfil en Firestore, intentamos el de Auth
-        myRealName = currentUser.displayName || "Usuario";
-    }
-
-    // 3. Verificar si ya existe un chat entre ambos
-    const cQuery = query(
-        collection(db, "chats"), 
-        where("participants", "array-contains", currentUser.uid)
-    );
-    const existingChats = await getDocs(cQuery);
-    let existingChatId = null;
-
-    existingChats.forEach(doc => {
-        const data = doc.data();
-        if (data.participants.includes(friendId)) {
-            existingChatId = doc.id;
-        }
-    });
-
-        // 3. Si no existe, crear uno nuevo con el esquema actualizado
-        const initialUnreadCount = {};
-        initialUnreadCount[currentUser.uid] = 0;
-        initialUnreadCount[friendId] = 0;
-
-        // Obtener perfil del remitente para nombre completo
+        // 3. Get sender name
         let senderName = currentUser.displayName || currentUser.email;
         try {
             const senderDoc = await getDoc(doc(db, "users", currentUser.uid));
@@ -65,8 +40,9 @@ class ChatService {
             console.warn("No se pudo obtener el perfil del remitente:", e);
         }
 
-        const friendFullName = `${friendData.name || ''} ${friendData.surname || ''}`.trim() || friendData.name || "Amigo";
+        const friendFullName = `${friendData.name || ''} ${friendData.surname || ''}`.trim() || "Amigo";
 
+        // 4. Create new chat
         const newChat = await addDoc(collection(db, "chats"), {
             participants: [currentUser.uid, friendId],
             participantNames: [senderName, friendFullName],
@@ -74,15 +50,14 @@ class ChatService {
             updatedAt: serverTimestamp(),
             lastMessage: null,
             messageCount: 0,
-            unreadCount: initialUnreadCount
+            unreadCount: { [currentUser.uid]: 0, [friendId]: 0 },
         });
 
-        console.log("Envoi de notification de nuevo chat a:", friendId);
         await notificationService.createNotification(
-            friendId, 
-            'new_chat', 
-            senderName, 
-            'te ha añadido a un nuevo chat', 
+            friendId,
+            'new_chat',
+            senderName,
+            'te ha añadido a un nuevo chat',
             { chatId: newChat.id },
             currentUser.uid
         );

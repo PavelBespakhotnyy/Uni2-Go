@@ -68,10 +68,15 @@ export async function addEvent(eventData) {
  * @param {Object} updatedData - The data to update.
  */
 export async function updateEvent(id, updatedData) {
+  const user = auth.currentUser;
+  if (!user) throw new Error("Usuario no autenticado");
+
   try {
     const eventRef = doc(db, COLLECTION_NAME, id);
-    
-    // Prepare update object, ensuring dates are converted if provided
+    const eventSnap = await getDoc(eventRef);
+    if (!eventSnap.exists()) throw new Error("Evento no encontrado");
+    if (eventSnap.data().userId !== user.uid) throw new Error("No autorizado");
+
     const updatePayload = {
       ...updatedData,
       updatedAt: serverTimestamp()
@@ -96,8 +101,15 @@ export async function updateEvent(id, updatedData) {
  * @param {string} id - The ID of the event to delete.
  */
 export async function deleteEvent(id) {
+  const user = auth.currentUser;
+  if (!user) throw new Error("Usuario no autenticado");
+
   try {
     const eventRef = doc(db, COLLECTION_NAME, id);
+    const eventSnap = await getDoc(eventRef);
+    if (!eventSnap.exists()) return;
+    if (eventSnap.data().userId !== user.uid) throw new Error("No autorizado");
+
     await deleteDoc(eventRef);
   } catch (error) {
     console.error("Error al eliminar evento en Firebase:", error);

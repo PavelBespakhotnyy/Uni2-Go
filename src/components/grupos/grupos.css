@@ -778,6 +778,27 @@
     background: #e0e0e0;
 }
 
+.btn-leave-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 16px;
+    padding: 9px 18px;
+    background: none;
+    border: 1.5px solid #e74c3c;
+    color: #e74c3c;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.btn-leave-group:hover {
+    background: #e74c3c;
+    color: #fff;
+}
+
 /* Create group form */
 .create-group-form {
     display: flex;

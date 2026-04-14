@@ -1,3 +1,6 @@
+# Firebase
+firestore.rules
+
 # Dependencies
 node_modules/
 dist/
