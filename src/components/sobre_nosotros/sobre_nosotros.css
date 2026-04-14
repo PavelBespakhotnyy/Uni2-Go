@@ -1,0 +1,218 @@
+/* ----------------------------------------------------------------------------------------*/
+/* SOBRE NOSOTROS PAGE STYLES */
+/* Scoped to avoid conflicts with other pages */
+
+/* Main container for sobre_nosotros page */
+body.sobre-nosotros-page .content-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: relative;
+    background: #ffffff;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+/* Page title for sobre_nosotros - HIDDEN */
+.content-wrapper .page-title {
+    display: none;
+}
+
+/* Quadrants container - grid layout */
+.content-wrapper .quadrants-container {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    height: calc(100vh - 60px);
+    gap: 20px;
+    padding: 20px;
+    overflow: hidden;
+}
+
+/* General quadrant styles */
+.quadrants-container .quadrant {
+    display: flex;
+    padding: 20px;
+    position: relative;
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Top left quadrant (image) */
+.quadrants-container .quadrant.tl {
+    grid-column: 1;
+    grid-row: 1;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Top right quadrant (text) */
+.quadrants-container .quadrant.tr {
+    grid-column: 2 / 4;
+    grid-row: 1;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Bottom left quadrant (text) */
+.quadrants-container .quadrant.bl {
+    grid-column: 1 / 3;
+    grid-row: 2;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Bottom right quadrant (image) */
+.quadrants-container .quadrant.br {
+    grid-column: 3;
+    grid-row: 2;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Image styles in quadrants */
+.quadrants-container .quadrant-image {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+/* Text content blocks */
+.quadrants-container .text-content {
+    max-width: 100%;
+    width: 100%;
+    padding: 20px;
+    background: #ffffff;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.quadrants-container .text-content h2 {
+    font-size: 1.8rem;
+    margin-bottom: 18px;
+    color: #000000;
+    font-weight: 700;
+}
+
+.quadrants-container .text-content p {
+    font-size: 1.1rem;
+    line-height: 1.65;
+    color: #333333;
+    margin-bottom: 14px;
+    text-align: justify;
+}
+
+/* Text alignment in quadrants */
+.quadrants-container .quadrant.tr .text-content {
+    text-align: left;
+}
+
+.quadrants-container .quadrant.bl .text-content {
+    text-align: left;
+    padding: 20px 25px;
+}
+
+.quadrants-container .quadrant.bl .text-content h2 {
+    font-size: 1.6rem;
+    margin-bottom: 15px;
+}
+
+.quadrants-container .quadrant.bl .text-content p {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+.quadrants-container .quadrant.br .quadrant-image {
+    margin-bottom: 0;
+}
+
+/* Footer for sobre_nosotros */
+.content-wrapper .footer {
+    background: #f5f5f5;
+    padding: 12px 30px;
+    border-top: 1px solid #e0e0e0;
+    height: 60px;
+    position: relative;
+    z-index: 10;
+    flex-shrink: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.content-wrapper .footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer-content .social-links {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.social-links .social-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #333333;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    padding: 8px 14px;
+    border-radius: 8px;
+}
+
+.social-links .social-link:hover {
+    background: #e0e0e0;
+}
+
+.social-link .social-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.social-link .social-text {
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.footer-content .footer-copyright {
+    color: #666666;
+    font-size: 0.9rem;
+    font-weight: 400;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 1024px) {
+    .content-wrapper .quadrants-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        gap: 15px;
+    }
+
+    .quadrants-container .quadrant.tl,
+    .quadrants-container .quadrant.tr,
+    .quadrants-container .quadrant.bl,
+    .quadrants-container .quadrant.br {
+        grid-column: 1;
+        grid-row: auto;
+    }
+
+    .quadrants-container .text-content {
+        max-width: 100%;
+    }
+
+    .quadrants-container .quadrant-image {
+        max-width: 60%;
+    }
+}

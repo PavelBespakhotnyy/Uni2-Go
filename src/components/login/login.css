@@ -1,0 +1,181 @@
+/* --- ESTILOS GENERALES DEL BODY --- */
+html,
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Sarala", Arial, sans-serif;
+    background-color: #ffffff;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+}
+
+/* --- CONTENEDOR PRINCIPAL --- */
+#content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* --- FLECHA DE REGRESO --- */
+#content > a:first-child {
+    position: absolute;
+    top: 50px;
+    left: 50px;
+}
+
+#content > a:first-child img {
+    width: 35px;
+    height: auto;
+    cursor: pointer;
+}
+
+/* --- CONTENEDOR DEL FORMULARIO --- */
+form#loginForm {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 500px;
+}
+
+/* LOGO UNI2 GO */
+form#loginForm > a {
+    margin-bottom: 40px;
+}
+
+form#loginForm > a img {
+    width: 280px;
+    height: auto;
+}
+
+/* TÍTULO "INICIA SESIÓN" */
+form#loginForm h1 {
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 30px;
+    text-align: center;
+    color: #000000;
+}
+
+/* CONTENEDORES DE INPUTS */
+form#loginForm > div {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.field-error {
+    color: #e74c3c;
+    font-size: 12px;
+    height: 16px;
+    margin-top: 5px;
+    margin-bottom: 0;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.field-error.visible {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* ETIQUETAS */
+form#loginForm label {
+    display: block;
+    font-size: 16px;
+    margin-bottom: 8px;
+    color: #000000;
+}
+
+/* ENTRADA (INPUTS) */
+form#loginForm input[type="text"],
+form#loginForm input[type="email"],
+form#loginForm input[type="password"] {
+    width: 100%;
+    padding: 12px 15px;
+    font-size: 16px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    background-color: #f5f5f5;
+}
+
+/* EFECTO FOCUS */
+form#loginForm input[type="text"]:focus,
+form#loginForm input[type="email"]:focus,
+form#loginForm input[type="password"]:focus {
+    outline: none;
+    border-color: #5b7db1;
+}
+
+/* ENLACE "HAS OLVIDADO TU CONTRASEÑA" */
+form#loginForm > a:not(:first-child) {
+    width: 100%;
+    text-align: left;
+    margin: 5px 0 30px 0;
+    font-size: 14px;
+    color: #4169e1;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* BOTÓN DE INICIAR SESIÓN */
+form#loginForm input[type="submit"] {
+    align-self: flex-start;
+    width: 180px;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: 500;
+    background-color: #d3d3d3;
+    color: #000000;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+form#loginForm input[type="submit"]:hover {
+    background-color: #b8b8b8;
+}
+
+/* ERROR MESSAGE */
+.error-container {
+    width: 100%;
+    min-height: 24px;
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.error-text {
+    color: #e74c3c;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.error-text.visible {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* DISEÑO RESPONSIVE MÓVIL */
+@media (max-width: 600px) {
+    form#loginForm h1 {
+        font-size: 28px;
+    }
+
+    form#loginForm > a img {
+        width: 220px;
+    }
+}
