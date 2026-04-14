@@ -6,6 +6,30 @@ import { friendsService } from '../services/friendsService.js';
 import Layout from '../components/Layout.jsx';
 import '../components/chat/style.css';
 
+const AVATAR_COLORS = ['#4f46e5','#0284c7','#059669','#d97706','#7c3aed','#db2777','#0891b2','#0056FF'];
+
+function hashAvatarColor(str) {
+  if (!str) return AVATAR_COLORS[0];
+  let h = 0;
+  for (const c of str) h = ((h << 5) - h) + c.charCodeAt(0);
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+}
+
+function chatInitials(name) {
+  const parts = (name || '').trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  if (parts[0]?.length) return parts[0].substring(0, 2).toUpperCase();
+  return '?';
+}
+
+function ChatAvatar({ name }) {
+  return (
+    <div className="chat-contact-avatar" style={{ backgroundColor: hashAvatarColor(name), color: '#fff', fontWeight: 700, fontSize: '16px' }}>
+      {chatInitials(name)}
+    </div>
+  );
+}
+
 export default function ChatPage() {
   const { user, profile } = useAuth();
   const [searchParams] = useSearchParams();
@@ -174,9 +198,7 @@ export default function ChatPage() {
                   className="chat-contact-item"
                   onClick={() => handleCreateChatWithFriend(friend.uid, name, [user.uid, friend.uid])}
                 >
-                  <div className="chat-contact-avatar">
-                    <img src="/images/av5c8336583e291842624 1.svg" alt={name} />
-                  </div>
+                  <ChatAvatar name={name} />
                   <div className="chat-contact-info">
                     <div className="chat-contact-name">{name}</div>
                     <div className="chat-last-message" style={{ color: '#0056FF' }}>Amigo (clic para chatear)</div>
@@ -195,9 +217,7 @@ export default function ChatPage() {
           <div className="chat-window-header" id="chat-header" style={{ borderBottom: activeChatId ? '2px solid #d1d1d1' : 'none' }}>
             {activeChatId && (
               <>
-                <div className="chat-contact-avatar">
-                  <img src="/images/av5c8336583e291842624 1.svg" alt={activeChatName} />
-                </div>
+                <ChatAvatar name={activeChatName} />
                 <div className="chat-header-info">
                   <h2>{activeChatName}</h2>
                   <span className="chat-header-status">En línea</span>
@@ -251,9 +271,7 @@ function ChatContactItem({ chatId, name, lastMessage, unread, isActive, onClick,
   const [menuOpen, setMenuOpen] = useState(false);
   return (
     <li className={`chat-contact-item${isActive ? ' active' : ''}`} data-chat-id={chatId} onClick={onClick}>
-      <div className="chat-contact-avatar">
-        <img src="/images/av5c8336583e291842624 1.svg" alt={name} />
-      </div>
+      <ChatAvatar name={name} />
       <div className="chat-contact-info">
         <div className="chat-contact-name">{name}</div>
         <div className="chat-last-message">{lastMessage}</div>

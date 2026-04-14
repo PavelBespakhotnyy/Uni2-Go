@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { gruposService } from '../services/gruposService.js';
 import { friendsService } from '../services/friendsService.js';
 import Layout from '../components/Layout.jsx';
 import '../components/grupos/grupos.css';
 
+const ITEMS_PER_PAGE = 11;
 const CARD_COLORS = ['#fce4e4','#dce8f8','#d8f0d8','#fddcb0','#f8d8f0','#e8e0f8','#fef3cc','#d8f0f0'];
 const MEMBER_COLORS = ['#4f46e5','#0284c7','#059669','#d97706','#7c3aed','#db2777','#0891b2','#0056FF'];
 const EMOJIS = ['👥','🏠','🎓','🏀','🍕','✈️','🎮','💡','🎉','💼','❤️','🌟','🔥','📚','🎨','🎬','🎸','🌈','🐶','🐱','🍎','🍺','⚽','🚗','📱','💻','🔒','🛠️','🌍','🚀'];
@@ -34,12 +35,25 @@ export default function GruposPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [toast, setToast] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [favorites, setFavorites] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('grupo_favorites') || '[]'); } catch { return []; }
+  });
 
   useEffect(() => {
     if (!user) return;
     const unsub = gruposService.listenMyGroups(user.uid, setGroups);
     return () => unsub && unsub();
   }, [user]);
+
+  const toggleFavorite = (groupId) => {
+    setFavorites(prev => {
+      const next = prev.includes(groupId) ? prev.filter(id => id !== groupId) : [...prev, groupId];
+      localStorage.setItem('grupo_favorites', JSON.stringify(next));
+      return next;
+    });
+  };
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
@@ -75,12 +89,27 @@ export default function GruposPage() {
     }
   };
 
-  const filtered = groups.filter(g => g.name.toLowerCase().includes(search.toLowerCase()));
+  const filtered = groups
+    .filter(g => g.name.toLowerCase().includes(search.toLowerCase()))
+    .filter(g => statusFilter === 'all' || favorites.includes(g.id));
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const page = Math.min(currentPage, Math.max(totalPages, 1));
+  const pageItems = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   return (
     <Layout contentClass="groups-wrapper">
       <div className="universal-page-header">
-        <div className="header-left-zone" />
+        <div className="header-left-zone">
+          <select
+            className="filters-select"
+            style={{ height: '40px', padding: '0 10px', borderRadius: '10px', border: '1px solid #ccc', outline: 'none', background: '#fff', fontSize: '14px', colorScheme: 'light' }}
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
+          >
+            <option value="all">Todos</option>
+            <option value="favorites">Favoritos</option>
+          </select>
+        </div>
         <div className="header-center-zone">
           <div className="header-search-container">
             <i className="bx bx-search" />
@@ -90,7 +119,7 @@ export default function GruposPage() {
               type="text"
               placeholder="Buscar grupos..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
             />
           </div>
         </div>
@@ -106,24 +135,50 @@ export default function GruposPage() {
             <span className="add-card-label">Nuevo grupo</span>
           </div>
 
-          {filtered.length === 0 && search && (
+          {filtered.length === 0 && (search || statusFilter !== 'all') && (
             <div className="empty-state"><i className="bx bx-search-alt" /><p>No se encontraron grupos</p></div>
           )}
-          {filtered.length === 0 && !search && (
+          {filtered.length === 0 && !search && statusFilter === 'all' && (
             <div className="empty-state"><i className="bx bx-group" /><p>¡Aún no tienes grupos. Crea el primero!</p></div>
           )}
 
-          {filtered.map(group => (
+          {pageItems.map(group => (
             <GroupCard
               key={group.id}
               group={group}
               currentUserId={user?.uid}
+              isFavorite={favorites.includes(group.id)}
               onOpen={openGroupDetail}
               onDelete={handleDelete}
+              onToggleFavorite={toggleFavorite}
             />
           ))}
         </div>
         </div>
+
+        {totalPages > 1 && (
+          <div className="pagination-wrapper">
+            <ul className="pagination-list">
+              <i
+                className={`bx bx-chevron-left pagination-item${page === 1 ? ' disabled' : ''}`}
+                onClick={() => page > 1 && setCurrentPage(p => p - 1)}
+              />
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
+                <span
+                  key={n}
+                  className={`pagination-item${n === page ? ' active' : ''}`}
+                  onClick={() => setCurrentPage(n)}
+                >
+                  {n}
+                </span>
+              ))}
+              <i
+                className={`bx bx-chevron-right pagination-item${page === totalPages ? ' disabled' : ''}`}
+                onClick={() => page < totalPages && setCurrentPage(p => p + 1)}
+              />
+            </ul>
+          </div>
+        )}
 
         {/* Group Detail Modal */}
         {selectedGroup && (
@@ -160,9 +215,10 @@ export default function GruposPage() {
   );
 }
 
-function GroupCard({ group, currentUserId, onOpen, onDelete }) {
+function GroupCard({ group, currentUserId, isFavorite, onOpen, onDelete, onToggleFavorite }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [memberAvatars, setMemberAvatars] = useState([]);
+  const containerRef = useRef(null);
   const color = hashColor(CARD_COLORS, group.name);
   const displayName = group.name ? group.name.charAt(0).toUpperCase() + group.name.slice(1) : group.name;
 
@@ -177,32 +233,65 @@ function GroupCard({ group, currentUserId, onOpen, onDelete }) {
     }).catch(() => {});
   }, [group]);
 
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [menuOpen]);
+
   return (
-    <div className="group-card" style={{ backgroundColor: color }} onClick={() => onOpen(group)}>
+    <div
+      className="group-card"
+      style={{ backgroundColor: color, zIndex: menuOpen ? 100 : 'auto' }}
+      onClick={() => onOpen(group)}
+    >
       <div className="card-emoji-container">{group.emoji || '👥'}</div>
       <span className="card-group-name" title={displayName}>{displayName}</span>
-      <button
-        className="group-card-menu-btn"
-        onClick={(e) => { e.stopPropagation(); setMenuOpen(v => !v); }}
-        title="Opciones"
-      >
-        <i className="bx bx-dots-vertical-rounded" />
-      </button>
+
+      <div ref={containerRef} className={`card-menu-container${menuOpen ? ' open' : ''}`} onClick={(e) => e.stopPropagation()}>
+        <button
+          className="group-card-menu-btn"
+          onClick={() => setMenuOpen(v => !v)}
+          title="Opciones"
+        >
+          <i className="bx bx-dots-vertical-rounded" />
+        </button>
+        {menuOpen && (
+          <div className="group-card-submenu active">
+            <button
+              className="submenu-item icon-only"
+              title={isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
+              onClick={() => { setMenuOpen(false); onToggleFavorite(group.id); }}
+            >
+              <i className={`bx ${isFavorite ? 'bxs-star' : 'bx-star'}`} />
+            </button>
+            <button
+              className="submenu-item icon-only delete"
+              title="Eliminar grupo"
+              onClick={() => { setMenuOpen(false); onDelete(group); }}
+            >
+              <i className="bx bx-trash" />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {isFavorite && (
+        <div className="card-favorite-star">
+          <i className="bx bxs-star" />
+        </div>
+      )}
+
       <div className="card-members-strip">
         {memberAvatars.map((a, i) => (
           <div key={i} className="card-member-avatar" style={{ backgroundColor: a.color }}>{a.inits}</div>
         ))}
       </div>
-      {menuOpen && (
-        <div className="group-card-submenu active">
-          <button
-            className="submenu-item delete"
-            onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onDelete(group); }}
-          >
-            <i className="bx bx-trash" /> Eliminar grupo
-          </button>
-        </div>
-      )}
     </div>
   );
 }
@@ -367,22 +456,13 @@ function GroupDetailModal({ group, members, loading, currentUserId, showEditForm
 function CreateGroupModal({ currentUserId, onClose, onToast }) {
   const [selectedEmoji, setSelectedEmoji] = useState('👥');
   const [name, setName] = useState('');
-  const [desc, setDesc] = useState('');
   const [friends, setFriends] = useState([]);
   const [selectedFriends, setSelectedFriends] = useState([]);
-  const [friendSelectId, setFriendSelectId] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     friendsService.getFriends(currentUserId).then(setFriends).catch(() => {});
   }, [currentUserId]);
-
-  const addFriend = () => {
-    if (!friendSelectId) return;
-    if (selectedFriends.some(f => f.uid === friendSelectId)) { onToast('Ya está añadido', 'error'); return; }
-    const f = friends.find(f => f.uid === friendSelectId);
-    if (f) { setSelectedFriends(sf => [...sf, f]); setFriendSelectId(''); }
-  };
 
   const removeFriend = (uid) => setSelectedFriends(sf => sf.filter(f => f.uid !== uid));
 
@@ -390,7 +470,7 @@ function CreateGroupModal({ currentUserId, onClose, onToast }) {
     if (!name.trim()) { onToast('El nombre es obligatorio', 'error'); return; }
     setLoading(true);
     try {
-      await gruposService.createGroup(name.trim(), desc.trim(), currentUserId, selectedEmoji, selectedFriends.map(f => f.uid));
+      await gruposService.createGroup(name.trim(), '', currentUserId, selectedEmoji, selectedFriends.map(f => f.uid));
       onToast('Grupo creado', 'success');
       onClose();
     } catch {
@@ -401,53 +481,66 @@ function CreateGroupModal({ currentUserId, onClose, onToast }) {
 
   return (
     <div className="modal-overlay active" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal-content">
+      <div className="modal-content create-modal">
         <div className="modal-header">
           <span className="modal-title">Nuevo grupo</span>
           <button className="modal-close-btn" onClick={onClose}><i className="bx bx-x" /></button>
         </div>
-        <div className="modal-body">
-          <div className="create-group-form">
-            <div className="form-group emoji-selection-group">
-              <label>Icono del grupo</label>
-              <div className="emoji-picker">
-                {EMOJIS.map(e => (
-                  <span key={e} className={`emoji-option${selectedEmoji === e ? ' active' : ''}`} onClick={() => setSelectedEmoji(e)}>{e}</span>
-                ))}
-              </div>
+        <div className="create-modal-body">
+
+          <div className="create-top-row">
+            <div className="create-emoji-preview">{selectedEmoji}</div>
+            <input
+              className="form-input"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Nombre del grupo *"
+            />
+          </div>
+
+          <div className="create-emoji-grid">
+            {EMOJIS.map(e => (
+              <span
+                key={e}
+                className={`emoji-option${selectedEmoji === e ? ' active' : ''}`}
+                onClick={() => setSelectedEmoji(e)}
+              >{e}</span>
+            ))}
+          </div>
+
+          <select
+            className="form-input"
+            value=""
+            onChange={(e) => {
+              const uid = e.target.value;
+              if (!uid) return;
+              if (selectedFriends.some(f => f.uid === uid)) { onToast('Ya está añadido', 'error'); return; }
+              const f = friends.find(f => f.uid === uid);
+              if (f) setSelectedFriends(sf => [...sf, f]);
+            }}
+          >
+            <option value="" disabled hidden>Añadir amigo...</option>
+            {friends.filter(f => !selectedFriends.some(sf => sf.uid === f.uid)).map(f => (
+              <option key={f.uid} value={f.uid}>{f.name} {f.surname}</option>
+            ))}
+          </select>
+
+          {selectedFriends.length > 0 && (
+            <div className="selected-friends-list">
+              {selectedFriends.map(f => (
+                <div key={f.uid} className="selected-friend-tag">
+                  <span>{f.name} {f.surname}</span>
+                  <i className="bx bx-x remove-friend" onClick={() => removeFriend(f.uid)} />
+                </div>
+              ))}
             </div>
-            <div className="form-group">
-              <label>Nombre del grupo *</label>
-              <input className="form-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej: Compañeros de piso" />
-            </div>
-            <div className="form-group">
-              <label>Descripción</label>
-              <textarea className="form-textarea" value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Descripción opcional..." />
-            </div>
-            <div className="form-group">
-              <label>Añadir amigos</label>
-              <div className="friend-selector-container">
-                <select className="form-input" value={friendSelectId} onChange={(e) => setFriendSelectId(e.target.value)}>
-                  <option value="">Selecciona un amigo</option>
-                  {friends.map(f => <option key={f.uid} value={f.uid}>{f.name} {f.surname}</option>)}
-                </select>
-                <button type="button" className="btn-add-friend" onClick={addFriend}><i className="bx bx-plus" /></button>
-              </div>
-              <div className="selected-friends-list">
-                {selectedFriends.map(f => (
-                  <div key={f.uid} className="selected-friend-tag">
-                    <span>{f.name} {f.surname}</span>
-                    <i className="bx bx-x remove-friend" onClick={() => removeFriend(f.uid)} />
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="modal-actions">
-              <button className="btn-cancel" onClick={onClose}>Cancelar</button>
-              <button className="btn-save" onClick={handleCreate} disabled={loading}>
-                {loading ? 'Creando...' : 'Crear grupo'}
-              </button>
-            </div>
+          )}
+
+          <div className="create-modal-actions">
+            <button className="btn-cancel" onClick={onClose}>Cancelar</button>
+            <button className="btn-save create-btn-full" onClick={handleCreate} disabled={loading}>
+              {loading ? 'Creando...' : 'Crear grupo'}
+            </button>
           </div>
         </div>
       </div>

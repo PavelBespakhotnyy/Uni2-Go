@@ -63,7 +63,7 @@
 .groups-container {
     flex: 1;
     overflow-y: auto;
-    padding: 28px 32px;
+    padding: 16px 32px;
 }
 
 .groups-grid {
@@ -198,23 +198,32 @@
     color: rgba(0,0,0,0.55);
 }
 
-/* Three-dot menu on card */
-.group-card-menu-btn {
+/* Three-dot menu container — anchors button + dropdown together */
+.card-menu-container {
     position: absolute;
     top: 10px;
     right: 10px;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.group-card-menu-btn {
+    width: 32px;
+    height: 32px;
+    box-sizing: border-box;
     background: none;
     border: none;
     cursor: pointer;
     font-size: 20px;
     color: rgba(0,0,0,0.5);
-    padding: 4px;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: background 0.15s, color 0.15s;
-    z-index: 5;
+    flex-shrink: 0;
 }
 
 .group-card-menu-btn:hover {
@@ -222,24 +231,30 @@
     color: rgba(0,0,0,0.75);
 }
 
+/* Button becomes top of the dropdown when open */
+.card-menu-container.open .group-card-menu-btn {
+    background: #fff;
+    color: rgba(0,0,0,0.75);
+    border: 1px solid #e8e8e8;
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+}
+
 .group-card-submenu {
-    position: absolute;
-    top: calc(100% + 4px);
-    right: 10px;
     background: #fff;
     border: 1px solid #e8e8e8;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
     display: none;
     flex-direction: column;
-    z-index: 200;
-    min-width: 165px;
     overflow: hidden;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .group-card-submenu.active {
     display: flex;
-    animation: fadeIn 0.15s ease;
 }
 
 .submenu-item {
@@ -260,12 +275,36 @@
     background-color: #f8f8f8;
 }
 
-.submenu-item.delete {
+.submenu-item.icon-only {
+    height: 32px;
+    padding: 0;
+    justify-content: center;
+    font-size: 18px;
+    color: #1a1a1a;
+    box-sizing: border-box;
+}
+
+.submenu-item.icon-only:hover {
+    background-color: #f0f0f0;
+}
+
+.submenu-item.icon-only.delete {
     color: #e74c3c;
 }
 
-.submenu-item.delete:hover {
-    background-color: #fff5f5;
+.submenu-item.icon-only.delete:hover {
+    background-color: #fff0f0;
+}
+
+/* Favorite star on card */
+.card-favorite-star {
+    position: absolute;
+    bottom: 14px;
+    left: 14px;
+    font-size: 20px;
+    color: #1a1a1a;
+    pointer-events: none;
+    z-index: 1;
 }
 
 /* Empty state */
@@ -746,6 +785,70 @@
     gap: 16px;
 }
 
+.create-modal {
+    max-width: 440px;
+}
+
+.create-modal-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+}
+
+.create-btn-full {
+    flex: 1;
+}
+
+.create-modal-body {
+    padding: 18px 22px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.create-top-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.create-emoji-preview {
+    width: 52px;
+    height: 52px;
+    font-size: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f5f5;
+    border-radius: 14px;
+    flex-shrink: 0;
+}
+
+.create-emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 3px;
+}
+
+.create-emoji-grid .emoji-option {
+    font-size: 19px;
+    padding: 5px 3px;
+    border-radius: 6px;
+    text-align: center;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: background 0.15s;
+}
+
+.create-emoji-grid .emoji-option:hover {
+    background: #f0f0f0;
+}
+
+.create-emoji-grid .emoji-option.active {
+    background: #e0e8ff;
+    border-color: #0056FF;
+}
+
 /* Confirm dialog */
 .confirm-overlay {
     position: fixed;
@@ -829,7 +932,14 @@
 .toast.success { background: #22c55e; }
 .toast.error   { background: #e74c3c; }
 
-/* Pagination (kept for compatibility) */
+/* Pagination */
+.pagination-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 16px 40px;
+    flex-shrink: 0;
+}
+
 .pagination-container {
     display: flex;
     align-items: center;

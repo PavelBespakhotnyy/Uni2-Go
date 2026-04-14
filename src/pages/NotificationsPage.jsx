@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { notificationService } from '../services/notificationService.js';
@@ -149,25 +149,27 @@ export default function NotificationsPage() {
         </div>
 
         {totalPages > 1 && (
-          <ul className="pagination-list" style={{ display: 'flex' }}>
-            <i
-              className={`bx bx-chevron-left pagination-item${page === 1 ? ' disabled' : ''}`}
-              onClick={() => page > 1 && setCurrentPage(p => p - 1)}
-            />
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
-              <span
-                key={n}
-                className={`pagination-item${n === page ? ' active' : ''}`}
-                onClick={() => setCurrentPage(n)}
-              >
-                {n}
-              </span>
-            ))}
-            <i
-              className={`bx bx-chevron-right pagination-item${page === totalPages ? ' disabled' : ''}`}
-              onClick={() => page < totalPages && setCurrentPage(p => p + 1)}
-            />
-          </ul>
+          <div className="pagination-wrapper">
+            <ul className="pagination-list">
+              <i
+                className={`bx bx-chevron-left pagination-item${page === 1 ? ' disabled' : ''}`}
+                onClick={() => page > 1 && setCurrentPage(p => p - 1)}
+              />
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
+                <span
+                  key={n}
+                  className={`pagination-item${n === page ? ' active' : ''}`}
+                  onClick={() => setCurrentPage(n)}
+                >
+                  {n}
+                </span>
+              ))}
+              <i
+                className={`bx bx-chevron-right pagination-item${page === totalPages ? ' disabled' : ''}`}
+                onClick={() => page < totalPages && setCurrentPage(p => p + 1)}
+              />
+            </ul>
+          </div>
         )}
       </div>
     </Layout>
@@ -176,7 +178,24 @@ export default function NotificationsPage() {
 
 function NotifPanel({ notif, onAcceptFriend, onDeclineFriend, onGoToChat, onGoToGrupo, onPanelClick }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
   const [accepted, setAccepted] = useState(null); // null | 'accepted' | 'declined'
+  const menuBtnRef = useRef(null);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleClickOutside = (e) => {
+      if (
+        menuRef.current && !menuRef.current.contains(e.target) &&
+        menuBtnRef.current && !menuBtnRef.current.contains(e.target)
+      ) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [menuOpen]);
 
   const actionButtons = () => {
     if (notif.read) return null;
@@ -212,11 +231,26 @@ function NotifPanel({ notif, onAcceptFriend, onDeclineFriend, onGoToChat, onGoTo
       <div className="notification-meta" onClick={(e) => e.stopPropagation()}>
         <span>{notif.date}</span>
         <span>{notif.time}</span>
-        <button className="notification-menu-btn" onClick={() => setMenuOpen(v => !v)}>
+        <button
+          ref={menuBtnRef}
+          className="notification-menu-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!menuOpen && menuBtnRef.current) {
+              const rect = menuBtnRef.current.getBoundingClientRect();
+              setMenuPos({ top: rect.bottom + 5, right: window.innerWidth - rect.right });
+            }
+            setMenuOpen(v => !v);
+          }}
+        >
           <i className="bx bx-dots-vertical-rounded" />
         </button>
         {menuOpen && (
-          <div className="notification-menu active">
+          <div
+            ref={menuRef}
+            className="notification-menu active"
+            style={{ position: 'fixed', top: menuPos.top, right: menuPos.right }}
+          >
             {notif.read ? (
               <button className="notification-menu-item" onClick={() => { notificationService.markAsUnread(notif.id); setMenuOpen(false); }}>Marcar como no leído</button>
             ) : (

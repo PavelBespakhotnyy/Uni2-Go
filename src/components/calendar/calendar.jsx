@@ -344,31 +344,35 @@ export default function Calendar() {
   return (
     <div className={styles.calendarContainer}>
       <header className={styles.calendarHeader}>
-        <h1 className={styles.headerTitle}>
-          {format(currentDate, 'MMMM yyyy', { locale: es })}
-        </h1>
+        <div className={styles.headerLeft}>
+          <button onClick={handleToday} className={styles.todayButton}>Hoy</button>
+        </div>
 
         <div className={styles.navGroup}>
-          <button onClick={handlePrev} className="p-1.5 hover:bg-white rounded-md transition-colors"><ChevronLeft size={20} /></button>
-          <button onClick={handleToday} className="px-4 py-1.5 text-xs font-black hover:bg-white rounded-md transition-colors uppercase tracking-wider">Hoy</button>
-          <button onClick={handleNext} className="p-1.5 hover:bg-white rounded-md transition-colors"><ChevronRight size={20} /></button>
+          <button onClick={handlePrev} className={styles.navArrow}><ChevronLeft size={20} /></button>
+          <h1 className={styles.headerTitle}>
+            {format(currentDate, 'MMMM yyyy', { locale: es })}
+          </h1>
+          <button onClick={handleNext} className={styles.navArrow}><ChevronRight size={20} /></button>
         </div>
 
-        <div className={styles.viewGroup}>
-          {Object.values(VIEWS).map((v) => (
-            <button 
-              key={v} 
-              onClick={() => setView(v)} 
-              className={`px-6 py-2 text-xs font-black rounded-md transition-all uppercase tracking-widest ${view === v ? 'bg-white text-[#1a1a1a] shadow-sm border border-gray-200' : 'text-gray-500 hover:text-[#1a1a1a]'}`}
-            >
-              {v === VIEWS.MONTH ? 'Mes' : v === VIEWS.WEEK ? 'Semana' : 'Día'}
-            </button>
-          ))}
+        <div className={styles.headerRight}>
+          <div className={styles.viewGroup}>
+            {Object.values(VIEWS).map((v) => (
+              <button
+                key={v}
+                onClick={() => setView(v)}
+                className={`px-7 py-3 text-base font-bold rounded-md transition-all ${view === v ? 'bg-white text-[#0056FF] shadow-sm border border-blue-100' : 'text-gray-500 hover:text-[#1a1a1a]'}`}
+              >
+                {v === VIEWS.MONTH ? 'Mes' : v === VIEWS.WEEK ? 'Semana' : 'Día'}
+              </button>
+            ))}
+          </div>
+          <button onClick={() => openAddModal(currentDate)} className={styles.actionButton}>
+            <Plus size={16} />
+            <span>Nuevo evento</span>
+          </button>
         </div>
-
-        <button onClick={() => openAddModal(currentDate)} className={styles.actionButton}>
-          <span>Nuevo</span>
-        </button>
       </header>
 
       <main className="flex-1 overflow-hidden min-h-0">
@@ -608,14 +612,30 @@ function MonthView({ currentDate, events, onEventClick, onDayClick, onMoreClick 
   const weeks = []; for (let i = 0; i < days.length; i += 7) weeks.push(days.slice(i, i + 7));
 
   return (
-    <div className="flex flex-col h-full bg-[#c0c8cf] gap-px overflow-hidden">
-      <div className="grid grid-cols-7 bg-[#f8f9fa] shrink-0">{['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((d) => (<div key={d} className="p-2 text-center text-[10px] font-bold text-gray-500 border-r border-[#c0c8cf] last:border-r-0 uppercase">{d}</div>))}</div>
-      <div className="flex-1 flex flex-col min-h-0 bg-[#c0c8cf] gap-px">
+    <div className="flex flex-col h-full bg-[#e2e8ef] gap-px overflow-hidden">
+      <div className="grid grid-cols-7 bg-white border-b border-[#e2e8ef] shrink-0">
+        {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((d) => (
+          <div key={d} className="py-3 text-center text-[11px] font-bold text-gray-400 uppercase tracking-widest">{d}</div>
+        ))}
+      </div>
+      <div className="flex-1 flex flex-col min-h-0 bg-[#e2e8ef] gap-px">
         {weeks.map((weekDays, weekIdx) => (
-          <div key={weekIdx} className="flex-1 grid grid-cols-7 relative bg-white gap-px min-h-0">
+          <div key={weekIdx} className="flex-1 grid grid-cols-7 relative gap-px min-h-0">
             {weekDays.map((day, dIdx) => (
-              <div key={dIdx} className={`relative p-2 transition-all cursor-pointer ${!isSameMonth(day, monthStart) ? 'bg-[#fafafa] opacity-50' : 'bg-white hover:bg-[#f0f4f8]'}`} onClick={() => onDayClick(day)}>
-                <div className={`text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded ${isSameDay(day, new Date()) ? 'bg-[#1a1a1a] text-white shadow-sm' : 'text-gray-400'}`}>{format(day, 'd')}</div>
+              <div
+                key={dIdx}
+                className={`relative p-2 pt-2 transition-colors cursor-pointer group ${
+                  !isSameMonth(day, monthStart) ? 'bg-[#f7f8fa]' :
+                  isSameDay(day, new Date()) ? 'bg-[#eff4ff]' :
+                  'bg-white hover:bg-[#f5f8ff]'
+                }`}
+                onClick={() => onDayClick(day)}
+              >
+                <div className={`text-sm font-bold w-7 h-7 flex items-center justify-center rounded-full mb-1 ${
+                  isSameDay(day, new Date()) ? 'bg-[#0056FF] text-white shadow-md' :
+                  !isSameMonth(day, monthStart) ? 'text-gray-300' :
+                  'text-[#1a1a1a] group-hover:bg-gray-100'
+                }`}>{format(day, 'd')}</div>
               </div>
             ))}
             <div className="absolute top-8 left-0 right-0 bottom-0 pointer-events-none px-1">{renderHorizontalEvents(weekDays, events, onEventClick, true, onMoreClick)}</div>
@@ -637,9 +657,9 @@ function WeekView({ currentDate, events, onEventClick }) {
         <div className="border-r border-[#c0c8cf]"></div>
         <div className="grid grid-cols-7">
           {days.map((day) => (
-            <div key={day.toString()} className="p-3 text-center border-r border-[#c0c8cf] last:border-0">
-              <div className="text-[10px] font-bold text-gray-500 uppercase">{format(day, 'EEE', { locale: es })}</div>
-              <div className={`text-base font-bold mt-1 ${isSameDay(day, new Date()) ? 'text-[#1a1a1a] underline decoration-2' : ''}`}>{format(day, 'd')}</div>
+            <div key={day.toString()} className={`p-3 text-center border-r border-[#c0c8cf] last:border-0 ${isSameDay(day, new Date()) ? 'bg-[#eff4ff]' : ''}`}>
+              <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{format(day, 'EEE', { locale: es })}</div>
+              <div className={`text-base font-bold mt-1 w-8 h-8 flex items-center justify-center rounded-full mx-auto ${isSameDay(day, new Date()) ? 'bg-[#0056FF] text-white shadow-md' : 'text-[#1a1a1a]'}`}>{format(day, 'd')}</div>
             </div>
           ))}
         </div>
@@ -676,7 +696,7 @@ function WeekView({ currentDate, events, onEventClick }) {
                         key={`${event.id}-${i}`} 
                         onClick={() => onEventClick(event)} 
                         style={{...style, borderLeftWidth: '5px'}} 
-                        className={`absolute px-1 py-1 text-[10px] font-bold rounded shadow-sm hover:brightness-95 hover:!z-[100] hover:scale-[1.01] cursor-pointer z-10 overflow-hidden leading-tight transition-all ${colors.bg} ${colors.text} ${colors.border}`}
+                        className={`absolute pl-2.5 pr-1 py-1 text-[10px] font-bold rounded shadow-sm hover:brightness-95 hover:!z-[100] hover:scale-[1.01] cursor-pointer z-10 overflow-hidden leading-tight transition-all ${colors.bg} ${colors.text} ${colors.border}`}
                       >
                         <div className="truncate">{event.title}</div>
                       </div>
@@ -921,8 +941,8 @@ function renderHorizontalEvents(days, events, onEventClick, showAll = false, onM
           <div 
             key={i} 
             onClick={(ev) => { ev.stopPropagation(); onEventClick(event); }} 
-            style={{ gridColumn: `${startIdx + 1} / span ${span}`, gridRow: level + 1, pointerEvents: 'auto' }} 
-            className={`px-1.5 py-0.5 text-[9px] font-bold rounded border-l-2 shadow-sm hover:opacity-90 cursor-pointer truncate transition-all ${colors.bg} ${colors.text} ${colors.border}`}
+            style={{ gridColumn: `${startIdx + 1} / span ${span}`, gridRow: level + 1, pointerEvents: 'auto', paddingLeft: '8px' }}
+            className={`pr-2 py-0.5 text-[10px] font-semibold rounded-sm border-l-[3px] shadow-sm hover:brightness-95 cursor-pointer truncate transition-all leading-5 ${colors.bg} ${colors.text} ${colors.border}`}
           >
             {event.title}
           </div>
