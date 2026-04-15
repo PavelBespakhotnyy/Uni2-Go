@@ -163,33 +163,26 @@ class GruposService {
         const memberSnap = await getDoc(memberRef);
         if (memberSnap.exists()) throw new Error("Este usuario ya es miembro del grupo");
 
-        await Promise.all([
-            updateDoc(doc(db, "interest_groups", groupId), {
-                member_ids: arrayUnion(userId)
-            }),
-            setDoc(memberRef, {
-                user_id: userId,
-                role: 'member',
-                joined_at: serverTimestamp()
-            })
-        ]);
+        await updateDoc(doc(db, "interest_groups", groupId), { member_ids: arrayUnion(userId) });
+        await setDoc(memberRef, { user_id: userId, role: 'member', joined_at: serverTimestamp() });
 
-        // Send notification
-        const [groupSnap, senderProfile] = await Promise.all([
-            getDoc(doc(db, "interest_groups", groupId)),
-            getUserProfile(currentUserId)
-        ]);
-        const groupName = groupSnap.exists() ? groupSnap.data().name : 'un grupo';
-        const senderName = senderProfile ? `${senderProfile.name || ''} ${senderProfile.surname || ''}`.trim() : 'Un usuario';
-
-        await notificationService.createNotification(
-            userId,
-            'group_invitation',
-            senderName,
-            `te ha añadido al grupo "${groupName}"`,
-            { groupId: groupId },
-            currentUserId
-        );
+        // Send notification independently
+        try {
+            const [groupSnap, senderProfile] = await Promise.all([
+                getDoc(doc(db, "interest_groups", groupId)),
+                getUserProfile(currentUserId)
+            ]);
+            const groupName = groupSnap.exists() ? groupSnap.data().name : 'un grupo';
+            const senderName = senderProfile ? `${senderProfile.name || ''} ${senderProfile.surname || ''}`.trim() : 'Un usuario';
+            await notificationService.createNotification(
+                userId,
+                'group_invitation',
+                senderName,
+                `te ha añadido al grupo "${groupName}"`,
+                { groupId: groupId },
+                currentUserId
+            );
+        } catch (_) {}
 
         return { id: userId, ...userDoc.data() };
     }
@@ -202,27 +195,26 @@ class GruposService {
         const userSnap = await getDoc(doc(db, "users", userId));
         if (!userSnap.exists()) throw new Error("Usuario no encontrado");
 
-        await Promise.all([
-            updateDoc(doc(db, "interest_groups", groupId), { member_ids: arrayUnion(userId) }),
-            setDoc(memberRef, { user_id: userId, role: 'member', joined_at: serverTimestamp() })
-        ]);
+        await updateDoc(doc(db, "interest_groups", groupId), { member_ids: arrayUnion(userId) });
+        await setDoc(memberRef, { user_id: userId, role: 'member', joined_at: serverTimestamp() });
 
-        // Send notification
-        const [groupSnap, senderProfile] = await Promise.all([
-            getDoc(doc(db, "interest_groups", groupId)),
-            getUserProfile(currentUserId)
-        ]);
-        const groupName = groupSnap.exists() ? groupSnap.data().name : 'un grupo';
-        const senderName = senderProfile ? `${senderProfile.name || ''} ${senderProfile.surname || ''}`.trim() : 'Un usuario';
-
-        await notificationService.createNotification(
-            userId,
-            'group_invitation',
-            senderName,
-            `te ha añadido al grupo "${groupName}"`,
-            { groupId: groupId },
-            currentUserId
-        );
+        // Send notification independently so failures don't affect the add
+        try {
+            const [groupSnap, senderProfile] = await Promise.all([
+                getDoc(doc(db, "interest_groups", groupId)),
+                getUserProfile(currentUserId)
+            ]);
+            const groupName = groupSnap.exists() ? groupSnap.data().name : 'un grupo';
+            const senderName = senderProfile ? `${senderProfile.name || ''} ${senderProfile.surname || ''}`.trim() : 'Un usuario';
+            await notificationService.createNotification(
+                userId,
+                'group_invitation',
+                senderName,
+                `te ha añadido al grupo "${groupName}"`,
+                { groupId: groupId },
+                currentUserId
+            );
+        } catch (_) {}
 
         return { id: userId, ...userSnap.data() };
     }
@@ -230,13 +222,32 @@ class GruposService {
     /**
      * Elimina miembro: borra de member_ids y de la subcolección.
      */
-    async removeMember(groupId, userId) {
+    async removeMember(groupId, userId, currentUserId) {
         await Promise.all([
             updateDoc(doc(db, "interest_groups", groupId), {
                 member_ids: arrayRemove(userId)
             }),
             deleteDoc(doc(db, "interest_groups", groupId, "members", userId))
         ]);
+
+        try {
+            const [groupSnap, removerProfile] = await Promise.all([
+                getDoc(doc(db, "interest_groups", groupId)),
+                getUserProfile(currentUserId)
+            ]);
+            const groupName = groupSnap.exists() ? groupSnap.data().name : 'el grupo';
+            const removerName = removerProfile
+                ? `${removerProfile.name || ''} ${removerProfile.surname || ''}`.trim()
+                : 'Un usuario';
+            await notificationService.createNotification(
+                userId,
+                'group_removed',
+                removerName,
+                `te ha eliminado del grupo "${groupName}"`,
+                {},
+                currentUserId
+            );
+        } catch (_) {}
     }
 
     async leaveGroup(groupId, userId) {

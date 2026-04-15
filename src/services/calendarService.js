@@ -99,6 +99,49 @@ export async function updateEvent(id, updatedData) {
     if (!eventSnap.exists()) throw new Error("Evento no encontrado");
     if (eventSnap.data().userId !== user.uid) throw new Error("No autorizado");
 
+    // Detect changes in sharedWith
+    const prevShared = eventSnap.data().sharedWith || [];
+    const newShared = updatedData.sharedWith !== undefined ? updatedData.sharedWith : prevShared;
+    const addedUids = newShared.filter(uid => !prevShared.includes(uid));
+    const removedUids = prevShared.filter(uid => !newShared.includes(uid));
+
+    if (addedUids.length > 0 || removedUids.length > 0) {
+      let senderName = user.displayName || user.email;
+      try {
+        const sender = await getUserById(user.uid);
+        senderName = `${sender.name} ${sender.surname}`.trim() || senderName;
+      } catch (_) {}
+
+      const eventTitle = eventSnap.data().title || 'Sin título';
+      const eventDate = eventSnap.data().start?.toDate
+        ? eventSnap.data().start.toDate().toISOString()
+        : updatedData.start instanceof Date
+          ? updatedData.start.toISOString()
+          : null;
+
+      for (const uid of addedUids) {
+        notificationService.createNotification(
+          uid,
+          'calendar_share',
+          senderName,
+          `ha compartido un evento contigo: "${eventTitle}"`,
+          { eventId: id, eventDate },
+          user.uid
+        ).catch(() => {});
+      }
+
+      for (const uid of removedUids) {
+        notificationService.createNotification(
+          uid,
+          'event_removed',
+          senderName,
+          `te ha eliminado del evento "${eventTitle}"`,
+          {},
+          user.uid
+        ).catch(() => {});
+      }
+    }
+
     const updatePayload = {
       ...updatedData,
       updatedAt: serverTimestamp()

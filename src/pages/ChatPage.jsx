@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { chatService } from '../services/chatService.js';
@@ -98,6 +98,7 @@ export default function ChatPage() {
     setActiveChatOtherUid(participants.find(p => p !== user?.uid) || null);
     setLoadingMessages(true);
     setMessages([]);
+    chatService.markAsRead(chatId, user.uid).catch(() => {});
 
     unsubMessagesRef.current = chatService.listenMessages(chatId, (msgs) => {
       setMessages(msgs);
@@ -242,14 +243,54 @@ export default function ChatPage() {
             )}
             {messages.map((msg, i) => {
               const isSent = msg.senderId === user?.uid;
-              const time = msg.timestamp?.toDate
-                ? msg.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+              const msgDate = msg.timestamp?.toDate ? msg.timestamp.toDate() : null;
+              const time = msgDate
+                ? msgDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                 : '';
+
+              const prevDate = messages[i - 1]?.timestamp?.toDate ? messages[i - 1].timestamp.toDate() : null;
+              const showDateSep = msgDate && (
+                !prevDate ||
+                msgDate.toDateString() !== prevDate.toDateString()
+              );
+
+              const formatDateLabel = (d) => {
+                const today = new Date();
+                const yesterday = new Date();
+                yesterday.setDate(today.getDate() - 1);
+                if (d.toDateString() === today.toDateString()) return 'Hoy';
+                if (d.toDateString() === yesterday.toDateString()) return 'Ayer';
+                return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: d.getFullYear() !== today.getFullYear() ? 'numeric' : undefined });
+              };
+
               return (
-                <div key={i} className={`chat-message ${isSent ? 'sent' : 'received'}`}>
-                  <div className="chat-message-content">{msg.text || msg.messageText || ''}</div>
-                  <div className="chat-message-time">{time}</div>
-                </div>
+                <React.Fragment key={i}>
+                  {showDateSep && (
+                    <div className="chat-date-separator">
+                      <span>{formatDateLabel(msgDate)}</span>
+                    </div>
+                  )}
+                  <div className={`chat-message-row ${isSent ? 'sent' : 'received'}`}>
+                    {isSent && (
+                      <button
+                        className="chat-message-delete-btn"
+                        title="Eliminar mensaje"
+                        onClick={() => {
+                          setMessages(prev => prev.filter(m => m.id !== msg.id));
+                          chatService.deleteMessage(activeChatId, msg.id, user.uid, activeChatParticipants).catch(() => {
+                            setMessages(prev => [...prev, msg]);
+                          });
+                        }}
+                      >
+                        <i className="bx bx-trash" />
+                      </button>
+                    )}
+                    <div className={`chat-message ${isSent ? 'sent' : 'received'}`}>
+                      <div className="chat-message-content">{msg.text || msg.messageText || ''}</div>
+                      <div className="chat-message-time">{time}</div>
+                    </div>
+                  </div>
+                </React.Fragment>
               );
             })}
             <div ref={messagesEndRef} />
@@ -291,14 +332,16 @@ function ChatContactItem({ chatId, name, lastMessage, unread, isActive, onClick,
         <div className="chat-contact-name">{name}</div>
         <div className="chat-last-message">{lastMessage}</div>
       </div>
-      {unread > 0 && <span className="chat-unread-badge">{unread}</span>}
-      <button
-        className="group-menu-btn"
-        title="Opciones"
-        onClick={(e) => { e.stopPropagation(); setMenuOpen(v => !v); }}
-      >
-        <i className="bx bx-dots-vertical-rounded" />
-      </button>
+      <div className="chat-contact-actions">
+        {unread > 0 && <span className="chat-unread-badge">{unread}</span>}
+        <button
+          className="group-menu-btn"
+          title="Opciones"
+          onClick={(e) => { e.stopPropagation(); setMenuOpen(v => !v); }}
+        >
+          <i className="bx bx-dots-vertical-rounded" />
+        </button>
+      </div>
       {menuOpen && (
         <div className="group-submenu active">
           <button className="submenu-item delete" onClick={onDelete}>

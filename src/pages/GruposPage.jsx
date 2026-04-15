@@ -341,7 +341,7 @@ function GroupDetailModal({ group, members, loading, currentUserId, showEditForm
   const handleRemoveMember = async (uid) => {
     if (!confirm('¿Eliminar a este miembro?')) return;
     try {
-      await gruposService.removeMember(group.id, uid);
+      await gruposService.removeMember(group.id, uid, currentUserId);
       onToast('Miembro eliminado', 'success');
       onRefresh();
     } catch {

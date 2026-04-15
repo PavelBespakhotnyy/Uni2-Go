@@ -21,21 +21,17 @@ import {
   differenceInDays as diffInDays
 } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  Plus, 
-  X, 
-  Users, 
-  Layers, 
-  Clock, 
-  Trash2, 
-  Edit2, 
-  Calendar as CalendarIcon, 
-  AlignLeft, 
-  CalendarDays,
-  AlertCircle,
-  LucideWavesArrowDown
+import {
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  X,
+  Users,
+  Layers,
+  Clock,
+  Trash2,
+  Calendar as CalendarIcon,
+  AlertCircle
 } from 'lucide-react';
 import { addEvent, updateEvent, deleteEvent, getUserById } from '../../services/calendarService';
 import { friendsService } from '../../services/friendsService';
@@ -60,7 +56,19 @@ const EVENT_COLORS = [
   { bg: 'bg-[#e0f7fa]', border: 'border-[#00bcd4]', text: 'text-[#006064]' },
 ];
 
-const getEventColor = (id) => {
+const getEventColor = (event) => {
+  if (typeof event === 'string') {
+    // legacy: called with just id
+    const id = event;
+    if (!id) return EVENT_COLORS[0];
+    const index = Math.abs(id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)) % EVENT_COLORS.length;
+    return EVENT_COLORS[index];
+  }
+  if (!event) return EVENT_COLORS[0];
+  if (event.color !== undefined && event.color !== null && EVENT_COLORS[event.color]) {
+    return EVENT_COLORS[event.color];
+  }
+  const id = event.id || '';
   if (!id) return EVENT_COLORS[0];
   const index = Math.abs(id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)) % EVENT_COLORS.length;
   return EVENT_COLORS[index];
@@ -74,20 +82,24 @@ export default function Calendar({ initialDate }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [showGroupDropdown, setShowGroupDropdown] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [friendsList, setFriendsList] = useState([]);
   const [selectedFriendUid, setSelectedFriendUid] = useState('');
   const [codeSearchError, setCodeSearchError] = useState('');
   const [formData, setFormData] = useState({
-    title: '', start: '', end: '', allDay: false, sharedWith: [], groupIds: [], description: ''
+    title: '', start: '', end: '', allDay: false, sharedWith: [], groupIds: [], description: '', color: 0
   });
 
   const ownEventsMapRef = useRef(new Map());
+  const sharedEventsMapRef = useRef(new Map());
   const groupEventsMapRef = useRef(new Map());
 
   const mergeAndSet = useCallback(() => {
-    const merged = new Map([...ownEventsMapRef.current, ...groupEventsMapRef.current]);
+    const merged = new Map([
+      ...ownEventsMapRef.current,
+      ...sharedEventsMapRef.current,
+      ...groupEventsMapRef.current,
+    ]);
     setEvents(Array.from(merged.values()));
   }, []);
 
@@ -126,8 +138,8 @@ export default function Calendar({ initialDate }) {
       const qShared = query(collection(db, "events"), where("sharedWith", "array-contains", user.uid));
       unsubSharedEvents = onSnapshot(qShared, (snapshot) => {
         snapshot.docChanges().forEach(({ type, doc }) => {
-          if (type === 'removed') groupEventsMapRef.current.delete(doc.id);
-          else groupEventsMapRef.current.set(doc.id, { ...parseEvent(doc), isSharedEvent: true });
+          if (type === 'removed') sharedEventsMapRef.current.delete(doc.id);
+          else sharedEventsMapRef.current.set(doc.id, { ...parseEvent(doc), isSharedEvent: true });
         });
         mergeAndSet();
       });
@@ -211,13 +223,12 @@ export default function Calendar({ initialDate }) {
     const start = startOfDay(date);
     setFormData({
       title: '', start: format(start, "yyyy-MM-dd'T'09:00"), end: format(start, "yyyy-MM-dd'T'10:00"),
-      allDay: false, sharedWith: [], groupIds: [], description: ''
+      allDay: false, sharedWith: [], groupIds: [], description: '', color: 0
     });
     setSelectedEvent(null);
     setErrorMsg('');
     setSelectedFriendUid('');
     setCodeSearchError('');
-    setShowGroupDropdown(false);
     loadFriendsList();
     setIsModalOpen(true);
   };
@@ -227,7 +238,6 @@ export default function Calendar({ initialDate }) {
     setErrorMsg('');
     setSelectedFriendUid('');
     setCodeSearchError('');
-    setShowGroupDropdown(false);
 
     // Resolver IDs de sharedWith a objetos con nombre
     let sharedWithUsers = [];
@@ -250,7 +260,8 @@ export default function Calendar({ initialDate }) {
       allDay: event.allDay || false,
       sharedWith: sharedWithUsers,
       groupIds: event.groupIds || [],
-      description: event.description || ''
+      description: event.description || '',
+      color: event.color !== undefined && event.color !== null ? event.color : 0
     });
     loadFriendsList();
     setIsModalOpen(true);
@@ -395,187 +406,186 @@ export default function Calendar({ initialDate }) {
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
             <div className={styles.modalHeader}>
-              <h2 className="text-sm font-black flex items-center gap-3 text-[#1a1a1a] uppercase tracking-widest">
-                <div className="bg-[#1a1a1a] text-white p-1.5 rounded">
-                  {selectedEvent ? <Edit2 size={14}/> : <Plus size={14}/>}
-                </div>
-                {selectedEvent ? 'Editar Evento' : 'Nuevo Evento'}
-              </h2>
-              <button onClick={() => setIsModalOpen(false)} className="p-1 hover:bg-black/10 rounded transition-colors text-[#1a1a1a]">
-                <X size={24} />
+              <span className={styles.modalTitle}>{selectedEvent ? 'Editar evento' : 'Nuevo evento'}</span>
+              <button type="button" className={styles.modalCloseBtn} onClick={() => setIsModalOpen(false)}>
+                <X size={18} />
               </button>
             </div>
-            
-            <form onSubmit={handleSubmit} className={styles.modalForm}>
-              {errorMsg && (
-                <div className="bg-red-50 border-l-4 border-red-500 p-4">
-                  <div className="flex items-center gap-3">
-                    <AlertCircle className="text-red-500" size={18} />
-                    <p className="text-xs font-black text-red-700 uppercase">{errorMsg}</p>
-                  </div>
-                </div>
-              )}
-              
-              <div className={styles.formSection}>
-                <div className="relative">
-                  <label className="block text-[10px] font-black mb-1.5 text-gray-400 uppercase tracking-widest">Título</label>
-                  <input type="text" required className={styles.inputField} value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="¿Qué vas a hacer?" />
-                </div>
-                <div className="relative">
-                  <label className="block text-[10px] font-black mb-1.5 text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                    <AlignLeft size={12}/> Descripción
-                  </label>
-                  <textarea rows="2" className="w-full border border-gray-200 rounded p-3 focus:border-[#1a1a1a] outline-none transition-all text-sm resize-none bg-gray-50" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
-                </div>
-              </div>
-              
-              <div className={styles.formTimeSection}>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2"><Clock size={12}/> Tiempo</span>
-                  <label className="flex items-center gap-2 cursor-pointer group">
-                    <input type="checkbox" checked={formData.allDay} onChange={(e) => setFormData({ ...formData, allDay: e.target.checked })} className="w-4 h-4 cursor-pointer accent-[#1a1a1a]" />
-                    <span className="text-xs font-bold text-gray-600 group-hover:text-[#1a1a1a]">Todo el día</span>
-                  </label>
-                </div>
-                {formData.allDay ? (
-                  <div className="flex gap-4">
-                    <div className="flex-1">
-                      <label className="block text-[9px] font-bold text-gray-400 mb-1 uppercase">Fecha</label>
-                      <div className="relative">
-                        <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                        <input type="date" required className="w-full bg-white border border-gray-300 rounded px-10 py-2.5 focus:border-[#1a1a1a] outline-none font-bold text-sm" value={formData.start.split('T')[0]} onChange={(e) => handleDateChange('start', e.target.value)} />
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className={styles.formGrid}>
-                      <div>
-                        <label className="block text-[9px] font-bold text-gray-400 mb-1 uppercase">Inicio</label>
-                        <input type="date" required className="w-full bg-white border border-gray-300 rounded px-3 py-2.5 focus:border-[#1a1a1a] outline-none font-bold text-sm" value={formData.start.split('T')[0]} onChange={(e) => handleDateChange('start', e.target.value)} />
-                      </div>
-                      <div>
-                        <label className="block text-[9px] font-bold text-gray-400 mb-1 uppercase">Hora</label>
-                        <input type="time" required className="w-full bg-white border border-gray-300 rounded px-3 py-2.5 focus:border-[#1a1a1a] outline-none font-bold text-sm" value={formData.start.split('T')[1] || '09:00'} onChange={(e) => handleTimeChange('start', e.target.value)} />
-                      </div>
-                    </div>
-                    <div className={styles.formGrid}>
-                      <div>
-                        <label className="block text-[9px] font-bold text-gray-400 mb-1 uppercase">Fin</label>
-                        <input type="date" required className="w-full bg-white border border-gray-300 rounded px-3 py-2.5 focus:border-[#1a1a1a] outline-none font-bold text-sm" value={formData.end.split('T')[0]} onChange={(e) => handleDateChange('end', e.target.value)} />
-                      </div>
-                      <div>
-                        <label className="block text-[9px] font-bold text-gray-400 mb-1 uppercase">Hora</label>
-                        <input type="time" required className="w-full bg-white border border-gray-300 rounded px-3 py-2.5 focus:border-[#1a1a1a] outline-none font-bold text-sm" value={formData.end.split('T')[1] || '10:00'} onChange={(e) => handleTimeChange('end', e.target.value)} />
-                      </div>
-                    </div>
+
+            <form onSubmit={handleSubmit}>
+              <div className={styles.modalBody}>
+                {errorMsg && (
+                  <div className={styles.errorBox}>
+                    <AlertCircle size={15} style={{flexShrink:0}} />
+                    {errorMsg}
                   </div>
                 )}
-              </div>
-              
-              <div className="space-y-3">
+
+                {/* Title + color preview */}
+                <div style={{display:'flex', alignItems:'center', gap:12}}>
+                  <div style={{
+                    width:44, height:44, borderRadius:'50%', flexShrink:0,
+                    backgroundColor: ['#4caf50','#ff9800','#2196f3','#9c27b0','#fbc02d','#f44336','#00bcd4'][formData.color ?? 0],
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                  }} />
+                  <input
+                    type="text"
+                    required
+                    className={styles.inputField}
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="Nombre del evento *"
+                  />
+                </div>
+
+                {/* Color picker */}
                 <div>
-                  <label className="block text-[10px] font-black mb-1.5 text-gray-400 uppercase tracking-widest flex items-center gap-1.5"><Users size={12} /> Personas</label>
-                  <div className="flex gap-2">
-                    <select
-                      className="flex-1 border border-gray-300 rounded px-3 py-2 focus:border-[#1a1a1a] outline-none text-xs bg-gray-50"
-                      value={selectedFriendUid}
-                      onChange={(e) => { setSelectedFriendUid(e.target.value); setCodeSearchError(''); }}
-                    >
-                      <option value="">
-                        {friendsList.length === 0 ? 'Sin amigos aún...' : 'Selecciona un amigo...'}
-                      </option>
-                      {friendsList
-                        .filter(f => !formData.sharedWith.some(u => u.id === f.uid))
-                        .map(f => (
-                          <option key={f.uid} value={f.uid}>
-                            {f.name} {f.surname} @{f.username}
-                          </option>
-                        ))}
-                    </select>
-                    <button
-                      type="button"
-                      onClick={handleAddFriend}
-                      disabled={!selectedFriendUid}
-                      className="px-3 py-2 bg-[#1a1a1a] text-white text-xs font-black rounded hover:bg-black disabled:opacity-40 transition-all uppercase tracking-wider"
-                    >
-                      <Plus size={14} />
-                    </button>
+                  <span className={styles.fieldLabel}>Color</span>
+                  <div className={styles.colorGrid}>
+                    {['#4caf50','#ff9800','#2196f3','#9c27b0','#fbc02d','#f44336','#00bcd4'].map((hex, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        style={{ backgroundColor: hex }}
+                        className={`${styles.colorSwatch} ${formData.color === idx ? styles.colorSwatchActive : ''}`}
+                        onClick={() => setFormData({ ...formData, color: idx })}
+                      />
+                    ))}
                   </div>
-                  {codeSearchError && <p className="text-[10px] text-red-500 font-bold mt-1">{codeSearchError}</p>}
+                </div>
+
+                {/* Date & Time */}
+                <div className={styles.formTimeSection}>
+                  <div className={styles.allDayRow}>
+                    <span className={styles.fieldLabel} style={{marginBottom:0}}>Horario</span>
+                    <label className={styles.allDayLabel}>
+                      <input
+                        type="checkbox"
+                        checked={formData.allDay}
+                        onChange={(e) => setFormData({ ...formData, allDay: e.target.checked })}
+                        style={{accentColor:'#0056FF', width:14, height:14, cursor:'pointer'}}
+                      />
+                      Todo el día
+                    </label>
+                  </div>
+
+                  {formData.allDay ? (
+                    <input
+                      type="date"
+                      required
+                      className={styles.inputField}
+                      value={formData.start.split('T')[0]}
+                      onChange={(e) => handleDateChange('start', e.target.value)}
+                    />
+                  ) : (
+                    <>
+                      <div>
+                        <span className={styles.fieldLabel}>Inicio</span>
+                        <div className={styles.timeRow}>
+                          <input type="date" required className={styles.inputField} value={formData.start.split('T')[0]} onChange={(e) => handleDateChange('start', e.target.value)} />
+                          <input type="time" required className={styles.inputField} value={formData.start.split('T')[1] || '09:00'} onChange={(e) => handleTimeChange('start', e.target.value)} />
+                        </div>
+                      </div>
+                      <div>
+                        <span className={styles.fieldLabel}>Fin</span>
+                        <div className={styles.timeRow}>
+                          <input type="date" required className={styles.inputField} value={formData.end.split('T')[0]} onChange={(e) => handleDateChange('end', e.target.value)} />
+                          <input type="time" required className={styles.inputField} value={formData.end.split('T')[1] || '10:00'} onChange={(e) => handleTimeChange('end', e.target.value)} />
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Description */}
+                <div>
+                  <span className={styles.fieldLabel}>Descripción</span>
+                  <textarea
+                    rows="2"
+                    className={styles.inputField}
+                    style={{resize:'none'}}
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Añade una nota... (opcional)"
+                  />
+                </div>
+
+                {/* Share with friends */}
+                <div>
+                  <span className={styles.fieldLabel}>Compartir con</span>
+                  <select
+                    className={styles.inputField}
+                    value=""
+                    onChange={(e) => {
+                      const uid = e.target.value;
+                      if (!uid) return;
+                      const friend = friendsList.find(f => f.uid === uid);
+                      if (!friend) return;
+                      if (formData.sharedWith.some(u => u.id === uid)) return;
+                      setFormData(prev => ({ ...prev, sharedWith: [...prev.sharedWith, { id: friend.uid, name: friend.name, surname: friend.surname }] }));
+                    }}
+                  >
+                    <option value="">{friendsList.length === 0 ? 'Sin amigos aún...' : 'Añadir amigo...'}</option>
+                    {friendsList
+                      .filter(f => !formData.sharedWith.some(u => u.id === f.uid))
+                      .map(f => (
+                        <option key={f.uid} value={f.uid}>{f.name} {f.surname}</option>
+                      ))}
+                  </select>
                   {formData.sharedWith.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1.5">
+                    <div className={styles.tagsList}>
                       {formData.sharedWith.map(u => (
-                        <span key={u.id} className="inline-flex items-center gap-1 bg-[#1a1a1a] text-white text-[9px] font-bold px-2 py-0.5 rounded">
-                          {u.name} {u.surname}{u.username ? ` @${u.username}` : ''}
-                          <button type="button" onClick={() => setFormData(prev => ({ ...prev, sharedWith: prev.sharedWith.filter(x => x.id !== u.id) }))} className="hover:opacity-70"><X size={9} /></button>
+                        <span key={u.id} className={styles.friendTag}>
+                          {u.name} {u.surname}
+                          <button type="button" className={styles.friendTagRemove} onClick={() => setFormData(prev => ({ ...prev, sharedWith: prev.sharedWith.filter(x => x.id !== u.id) }))}>×</button>
                         </span>
                       ))}
                     </div>
                   )}
                 </div>
-              </div>
-              <div className="relative">
-                  <label className="block text-[10px] font-black mb-1.5 text-gray-400 uppercase tracking-widest flex items-center gap-1.5"><Layers size={12} /> Grupos</label>
-                  <button
-                    type="button"
-                    onClick={() => setShowGroupDropdown(v => !v)}
-                    className="w-full border border-gray-300 rounded px-3 py-2.5 text-left text-xs bg-gray-50 focus:border-[#1a1a1a] outline-none flex items-center justify-between"
+
+                {/* Groups */}
+                <div>
+                  <span className={styles.fieldLabel}>Grupos</span>
+                  <select
+                    className={styles.inputField}
+                    value=""
+                    onChange={(e) => {
+                      const id = e.target.value;
+                      if (!id || formData.groupIds.includes(id)) return;
+                      setFormData(prev => ({ ...prev, groupIds: [...prev.groupIds, id] }));
+                    }}
                   >
-                    <span className="truncate text-gray-500">
-                      {formData.groupIds.length === 0
-                        ? 'Seleccionar...'
-                        : `${formData.groupIds.length} grupo${formData.groupIds.length > 1 ? 's' : ''}`}
-                    </span>
-                    <ChevronRight size={12} className={`shrink-0 transition-transform ${showGroupDropdown ? 'rotate-90' : ''}`} />
-                  </button>
-                  {showGroupDropdown && (
-                    <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-white border-2 border-[#1a1a1a] rounded shadow-xl max-h-48 overflow-y-auto">
-                      {myGroups.length === 0 ? (
-                        <div className="px-3 py-3 text-xs text-gray-400 text-center">No perteneces a ningún grupo</div>
-                      ) : (
-                        myGroups.map(group => {
-                          const checked = formData.groupIds.includes(group.id);
-                          return (
-                            <label key={group.id} className="flex items-center gap-2 px-3 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0">
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                onChange={() => {
-                                  const next = checked
-                                    ? formData.groupIds.filter(id => id !== group.id)
-                                    : [...formData.groupIds, group.id];
-                                  setFormData({ ...formData, groupIds: next });
-                                }}
-                                className="w-3.5 h-3.5 accent-[#1a1a1a] cursor-pointer"
-                              />
-                              <span className="text-xs font-bold text-[#1a1a1a] truncate">{group.name}</span>
-                            </label>
-                          );
-                        })
-                      )}
-                    </div>
-                  )}
+                    <option value="">{myGroups.length === 0 ? 'Sin grupos aún...' : 'Añadir grupo...'}</option>
+                    {myGroups
+                      .filter(g => !formData.groupIds.includes(g.id))
+                      .map(g => (
+                        <option key={g.id} value={g.id}>{g.emoji} {g.name}</option>
+                      ))}
+                  </select>
                   {formData.groupIds.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1.5">
+                    <div className={styles.tagsList}>
                       {formData.groupIds.map(id => {
                         const g = myGroups.find(gr => gr.id === id);
                         return g ? (
-                          <span key={id} className="inline-flex items-center gap-1 bg-[#1a1a1a] text-white text-[9px] font-bold px-2 py-0.5 rounded">
-                            {g.name}
-                            <button type="button" onClick={() => setFormData({ ...formData, groupIds: formData.groupIds.filter(x => x !== id) })} className="hover:opacity-70"><X size={9} /></button>
+                          <span key={id} className={styles.friendTag}>
+                            {g.emoji} {g.name}
+                            <button type="button" className={styles.friendTagRemove} onClick={() => setFormData({ ...formData, groupIds: formData.groupIds.filter(x => x !== id) })}>×</button>
                           </span>
                         ) : null;
                       })}
                     </div>
                   )}
-              </div>
+                </div>
 
-              <div className="flex gap-4 pt-4 border-t border-gray-100">
-                {selectedEvent && (
-                  <button type="button" onClick={() => setShowDeleteConfirm(true)} className="px-5 bg-white text-red-500 font-bold py-3 rounded border-2 border-red-100 flex items-center justify-center hover:bg-red-50 transition-colors"><Trash2 size={20} /></button>
-                )}
-                <button type="submit" className="flex-1 bg-[#1a1a1a] text-white font-black py-4 rounded hover:bg-black transition-all uppercase text-xs tracking-[0.2em] shadow-lg">{selectedEvent ? 'Guardar' : 'Crear'}</button>
+                {/* Actions */}
+                <div className={styles.modalActions}>
+                  <button type="button" className={styles.btnCancel} onClick={() => setIsModalOpen(false)}>Cancelar</button>
+                  {selectedEvent && (
+                    <button type="button" className={styles.btnDanger} onClick={() => setShowDeleteConfirm(true)}><Trash2 size={16} /></button>
+                  )}
+                  <button type="submit" className={styles.btnPrimary}>{selectedEvent ? 'Guardar' : 'Crear evento'}</button>
+                </div>
               </div>
             </form>
           </div>
@@ -583,19 +593,19 @@ export default function Calendar({ initialDate }) {
       )}
 
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[2000] p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-md shadow-2xl w-full max-w-sm overflow-hidden border-2 border-[#1a1a1a] animate-in zoom-in duration-150">
-            <div className="p-8 text-center space-y-6">
-              <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto">
-                <Trash2 className="text-red-600" size={32} />
+        <div className={styles.modalOverlay} style={{zIndex:2000}}>
+          <div className={styles.modalContent} style={{maxWidth:360}}>
+            <div style={{padding:'32px 28px', textAlign:'center', display:'flex', flexDirection:'column', gap:20, alignItems:'center'}}>
+              <div style={{background:'#fff0f0', width:60, height:60, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center'}}>
+                <Trash2 size={28} style={{color:'#e53e3e'}} />
               </div>
-              <div className="space-y-2">
-                <h3 className="text-lg font-black uppercase tracking-tight text-[#1a1a1a]">¿Eliminar evento?</h3>
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-widest leading-relaxed">Esta acción no se puede deshacer.</p>
+              <div>
+                <p style={{fontWeight:700, fontSize:17, color:'#1a1a1a', marginBottom:6}}>¿Eliminar evento?</p>
+                <p style={{fontSize:13, color:'#888'}}>Esta acción no se puede deshacer.</p>
               </div>
-              <div className="flex gap-3 pt-2">
-                <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 bg-gray-100 text-gray-500 font-black py-4 rounded-md hover:bg-gray-200 transition-all uppercase text-[10px] tracking-widest">Cancelar</button>
-                <button onClick={handleDelete} className="flex-1 bg-red-600 text-white font-black py-4 rounded-md hover:bg-red-700 transition-all uppercase text-[10px] tracking-widest shadow-lg shadow-red-200">Eliminar</button>
+              <div className={styles.modalActions} style={{width:'100%'}}>
+                <button className={styles.btnCancel} onClick={() => setShowDeleteConfirm(false)}>Cancelar</button>
+                <button onClick={handleDelete} style={{flex:1, padding:'11px 22px', background:'#e53e3e', color:'#fff', border:'none', borderRadius:10, fontSize:14, fontWeight:700, cursor:'pointer'}}>Eliminar</button>
               </div>
             </div>
           </div>
@@ -690,7 +700,7 @@ function WeekView({ currentDate, events, onEventClick }) {
                 <div key={day.toString()} className="relative h-full">
                   {hours.map(h => <div key={h} className="h-20 border-b border-[#f0f0f0]"></div>)}
                   {layout.map(({ event, style }, i) => {
-                    const colors = getEventColor(event.id);
+                    const colors = getEventColor(event);
                     return (
                       <div 
                         key={`${event.id}-${i}`} 
@@ -761,7 +771,7 @@ function DayView({ currentDate, events, onEventClick }) {
 
           <div className="relative">
             {layout.items.map(({ event, style }, i) => {
-              const colors = getEventColor(event.id);
+              const colors = getEventColor(event);
               return (
                 <div 
                   key={`${event.id}-${i}`} 
@@ -936,7 +946,7 @@ function renderHorizontalEvents(days, events, onEventClick, showAll = false, onM
   return (
     <div className={`grid grid-cols-${days.length} grid-flow-row-dense gap-y-0.5 px-0.5 relative`}>
       {eventPositions.map(({ event, level, startIdx, span }, i) => {
-        const colors = getEventColor(event.id);
+        const colors = getEventColor(event);
         return (
           <div 
             key={i} 

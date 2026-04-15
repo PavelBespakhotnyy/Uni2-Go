@@ -14,10 +14,12 @@ class NotificationService {
         try {
             const docRef = await addDoc(collection(db, "notifications"), {
                 userId,
+                senderId: senderId || null,
                 type,
                 senderName,
                 action,
                 data,
+                messageId: data.messageId || null,
                 read: false,
                 createdAt: serverTimestamp()
             });

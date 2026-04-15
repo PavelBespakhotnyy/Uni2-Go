@@ -108,10 +108,26 @@
     object-fit: cover;
 }
 
+.chat-contact-info {
+    flex: 1;
+    min-width: 0;
+}
+
 .chat-contact-name {
     font-size: 16px;
     color: #1a1a1a;
     font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chat-last-message {
+    font-size: 13px;
+    color: #888;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Main Chat Window */
@@ -186,28 +202,99 @@
     height: 100%;              /* O un alto fijo */
 }
 
-.chat-message {
+.chat-message-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
     max-width: 65%;
-    padding: 15px 20px;
-    font-size: 15px;
-    line-height: 1.4;
-    position: relative;
-    word-wrap: break-word;
-    /* Quitamos el min-height fijo para que la burbuja se ajuste al texto */
-    min-height: auto; 
     margin-bottom: 5px;
 }
 
-.chat-message.received {
+.chat-message-row.sent {
+    align-self: flex-end;
+    flex-direction: row; /* trash left, bubble right */
+}
+
+.chat-message-row.received {
     align-self: flex-start;
-    background-color: #dcdcdc; /* Light grey */
+    flex-direction: row-reverse; /* bubble left only, no trash */
+}
+
+.chat-message {
+    padding: 15px 20px;
+    font-size: 15px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    min-width: 0;
+    min-height: auto;
+    flex: 1;
+}
+
+.chat-message.received {
+    background-color: #dcdcdc;
     border-radius: 20px 20px 20px 0;
 }
 
 .chat-message.sent {
-    align-self: flex-end;
-    background-color: #d1e5f0; /* Light blue */
+    background-color: #d1e5f0;
     border-radius: 20px 20px 0 20px;
+}
+
+.chat-date-separator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 20px;
+    color: #999;
+    font-size: 12px;
+}
+
+.chat-date-separator::before,
+.chat-date-separator::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: #ddd;
+}
+
+.chat-message-content {
+    word-wrap: break-word;
+}
+
+.chat-message-time {
+    font-size: 10px;
+    opacity: 0.5;
+    margin-top: 3px;
+    text-align: right;
+    line-height: 1;
+}
+
+.chat-message-delete-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: #bbb;
+    font-size: 15px;
+    cursor: pointer;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.15s, background 0.15s, color 0.15s;
+}
+
+.chat-message-row:hover .chat-message-delete-btn {
+    opacity: 1;
+}
+
+.chat-message-delete-btn:hover {
+    background: #fee2e2;
+    color: #e53e3e;
 }
 
 /* Chat Input Area */
@@ -265,6 +352,32 @@
     cursor: pointer;
 }
 
+/* Actions wrapper (badge + menu btn) */
+.chat-contact-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+/* Unread badge */
+.chat-unread-badge {
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 10px;
+    background-color: #0056FF;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    outline: 2px solid #ccc;
+    flex-shrink: 0;
+}
+
 /* El botón de los tres puntos */
 .group-menu-btn {
     background: none;
@@ -272,9 +385,9 @@
     color: #888;
     cursor: pointer;
     padding: 5px;
-    margin-left: auto; /* Lo empuja a la derecha */
     font-size: 1.2rem;
     z-index: 5;
+    flex-shrink: 0;
 }
 
 /* La "ventana" emergente (Submenú) */

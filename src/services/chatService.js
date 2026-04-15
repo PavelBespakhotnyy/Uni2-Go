@@ -1,7 +1,7 @@
 import { db } from '../firebase/firebase.js';
-import { 
-    collection, query, where, getDocs, addDoc, 
-    onSnapshot, orderBy, serverTimestamp, doc, updateDoc, increment, getDoc, deleteDoc 
+import {
+    collection, query, where, getDocs, addDoc,
+    onSnapshot, orderBy, serverTimestamp, doc, updateDoc, increment, getDoc, deleteDoc, limit
 } from "firebase/firestore";
 import { notificationService } from './notificationService.js';
 
@@ -184,7 +184,7 @@ class ChatService {
             reactions: {}
         };
 
-        await addDoc(messagesRef, newMessage);
+        const msgRef = await addDoc(messagesRef, newMessage);
 
         const updateData = {
             lastMessage: {
@@ -213,7 +213,7 @@ class ChatService {
                     'new_message', 
                     senderName || 'Alguien', 
                     `te envió un mensaje: "${text.substring(0, 30)}${text.length > 30 ? '...' : ''}"`, 
-                    { chatId },
+                    { chatId, messageId: msgRef.id },
                     senderId
                 )
             );
@@ -244,6 +244,50 @@ class ChatService {
             if (d.data().participants.includes(otherUid)) chatId = d.id;
         });
         return chatId;
+    }
+
+    async deleteMessage(chatId, messageId, senderId, participants) {
+        // Delete the message — this is the critical operation
+        await deleteDoc(doc(db, "chats", chatId, "messages", messageId));
+
+        // Cleanup independently — failures don't roll back the delete
+        this._afterDeleteMessage(chatId, messageId, senderId, participants).catch(() => {});
+    }
+
+    async _afterDeleteMessage(chatId, messageId, senderId, participants) {
+        const chatRef = doc(db, "chats", chatId);
+
+        // Update lastMessage in chat
+        const lastSnap = await getDocs(query(
+            collection(db, "chats", chatId, "messages"),
+            orderBy("timestamp", "desc"),
+            limit(1)
+        ));
+        if (lastSnap.empty) {
+            await updateDoc(chatRef, { lastMessage: null }).catch(() => {});
+        } else {
+            const d = lastSnap.docs[0].data();
+            await updateDoc(chatRef, {
+                lastMessage: {
+                    text: d.text || d.messageText || '',
+                    senderId: d.senderId,
+                    timestamp: d.timestamp,
+                    readBy: d.readBy || []
+                }
+            }).catch(() => {});
+        }
+
+        // Delete matching notifications — query by senderId so Firestore rule passes
+        if (senderId) {
+            try {
+                const notifSnap = await getDocs(query(
+                    collection(db, "notifications"),
+                    where("senderId", "==", senderId)
+                ));
+                const toDelete = notifSnap.docs.filter(d => d.data().messageId === messageId);
+                await Promise.all(toDelete.map(d => deleteDoc(d.ref)));
+            } catch (_) {}
+        }
     }
 
     async deleteChat(chatId) {
