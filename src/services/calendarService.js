@@ -11,6 +11,7 @@ import {
   where,
   getDocs
 } from "firebase/firestore";
+import { notificationService } from './notificationService.js';
 
 const COLLECTION_NAME = "events";
 
@@ -55,6 +56,27 @@ export async function addEvent(eventData) {
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
+    if (eventData.sharedWith && eventData.sharedWith.length > 0) {
+      let senderName = user.displayName || user.email;
+      try {
+        const sender = await getUserById(user.uid);
+        senderName = `${sender.name} ${sender.surname}`.trim() || senderName;
+      } catch (e) {}
+
+      const eventDate = eventData.start instanceof Date ? eventData.start : new Date(eventData.start);
+
+      for (const uid of eventData.sharedWith) {
+        await notificationService.createNotification(
+          uid,
+          'calendar_share',
+          senderName,
+          `ha compartido un evento contigo: "${eventData.title || 'Sin título'}"`,
+          { eventId: docRef.id, eventDate: eventDate.toISOString() },
+          user.uid
+        );
+      }
+    }
+
     return docRef.id;
   } catch (error) {
     console.error("Error al añadir evento a Firebase:", error);

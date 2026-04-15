@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { notificationService } from '../services/notificationService.js';
-import { friendsService } from '../services/friendsService.js';
+import { chatService } from '../services/chatService.js';
 import Layout from '../components/Layout.jsx';
 import '../components/notifications/notifications.css';
 
@@ -53,42 +53,48 @@ export default function NotificationsPage() {
   const page = Math.min(currentPage, Math.max(totalPages, 1));
   const pageItems = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
-  const handleAcceptFriend = async (notif) => {
-    try {
-      if (notif.data?.contactDocId && notif.data?.fromUid) {
-        await friendsService.acceptFriendRequest(notif.data.contactDocId, notif.data.fromUid, user.uid);
-        await notificationService.markAsRead(notif.id);
-      }
-    } catch (err) {
-      alert('Error al aceptar solicitud');
-    }
-  };
-
-  const handleDeclineFriend = async (notif) => {
-    try {
-      if (notif.data?.contactDocId) {
-        await friendsService.declineFriendRequest(notif.data.contactDocId);
-        await notificationService.markAsRead(notif.id);
-      }
-    } catch {}
-  };
-
   const handleGoToChat = async (notif) => {
     await notificationService.markAsRead(notif.id);
     navigate(`/chat${notif.data?.chatId ? `?id=${notif.data.chatId}` : ''}`);
   };
 
-  const handleGoToGrupo = async (notif) => {
+  const handleGoToFriends = async (notif) => {
     await notificationService.markAsRead(notif.id);
-    navigate(`/grupos${notif.data?.groupId ? `?id=${notif.data.groupId}` : ''}`);
+    navigate('/friends');
   };
 
-  const handlePanelClick = (notif) => {
-    if (notif.type === 'new_chat' || notif.type === 'new_message') handleGoToChat(notif);
-    else if (notif.type === 'friend_request' || notif.type === 'friend_accepted') {
-      notificationService.markAsRead(notif.id);
-      navigate('/friends');
-    } else if (notif.type === 'group_invitation') handleGoToGrupo(notif);
+  const handleGoToChatWithAcceptor = async (notif) => {
+    await notificationService.markAsRead(notif.id);
+    const acceptorUid = notif.data?.acceptorUid;
+    if (acceptorUid) {
+      const chatId = await chatService.createChatWithUser(acceptorUid, user);
+      navigate(`/chat${chatId ? `?id=${chatId}` : ''}`);
+    } else {
+      navigate('/chat');
+    }
+  };
+
+  const handleGoToGrupos = async (notif) => {
+    await notificationService.markAsRead(notif.id);
+    navigate('/grupos');
+  };
+
+  const handleGoToCalendar = async (notif) => {
+    await notificationService.markAsRead(notif.id);
+    const eventDate = notif.data?.eventDate;
+    if (eventDate) {
+      const d = new Date(eventDate);
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      navigate(`/calendar?date=${dateStr}`);
+    } else {
+      navigate('/calendar');
+    }
+  };
+
+  const handlePanelClick = async (notif) => {
+    if (!notif.read) {
+      await notificationService.markAsRead(notif.id);
+    }
   };
 
   return (
@@ -137,10 +143,11 @@ export default function NotificationsPage() {
                 <NotifPanel
                   key={notif.id}
                   notif={notif}
-                  onAcceptFriend={handleAcceptFriend}
-                  onDeclineFriend={handleDeclineFriend}
                   onGoToChat={handleGoToChat}
-                  onGoToGrupo={handleGoToGrupo}
+                  onGoToFriends={handleGoToFriends}
+                  onGoToChatWithAcceptor={handleGoToChatWithAcceptor}
+                  onGoToGrupos={handleGoToGrupos}
+                  onGoToCalendar={handleGoToCalendar}
                   onPanelClick={handlePanelClick}
                 />
               ))
@@ -176,10 +183,9 @@ export default function NotificationsPage() {
   );
 }
 
-function NotifPanel({ notif, onAcceptFriend, onDeclineFriend, onGoToChat, onGoToGrupo, onPanelClick }) {
+function NotifPanel({ notif, onGoToChat, onGoToFriends, onGoToChatWithAcceptor, onGoToGrupos, onGoToCalendar, onPanelClick }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
-  const [accepted, setAccepted] = useState(null); // null | 'accepted' | 'declined'
   const menuBtnRef = useRef(null);
   const menuRef = useRef(null);
 
@@ -199,20 +205,20 @@ function NotifPanel({ notif, onAcceptFriend, onDeclineFriend, onGoToChat, onGoTo
 
   const actionButtons = () => {
     if (notif.read) return null;
-    if (accepted) return <span className="action-status">{accepted === 'accepted' ? 'Solicitud aceptada' : 'Solicitud rechazada'}</span>;
     if (notif.type === 'new_chat' || notif.type === 'new_message') {
       return <button className="notification-action-btn" onClick={(e) => { e.stopPropagation(); onGoToChat(notif); }}>Ir al chat</button>;
     }
-    if (notif.type === 'group_invitation') {
-      return <button className="notification-action-btn" onClick={(e) => { e.stopPropagation(); onGoToGrupo(notif); }}>Aceptar invitación</button>;
-    }
     if (notif.type === 'friend_request') {
-      return (
-        <div className="notification-action-group">
-          <button className="notification-action-btn" onClick={async (e) => { e.stopPropagation(); await onAcceptFriend(notif); setAccepted('accepted'); }}>Aceptar</button>
-          <button className="notification-action-btn secondary" onClick={async (e) => { e.stopPropagation(); await onDeclineFriend(notif); setAccepted('declined'); }}>Rechazar</button>
-        </div>
-      );
+      return <button className="notification-action-btn" onClick={(e) => { e.stopPropagation(); onGoToFriends(notif); }}>Ir a amigos</button>;
+    }
+    if (notif.type === 'friend_accepted') {
+      return <button className="notification-action-btn" onClick={(e) => { e.stopPropagation(); onGoToChatWithAcceptor(notif); }}>Iniciar chat</button>;
+    }
+    if (notif.type === 'group_invitation') {
+      return <button className="notification-action-btn" onClick={(e) => { e.stopPropagation(); onGoToGrupos(notif); }}>Ir a grupos</button>;
+    }
+    if (notif.type === 'calendar_share') {
+      return <button className="notification-action-btn" onClick={(e) => { e.stopPropagation(); onGoToCalendar(notif); }}>Ir al calendario</button>;
     }
     return null;
   };

@@ -42,6 +42,8 @@ export default function ChatPage() {
   const [messages, setMessages] = useState([]);
   const [messageText, setMessageText] = useState('');
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const [activeChatOtherUid, setActiveChatOtherUid] = useState(null);
+  const [isFriend, setIsFriend] = useState(true);
   const messagesEndRef = useRef(null);
   const unsubMessagesRef = useRef(null);
   const autoOpenedRef = useRef(null);
@@ -52,8 +54,14 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (!user) return;
-    friendsService.getFriends(user.uid).then(setFriends).catch(() => {});
+    const unsub = friendsService.listenMyFriends(user.uid, setFriends);
+    return () => unsub && unsub();
   }, [user]);
+
+  useEffect(() => {
+    if (!activeChatOtherUid) { setIsFriend(true); return; }
+    setIsFriend(friends.some(f => f.uid === activeChatOtherUid));
+  }, [activeChatOtherUid, friends]);
 
   useEffect(() => {
     if (!user) return;
@@ -87,6 +95,7 @@ export default function ChatPage() {
     setActiveChatId(chatId);
     setActiveChatName(name);
     setActiveChatParticipants(participants);
+    setActiveChatOtherUid(participants.find(p => p !== user?.uid) || null);
     setLoadingMessages(true);
     setMessages([]);
 
@@ -106,7 +115,7 @@ export default function ChatPage() {
 
   const handleSend = async () => {
     const text = messageText.trim();
-    if (!text || !activeChatId || !user) return;
+    if (!text || !activeChatId || !user || !isFriend) return;
     try {
       await chatService.sendMessage(activeChatId, text, user.uid, activeChatParticipants, myName);
       setMessageText('');
@@ -247,19 +256,25 @@ export default function ChatPage() {
           </div>
 
           {activeChatId && (
-            <div className="chat-input-area">
-              <input
-                className="chat-input-field"
-                type="text"
-                placeholder="Escribe un mensaje..."
-                value={messageText}
-                onChange={(e) => setMessageText(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-              />
-              <button className="chat-send-btn" onClick={handleSend}>
-                <i className="bx bx-send" />
-              </button>
-            </div>
+            isFriend ? (
+              <div className="chat-input-area">
+                <input
+                  className="chat-input-field"
+                  type="text"
+                  placeholder="Escribe un mensaje..."
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+                />
+                <button className="chat-send-btn" onClick={handleSend}>
+                  <i className="bx bx-send" />
+                </button>
+              </div>
+            ) : (
+              <div className="chat-input-area chat-input-blocked">
+                <span>No puedes enviar mensajes a esta persona porque ya no sois amigos.</span>
+              </div>
+            )
           )}
         </div>
       </div>

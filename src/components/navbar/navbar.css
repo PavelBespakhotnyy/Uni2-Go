@@ -21,7 +21,7 @@ body.sidebar-ready .sidebar-top-part,
 body.sidebar-ready .sidebar-logo,
 body.sidebar-ready .sidebar-button,
 body.sidebar-ready .buttons-list li a,
-body.sidebar-ready .buttons-list li a span,
+body.sidebar-ready .buttons-list li a .nav-label,
 body.sidebar-ready .calendar-wrapper,
 body.sidebar-ready .content-wrapper {
     transition: all var(--transition-speed) ease;
@@ -100,7 +100,15 @@ body.sidebar-collapsed .sidebar-button {
     display: flex;
     justify-content: center;
     align-items: center;
-    position: relative; /* Added to anchor the badge */
+}
+
+.nav-icon-wrapper {
+    flex-shrink: 0;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
 }
 
 .notification-badge {
@@ -129,13 +137,13 @@ body.sidebar-collapsed .buttons-list li a {
 }
 
 /* Button text */
-.buttons-list li a span {
+.buttons-list li a .nav-label {
     opacity: 1;
     transform: translateX(0);
 }
 
 /* Hide text when collapsed, but show on hover */
-body.sidebar-collapsed .buttons-list li a span {
+body.sidebar-collapsed .buttons-list li a .nav-label {
     position: absolute;
     left: 40px;
     opacity: 0;
@@ -151,7 +159,7 @@ body.sidebar-collapsed .buttons-list li a span {
     transform: translateX(-10px);
 }
 
-body.sidebar-collapsed .buttons-list li:hover a span {
+body.sidebar-collapsed .buttons-list li:hover a .nav-label {
     opacity: 1;
     visibility: visible;
     left: 70px;

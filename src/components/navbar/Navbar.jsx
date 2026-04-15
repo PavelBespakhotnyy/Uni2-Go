@@ -75,14 +75,15 @@ export default function Navbar() {
               to={to}
               className={({ isActive }) => isActive ? 'button-change-page-active' : ''}
             >
-              <i className={`bx bx-sm ${icon}`}>
+              <span className="nav-icon-wrapper">
+                <i className={`bx bx-sm ${icon}`} />
                 {badge > 0 && (
                   <span className="notification-badge">
                     {badge > 9 ? '9+' : badge}
                   </span>
                 )}
-              </i>
-              <span className="font-bold">{label}</span>
+              </span>
+              <span className="nav-label font-bold">{label}</span>
             </NavLink>
           </li>
         ))}

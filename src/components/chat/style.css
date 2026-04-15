@@ -219,6 +219,13 @@
     gap: 15px;
 }
 
+.chat-input-blocked {
+    justify-content: center;
+    color: #fff;
+    font-size: 14px;
+    opacity: 0.8;
+}
+
 .chat-add-btn, .chat-send-btn {
     width: 40px;
     height: 40px;

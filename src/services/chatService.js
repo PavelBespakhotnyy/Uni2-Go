@@ -233,6 +233,19 @@ class ChatService {
         await updateDoc(chatRef, updateData);
     }
 
+    async findChatWithUser(myUid, otherUid) {
+        const cQuery = query(
+            collection(db, "chats"),
+            where("participants", "array-contains", myUid)
+        );
+        const snapshot = await getDocs(cQuery);
+        let chatId = null;
+        snapshot.forEach(d => {
+            if (d.data().participants.includes(otherUid)) chatId = d.id;
+        });
+        return chatId;
+    }
+
     async deleteChat(chatId) {
         console.log("Eliminando chat:", chatId);
         

@@ -66,8 +66,8 @@ const getEventColor = (id) => {
   return EVENT_COLORS[index];
 };
 
-export default function Calendar() {
-  const [currentDate, setCurrentDate] = useState(new Date());
+export default function Calendar({ initialDate }) {
+  const [currentDate, setCurrentDate] = useState(initialDate ? new Date(initialDate) : new Date());
   const [view, setView] = useState(VIEWS.MONTH);
   const [events, setEvents] = useState([]);
   const [myGroups, setMyGroups] = useState([]);
