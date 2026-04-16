@@ -1,74 +1,283 @@
-import { useEffect } from 'react';
+import { useState, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import Layout from '../components/Layout.jsx';
 import '../components/sobre_nosotros/sobre_nosotros.css';
 
-export default function SobreNosotrosPage() {
-  useEffect(() => {
-    document.body.classList.add('sobre-nosotros-page');
-    return () => document.body.classList.remove('sobre-nosotros-page');
-  }, []);
+const FEATURES = [
+  { icon: 'bx-calendar-check', title: 'Calendario inteligente', desc: 'Eventos, reuniones y tareas siempre a mano.', color: '#eeeefe', iconColor: '#4f46e5', to: '/calendar', goto: 'Ir al Calendario' },
+  { icon: 'bx-conversation',   title: 'Chat con amigos',        desc: 'Mensajes en tiempo real sin salir de la app.', color: '#fff3e0', iconColor: '#f28c18', to: '/chat',     goto: 'Ir al Chat' },
+  { icon: 'bx-group',          title: 'Grupos y eventos',       desc: 'Comparte y sincronízate con tu equipo.', color: '#e8f5e9', iconColor: '#2e7d32', to: '/grupos',   goto: 'Ir a Grupos' },
+  { icon: 'bx-cart',           title: 'Lista de la compra',     desc: 'Listas compartidas con un clic.', color: '#fce4e4', iconColor: '#c0392b', to: '/lista',    goto: 'Ir a la Lista' },
+];
+
+function SvgCalendarUI() {
+  const [hovered, setHovered] = useState(null);
+  const leaveTimer = useRef(null);
+  const today = 16;
+
+  const handleEnter = (date) => {
+    clearTimeout(leaveTimer.current);
+    setHovered(date);
+  };
+
+  const handleLeave = () => {
+    leaveTimer.current = setTimeout(() => setHovered(null), 300);
+  };
+  const days = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+  const dates = [
+    [null, null, 1,  2,  3,  4,  5 ],
+    [6,   7,    8,  9,  10, 11, 12 ],
+    [13,  14,   15, 16, 17, 18, 19 ],
+    [20,  21,   22, 23, 24, 25, 26 ],
+    [27,  28,   29, 30, null,null,null],
+  ];
+  // dots: { date, color }
+  const dots = {
+    3:  '#4f46e5', 8:  '#f28c18', 11: '#2e7d32',
+    15: '#c0392b', 20: '#f28c18', 24: '#4f46e5', 28: '#7b77d1',
+  };
+
+  const W = 300, padX = 14;
+  const cellW = (W - padX * 2) / 7;
+  const cellH = 26;
+  const gridTop = 71;
 
   return (
-    <Layout contentClass="sobre-nosotros-wrapper">
-      <div className="sobre-nosotros-container">
-        <div className="quadrants-container">
-          <div className="quadrant tl">
-            <img src="/images/meeting_sobre_nos.png" alt="Reunión del equipo Uni2Go" className="quadrant-image" />
-          </div>
-          <div className="quadrant tr">
-            <div className="text-content">
-              <h2>¿Qué es Uni2Go?</h2>
-              <p>
-                Uni2Go es un espacio digital que une personas, eventos e ideas en un solo lugar.
-                Nuestro objetivo es hacer la organización diaria más fácil y cómoda: planifica
-                reuniones, sigue tareas y comparte momentos con amigos y familia.
-              </p>
-              <p>
-                Una plataforma diseñada para estudiantes universitarios que buscan optimizar su
-                tiempo y conectar con su comunidad académica.
-              </p>
-            </div>
-          </div>
-          <div className="quadrant bl">
-            <div className="text-content">
-              <h2>Nuestro equipo</h2>
-              <p>
-                Somos un equipo de estudiantes apasionados por la tecnología, el diseño y la
-                innovación. Creemos que incluso las pequeñas soluciones digitales pueden hacer
-                la vida más organizada, inspiradora y conectada.
-              </p>
-              <p>
-                Cada miembro aporta una visión única, combinando creatividad, funcionalidad y
-                usabilidad en cada característica.
-              </p>
-            </div>
-          </div>
-          <div className="quadrant br">
-            <img src="/images/conversation_sobre_nos.png" alt="Conversación entre estudiantes" className="quadrant-image" />
-          </div>
-        </div>
+    <svg viewBox={`0 0 ${W} 222`} fill="none" xmlns="http://www.w3.org/2000/svg" className="sn-hero-svg">
+      {/* Shadow */}
+      <rect x="4" y="6" width={W-8} height="214" rx="18" fill="rgba(79,70,229,0.07)"/>
+      {/* Body */}
+      <rect x="1" y="1" width={W-2} height="214" rx="18" fill="white" stroke="#e4e2f8" strokeWidth="1.5"/>
 
-        <footer className="footer">
-          <div className="footer-content">
-            <div className="social-links">
-              <a href="https://instagram.com/uni2go" target="_blank" rel="noopener noreferrer" className="social-link">
-                <svg className="social-icon" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                </svg>
-                <span className="social-text">Instagram</span>
-              </a>
-              <a href="mailto:contacto@uni2go.com" className="social-link">
-                <svg className="social-icon" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
-                </svg>
-                <span className="social-text">contacto@uni2go.com</span>
-              </a>
-            </div>
-            <div className="footer-copyright">
-              <p>2026 Uni2Go</p>
+      {/* Header */}
+      <rect x="1" y="1" width={W-2} height="48" rx="18" fill="#4f46e5"/>
+      <rect x="1" y="32" width={W-2} height="17" fill="#4f46e5"/>
+
+      {/* Month */}
+      <text x="20" y="26" fill="white" fontSize="15" fontWeight="800" fontFamily="sans-serif">Abril 2026</text>
+
+      {/* Left arrow */}
+      <circle cx={W - 44} cy="22" r="12" fill="rgba(255,255,255,0.18)"/>
+      <path d={`M${W-40} 18 L${W-45} 22 L${W-40} 26`} stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+
+      {/* Right arrow */}
+      <circle cx={W - 18} cy="22" r="12" fill="rgba(255,255,255,0.18)"/>
+      <path d={`M${W-22} 18 L${W-17} 22 L${W-22} 26`} stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+
+      {/* Day headers */}
+      {days.map((d, i) => (
+        <text key={d}
+          x={padX + i * cellW + cellW / 2} y={65}
+          fill={i >= 5 ? '#f28c18' : '#aaa'}
+          fontSize="8.5" fontWeight="700" fontFamily="sans-serif" textAnchor="middle">
+          {d}
+        </text>
+      ))}
+
+      {/* Animated highlight circle */}
+      {(() => {
+        const activeDate = hovered ?? today;
+        let ax = padX + cellW / 2, ay = gridTop + 10;
+        dates.forEach((week, r) => week.forEach((date, c) => {
+          if (date === activeDate) { ax = padX + c * cellW + cellW / 2; ay = gridTop + r * cellH + 10; }
+        }));
+        return (
+          <circle cx={0} cy={0} r="11" fill="#4f46e5"
+            style={{ transform: `translate(${ax}px, ${ay}px)`, transition: 'transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1)' }}
+          />
+        );
+      })()}
+
+      {/* Dates */}
+      <g onMouseLeave={handleLeave}>
+        {dates.map((week, r) =>
+          week.map((date, c) => {
+            if (!date) return null;
+            const cx = padX + c * cellW + cellW / 2;
+            const cy = gridTop + r * cellH + 10;
+            const isActive = date === (hovered ?? today);
+            const isWeekend = c >= 5;
+            return (
+              <g key={`${r}-${c}`} style={{ cursor: 'pointer' }}
+                onMouseEnter={() => handleEnter(date)}>
+                <rect x={padX + c * cellW} y={gridTop + r * cellH} width={cellW} height={cellH} fill="transparent"/>
+                <text x={cx} y={cy + 4.5}
+                  fill={isActive ? 'white' : isWeekend ? '#f28c18' : '#222'}
+                  fontSize="11" fontFamily="sans-serif" textAnchor="middle"
+                  fontWeight={isActive ? '700' : '400'}>
+                  {date}
+                </text>
+                {dots[date] && !isActive && (
+                  <circle cx={cx} cy={cy + 12} r="2.5" fill={dots[date]}/>
+                )}
+              </g>
+            );
+          })
+        )}
+      </g>
+    </svg>
+  );
+}
+
+const PLANNER_COLORS = ['#4f46e5','#f28c18','#2e7d32','#c0392b','#7b77d1','#0891b2','#d97706','#db2777'];
+function randColor() { return PLANNER_COLORS[Math.floor(Math.random() * PLANNER_COLORS.length)]; }
+
+function SvgPlanner() {
+  const [cells, setCells] = useState({
+    '1-0': '#4f46e5',
+    '4-1': '#f28c18',
+    '2-2': '#2e7d32',
+    '5-0': '#c0392b',
+    '0-2': '#7b77d1',
+    '6-1': '#0891b2',
+  });
+
+  const toggle = (key) => {
+    setCells(prev => {
+      if (prev[key]) {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      }
+      return { ...prev, [key]: randColor() };
+    });
+  };
+
+  return (
+    <svg viewBox="0 0 160 140" fill="none" xmlns="http://www.w3.org/2000/svg" className="sn-about-svg" style={{ cursor: 'pointer' }}>
+      {/* Calendar body */}
+      <rect x="16" y="24" width="128" height="104" rx="12" fill="#fff" stroke="#d0cef8" strokeWidth="2"/>
+      {/* Header bar */}
+      <rect x="16" y="24" width="128" height="32" rx="12" fill="#4f46e5"/>
+      <rect x="16" y="44" width="128" height="12" fill="#4f46e5"/>
+      {/* Rings */}
+      <rect x="48" y="14" width="8" height="20" rx="4" fill="#7b77d1"/>
+      <rect x="104" y="14" width="8" height="20" rx="4" fill="#7b77d1"/>
+      {/* Header dots */}
+      <circle cx="44" cy="40" r="3" fill="white" opacity="0.7"/>
+      <circle cx="80" cy="40" r="3" fill="white" opacity="0.7"/>
+      <circle cx="116" cy="40" r="3" fill="white" opacity="0.7"/>
+      {/* Grid cells */}
+      {[0,1,2,3,4,5,6].map(col =>
+        [0,1,2].map(row => {
+          const key = `${col}-${row}`;
+          const x = 26 + col * 17;
+          const y = 66 + row * 18;
+          const color = cells[key] || '#f0efff';
+          const isColored = !!cells[key];
+          return (
+            <g key={key} onClick={() => toggle(key)} style={{ cursor: 'pointer' }}>
+              <rect x={x} y={y} width="12" height="12" rx="3" fill={color}
+                style={{ transition: 'fill 0.18s ease' }}/>
+              {isColored && (
+                <polyline
+                  points={`${x+2},${y+6} ${x+4.5},${y+9} ${x+10},${y+3}`}
+                  stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none"
+                />
+              )}
+              {/* hitbox */}
+              <rect x={x - 3} y={y - 3} width="18" height="18" rx="4" fill="transparent"/>
+            </g>
+          );
+        })
+      )}
+    </svg>
+  );
+}
+
+function SvgTeam() {
+  // Person: head (circle) + body (rounded rect)
+  const Person = ({ cx, headY, color, bodyColor }) => (
+    <g>
+      <circle cx={cx} cy={headY} r="13" fill={color} />
+      {/* face */}
+      {/* body */}
+      <rect x={cx - 16} y={headY + 18} width="32" height="28" rx="10" fill={bodyColor} />
+    </g>
+  );
+
+  return (
+    <svg viewBox="0 0 160 140" fill="none" xmlns="http://www.w3.org/2000/svg" className="sn-about-svg">
+      <Person cx={38}  headY={45} color="#4f46e5" bodyColor="#7b77d1" />
+      <Person cx={80}  headY={38} color="#7b77d1" bodyColor="#9d99e0" />
+      <Person cx={122} headY={45} color="#f28c18" bodyColor="#f5aa4a" />
+      {/* ground */}
+      <rect x="16" y="96" width="128" height="3" rx="1.5" fill="#e0dff8"/>
+      {/* sparkles */}
+      <path d="M14 28 L15.5 24 L17 28 L21 29.5 L17 31 L15.5 35 L14 31 L10 29.5 Z" fill="#f28c18" opacity="0.45"/>
+      <path d="M140 58 L141 55 L142 58 L145 59 L142 60 L141 63 L140 60 L137 59 Z" fill="#4f46e5" opacity="0.4"/>
+      <circle cx="80" cy="116" r="5" fill="#d9d7f2"/>
+      <circle cx="58" cy="122" r="3.5" fill="#f28c18" opacity="0.35"/>
+      <circle cx="102" cy="122" r="3.5" fill="#4f46e5" opacity="0.35"/>
+    </svg>
+  );
+}
+
+export default function SobreNosotrosPage() {
+  return (
+    <Layout contentClass="sn-wrapper">
+      <div className="sn-page">
+
+        {/* HERO */}
+        <section className="sn-hero">
+          <div className="sn-hero-left">
+            <p className="sn-hero-eyebrow">Planificador universitario</p>
+            <h1 className="sn-hero-title">Todo lo que necesitas,<br />en un solo lugar</h1>
+            <p className="sn-hero-sub">
+              Uni2Go une calendarios, chats, grupos y listas para que los estudiantes
+              organicen su vida académica y social sin esfuerzo.
+            </p>
+          </div>
+          <div className="sn-hero-right">
+            <SvgCalendarUI />
+          </div>
+        </section>
+
+        {/* FEATURES */}
+        <section className="sn-features">
+          {FEATURES.map(f => (
+            <Link key={f.icon} to={f.to} className="sn-feature-card">
+              <div className="sn-feature-icon" style={{ background: f.color, color: f.iconColor }}>
+                <i className={`bx ${f.icon}`} />
+              </div>
+              <h3 className="sn-feature-title">{f.title}</h3>
+              <p className="sn-feature-desc">{f.desc}</p>
+              <span className="sn-feature-goto" style={{ color: f.iconColor }}>{f.goto}</span>
+            </Link>
+          ))}
+        </section>
+
+        {/* ABOUT */}
+        <section className="sn-about">
+          <div className="sn-about-card sn-about-card-purple">
+            <SvgPlanner />
+            <div className="sn-about-text">
+              <h2>¿Qué es Uni2Go?</h2>
+              <p>Una plataforma diseñada para estudiantes que buscan optimizar su tiempo y conectar con su comunidad académica — disponible en web y móvil.</p>
             </div>
           </div>
+          <div className="sn-about-card sn-about-card-orange">
+            <SvgTeam />
+            <div className="sn-about-text">
+              <h2>Nuestro equipo</h2>
+              <p>Somos estudiantes apasionados por la tecnología y el diseño. Cada función nació de una necesidad real, combinando creatividad y usabilidad.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* FOOTER */}
+        <footer className="sn-footer">
+          <div className="sn-footer-links">
+            <a href="https://instagram.com/uni2go" target="_blank" rel="noopener noreferrer" className="sn-footer-link">
+              <i className="bx bxl-instagram" /> Instagram
+            </a>
+            <a href="mailto:contacto@uni2go.com" className="sn-footer-link">
+              <i className="bx bx-envelope" /> contacto@uni2go.com
+            </a>
+          </div>
+          <span className="sn-footer-copy">© 2026 Uni2Go</span>
         </footer>
+
       </div>
     </Layout>
   );
