@@ -5,7 +5,6 @@ import { friendsService } from '../services/friendsService.js';
 import Layout from '../components/Layout.jsx';
 import '../components/grupos/grupos.css';
 
-const ITEMS_PER_PAGE = 11;
 const CARD_COLORS = ['#fce4e4','#dce8f8','#d8f0d8','#fddcb0','#f8d8f0','#e8e0f8','#fef3cc','#d8f0f0'];
 const MEMBER_COLORS = ['#4f46e5','#0284c7','#059669','#d97706','#7c3aed','#db2777','#0891b2','#0056FF'];
 const EMOJIS = ['👥','🏠','🎓','🏀','🍕','✈️','🎮','💡','🎉','💼','❤️','🌟','🔥','📚','🎨','🎬','🎸','🌈','🐶','🐱','🍎','🍺','⚽','🚗','📱','💻','🔒','🛠️','🌍','🚀'];
@@ -25,6 +24,30 @@ function initials(name, surname) {
   return '?';
 }
 
+function useItemsPerPage(containerRef, cardWidth = 280, cardHeight = 180, gap = 20, hPad = 64, vPad = 32, reservedSlots = 1) {
+  const [itemsPerPage, setItemsPerPage] = useState(11);
+
+  useEffect(() => {
+    const calculate = () => {
+      if (!containerRef.current) return;
+      const w = containerRef.current.offsetWidth - hPad;
+      const h = containerRef.current.offsetHeight - vPad;
+      const cols = Math.max(1, Math.floor((w + gap) / (cardWidth + gap)));
+      const rows = Math.max(1, Math.floor((h + gap) / (cardHeight + gap)));
+      setItemsPerPage(Math.max(cols, cols * rows - reservedSlots));
+    };
+
+    calculate();
+
+    const ro = new ResizeObserver(calculate);
+    if (containerRef.current) ro.observe(containerRef.current);
+
+    return () => ro.disconnect();
+  }, [containerRef, cardWidth, cardHeight, gap, hPad, vPad, reservedSlots]);
+
+  return itemsPerPage;
+}
+
 export default function GruposPage() {
   const { user } = useAuth();
   const [groups, setGroups] = useState([]);
@@ -38,6 +61,8 @@ export default function GruposPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('all');
   const [favorites, setFavorites] = useState([]);
+  const gridRef = useRef(null);
+  const itemsPerPage = useItemsPerPage(gridRef);
 
   useEffect(() => {
     if (!user) return;
@@ -102,9 +127,9 @@ export default function GruposPage() {
   const filtered = groups
     .filter(g => g.name.toLowerCase().includes(search.toLowerCase()))
     .filter(g => statusFilter === 'all' || favorites.includes(g.id));
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const page = Math.min(currentPage, Math.max(totalPages, 1));
-  const pageItems = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const pageItems = filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
   return (
     <Layout contentClass="groups-wrapper">
@@ -137,13 +162,15 @@ export default function GruposPage() {
       </div>
 
       <div className="grupos-page">
-        <div className="groups-container">
+        <div className="groups-container" ref={gridRef}>
         <div className="groups-grid" id="groupsGrid">
-          {/* Add card */}
-          <div className="group-card add-card" onClick={() => setShowCreateModal(true)}>
-            <div className="add-card-placeholder"><i className="bx bx-plus" /></div>
-            <span className="add-card-label">Nuevo grupo</span>
-          </div>
+          {/* Add card — only on first page */}
+          {page === 1 && (
+            <div className="group-card add-card" onClick={() => setShowCreateModal(true)}>
+              <div className="add-card-placeholder"><i className="bx bx-plus" /></div>
+              <span className="add-card-label">Nuevo grupo</span>
+            </div>
+          )}
 
           {filtered.length === 0 && (search || statusFilter !== 'all') && (
             <div className="empty-state"><i className="bx bx-search-alt" /><p>No se encontraron grupos</p></div>
