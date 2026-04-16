@@ -54,7 +54,7 @@ class NotificationService {
     async markAsUnread(notificationId) {
         try {
             const ref = doc(db, "notifications", notificationId);
-            await updateDoc(ref, { read: false });
+            await updateDoc(ref, { read: false, interacted: true });
         } catch (error) {
             console.error("Error marking notification as unread:", error);
         }

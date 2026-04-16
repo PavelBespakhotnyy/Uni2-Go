@@ -112,12 +112,12 @@
 }
 
 .notification-action-btn {
-    padding: 6px 20px;
+    padding: 3px 12px;
     background-color: transparent;
     border: 1px solid #333;
     border-radius: 25px;
     color: #333;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.2s;
@@ -195,20 +195,48 @@
 
 .notification-menu {
     background: white;
-    border: 1px solid #ccc;
+    border: 1px solid #e8e8e8;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     z-index: 1000;
     display: none;
     flex-direction: column;
-    min-width: 150px;
+    min-width: 48px;
     overflow: hidden;
 }
 
 .notification-menu.active {
     display: flex;
+    flex-direction: column;
 }
 
+.notif-menu-icon-btn {
+    width: 100%;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+    font-size: 18px;
+    color: #1a1a1a;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.notif-menu-icon-btn:hover {
+    background-color: #f0f0f0;
+}
+
+.notif-menu-icon-btn.delete {
+    color: #e74c3c;
+}
+
+.notif-menu-icon-btn.delete:hover {
+    background-color: #fff0f0;
+}
+
+/* keep old class for backwards compat */
 .notification-menu-item {
     padding: 10px 15px;
     font-size: 14px;

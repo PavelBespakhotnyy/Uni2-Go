@@ -31,6 +31,7 @@ export default function NotificationsPage() {
         date: n.createdAt?.toDate ? n.createdAt.toDate().toLocaleDateString() : '',
         time: n.createdAt?.toDate ? n.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
         read: n.read,
+        interacted: n.interacted || false,
         type: n.type,
         data: n.data,
       })));
@@ -204,7 +205,7 @@ function NotifPanel({ notif, onGoToChat, onGoToFriends, onGoToChatWithAcceptor, 
   }, [menuOpen]);
 
   const actionButtons = () => {
-    if (notif.read) return null;
+    if (notif.read || notif.interacted) return null;
     if (notif.type === 'new_chat' || notif.type === 'new_message') {
       return <button className="notification-action-btn" onClick={(e) => { e.stopPropagation(); onGoToChat(notif); }}>Ir al chat</button>;
     }
@@ -258,11 +259,29 @@ function NotifPanel({ notif, onGoToChat, onGoToFriends, onGoToChatWithAcceptor, 
             style={{ position: 'fixed', top: menuPos.top, right: menuPos.right }}
           >
             {notif.read ? (
-              <button className="notification-menu-item" onClick={() => { notificationService.markAsUnread(notif.id); setMenuOpen(false); }}>Marcar como no leído</button>
+              <button
+                className="notif-menu-icon-btn"
+                title="Marcar como no leído"
+                onClick={() => { notificationService.markAsUnread(notif.id); setMenuOpen(false); }}
+              >
+                <i className="bx bx-envelope" />
+              </button>
             ) : (
-              <button className="notification-menu-item" onClick={() => { notificationService.markAsRead(notif.id); setMenuOpen(false); }}>Leer</button>
+              <button
+                className="notif-menu-icon-btn"
+                title="Marcar como leído"
+                onClick={() => { notificationService.markAsRead(notif.id); setMenuOpen(false); }}
+              >
+                <i className="bx bx-envelope-open" />
+              </button>
             )}
-            <button className="notification-menu-item delete" onClick={() => { notificationService.deleteNotification(notif.id); setMenuOpen(false); }}>Eliminar</button>
+            <button
+              className="notif-menu-icon-btn delete"
+              title="Eliminar"
+              onClick={() => { notificationService.deleteNotification(notif.id); setMenuOpen(false); }}
+            >
+              <i className="bx bx-trash" />
+            </button>
           </div>
         )}
       </div>
