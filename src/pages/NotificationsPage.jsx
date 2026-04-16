@@ -6,7 +6,26 @@ import { chatService } from '../services/chatService.js';
 import Layout from '../components/Layout.jsx';
 import '../components/notifications/notifications.css';
 
-const ITEMS_PER_PAGE = 8;
+function useListItemsPerPage(containerRef, itemHeight = 53, gap = 12) {
+  const [itemsPerPage, setItemsPerPage] = useState(8);
+
+  useEffect(() => {
+    const calculate = () => {
+      if (!containerRef.current) return;
+      const h = containerRef.current.offsetHeight;
+      setItemsPerPage(Math.max(3, Math.floor((h + gap) / (itemHeight + gap))));
+    };
+
+    calculate();
+
+    const ro = new ResizeObserver(calculate);
+    if (containerRef.current) ro.observe(containerRef.current);
+
+    return () => ro.disconnect();
+  }, [containerRef, itemHeight, gap]);
+
+  return itemsPerPage;
+}
 
 export default function NotificationsPage() {
   const { user } = useAuth();
@@ -15,6 +34,8 @@ export default function NotificationsPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const listRef = useRef(null);
+  const itemsPerPage = useListItemsPerPage(listRef);
 
   useEffect(() => {
     if (!user) return;
@@ -49,9 +70,9 @@ export default function NotificationsPage() {
       return a.read ? 1 : -1;
     });
 
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const page = Math.min(currentPage, Math.max(totalPages, 1));
-  const pageItems = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const pageItems = filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
   const handleGoToChat = async (notif) => {
     await notificationService.markAsRead(notif.id);
@@ -132,7 +153,7 @@ export default function NotificationsPage() {
       </div>
 
       <div className="notifications-page">
-        <div className="notifications-container" id="notificationsList">
+        <div className="notifications-container" id="notificationsList" ref={listRef}>
           <div className="notifications-list">
             {pageItems.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '40px', color: '#888', fontSize: '18px' }}>
