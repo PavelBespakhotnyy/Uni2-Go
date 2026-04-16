@@ -6,14 +6,11 @@ Proyecto hecho con **Vite**.
 
 ## Instalación de dependencias
 
-1. Abre la terminal y entra en la carpeta `frontend`:
+Instala todas las dependencias:
 
-   cd frontend
-
-2. Instala todas las dependencias:
-
-   npm install
-
+```
+npm install
+```
 ---
 
 ## Ejecución del proyecto
