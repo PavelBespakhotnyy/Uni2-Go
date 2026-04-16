@@ -2,7 +2,7 @@ import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 
 const ALLOWED_PROFILE_FIELDS = [
-    'name', 'surname', 'phone', 'dateOfBirth',
+    'name', 'surname', 'phone', 'countryCode', 'countryISO', 'dateOfBirth',
     'email', 'username', 'avatarUrl', 'bio',
 ];
 

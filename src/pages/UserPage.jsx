@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { signOut, updatePassword, updateEmail } from 'firebase/auth';
+import { signOut, updatePassword } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../firebase/firebase.js';
 import { getUserProfile, updateUserProfile } from '../services/userService.js';
 import { useAuth } from '../contexts/AuthContext.jsx';
+import { countries } from '../utils/countries.js';
 import Layout from '../components/Layout.jsx';
 import '../components/user/user.css';
 import '../components/user/panel-lateral.css';
@@ -17,8 +18,12 @@ function getInitials(name, surname) {
 }
 
 export default function UserPage() {
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) refreshProfile();
+  }, [user]);
 
   const [panelOpen, setPanelOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -26,7 +31,7 @@ export default function UserPage() {
   const [saveMsg, setSaveMsg] = useState({ text: '', ok: true });
 
   const [fields, setFields] = useState({
-    name: '', surname: '', username: '', email: '', phone: '', password: '',
+    name: '', surname: '', username: '', email: '', phone: '', countryCode: '', countryISO: '', password: '',
   });
 
   // Load data into panel when opened
@@ -40,6 +45,8 @@ export default function UserPage() {
         username: data?.username || '',
         email: user.email || data?.email || '',
         phone: data?.phone || '',
+        countryCode: data?.countryCode || '+34',
+        countryISO: data?.countryISO || 'ES',
         password: '',
       });
     } catch {
@@ -51,10 +58,20 @@ export default function UserPage() {
         username: profile?.username || '',
         email: user.email || '',
         phone: profile?.phone || '',
+        countryCode: profile?.countryCode || '+34',
+        countryISO: profile?.countryISO || 'ES',
         password: '',
       }));
     }
     setPanelOpen(true);
+  };
+
+  const handleCountryChange = (e) => {
+    const iso = e.target.value;
+    const country = countries.find(c => c.code === iso);
+    if (country) {
+      setFields(f => ({ ...f, countryISO: iso, countryCode: country.dialCode }));
+    }
   };
 
   const handleSave = async () => {
@@ -65,14 +82,10 @@ export default function UserPage() {
       await updateUserProfile(user.uid, {
         name: fields.name.trim(),
         surname: fields.surname.trim(),
-        username: fields.username.trim(),
         phone: fields.phone.trim(),
+        countryCode: fields.countryCode,
+        countryISO: fields.countryISO,
       });
-
-      if (fields.email.trim() && fields.email.trim() !== user.email) {
-        await updateEmail(user, fields.email.trim());
-        await updateUserProfile(user.uid, { email: fields.email.trim() });
-      }
 
       if (fields.password) {
         if (fields.password.length < 6) {
@@ -115,21 +128,53 @@ export default function UserPage() {
 
         <div className="info-panel-content">
           {[
-            { id: 'name',     label: 'Nombre',   type: 'text' },
-            { id: 'surname',  label: 'Apellido', type: 'text' },
-            { id: 'username', label: 'Usuario',  type: 'text' },
-            { id: 'email',    label: 'Email',    type: 'email' },
-            { id: 'phone',    label: 'Teléfono', type: 'text' },
-          ].map(({ id, label, type }) => (
+            { id: 'name',     label: 'Nombre',   type: 'text',  readOnly: false },
+            { id: 'surname',  label: 'Apellido', type: 'text',  readOnly: false },
+            { id: 'username', label: 'Usuario',  type: 'text',  readOnly: true  },
+            { id: 'email',    label: 'Email',    type: 'email', readOnly: true  },
+            { id: 'phone',    label: 'Teléfono', type: 'text',  readOnly: false },
+          ].map(({ id, label, type, readOnly }) => (
             <div className="field" key={id}>
               <label>{label}</label>
               <div className="field-box">
+                {id === 'phone' && (
+                  <div style={{ position: 'relative', width: '80px', flexShrink: 0 }}>
+                    <select
+                      value={fields.countryISO}
+                      onChange={handleCountryChange}
+                      style={{ width: '100%', appearance: 'none', border: 'none', background: 'transparent', padding: '12px 5px', textAlign: 'left', color: 'transparent' }}
+                    >
+                      {countries.map(c => (
+                        <option key={`${c.code}-${c.dialCode}`} value={c.code} style={{ color: '#333' }}>
+                          {c.dialCode} {c.native}
+                        </option>
+                      ))}
+                    </select>
+                    <div style={{
+                      position: 'absolute',
+                      top: 0, left: 0, right: 0, bottom: 0,
+                      pointerEvents: 'none',
+                      background: '#f5f5f5',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'flex-start',
+                      paddingLeft: '12px',
+                      fontSize: '14px',
+                      color: '#333',
+                      borderRight: '1px solid #cccccc'
+                    }}>
+                      {fields.countryCode}
+                    </div>
+                  </div>
+                )}
                 <input
                   type={type}
                   value={fields[id]}
-                  onChange={(e) => setFields(f => ({ ...f, [id]: e.target.value }))}
+                  onChange={(e) => !readOnly && setFields(f => ({ ...f, [id]: e.target.value }))}
+                  readOnly={readOnly}
+                  className={readOnly ? 'readonly-field' : ''}
                 />
-                <i className="bx bx-pencil" />
+                {!readOnly && <i className="bx bx-pencil" />}
               </div>
             </div>
           ))}

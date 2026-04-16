@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { registerUser } from '../services/authService.js';
+import { countries } from '../utils/countries.js';
 import '../components/registration/registration.css';
 
 const INITIAL = {
   name: '', surname: '', username: '', dateOfBirth: '',
-  email: '', phone: '', password: '', confirmPassword: '',
+  email: '', phone: '', countryCode: '+34', countryISO: 'ES', password: '', confirmPassword: '',
 };
 
 export default function RegistrationPage() {
@@ -16,6 +17,14 @@ export default function RegistrationPage() {
   const [loading, setLoading] = useState(false);
 
   const set = (field) => (e) => setFields(f => ({ ...f, [field]: e.target.value }));
+
+  const handleCountryChange = (e) => {
+    const iso = e.target.value;
+    const country = countries.find(c => c.code === iso);
+    if (country) {
+      setFields(f => ({ ...f, countryISO: iso, countryCode: country.dialCode }));
+    }
+  };
 
   const validate = () => {
     const e = {};
@@ -34,8 +43,8 @@ export default function RegistrationPage() {
     }
     if (!fields.phone) {
       e.phone = 'Introduzca su teléfono.';
-    } else if (!/^[0-9]{3}-[0-9]{3}-[0-9]{3}$/.test(fields.phone)) {
-      e.phone = 'Formato: 123-456-789.';
+    } else if (!/^[0-9\s]{7,15}$/.test(fields.phone)) {
+      e.phone = 'Teléfono inválido (mín. 7 dígitos).';
     }
     if (!fields.password) {
       e.password = 'Introduzca una contraseña.';
@@ -110,25 +119,74 @@ export default function RegistrationPage() {
 
         <div>
           <label>Correo Electrónico</label><br />
-          <input type="email" name="email" placeholder="Email" value={fields.email} onChange={set('email')} />
+          <input 
+            type="email" 
+            name="email" 
+            placeholder="Email" 
+            value={fields.email} 
+            onChange={set('email')} 
+            autoComplete="username"
+          />
           <p className={`field-error${errors.email ? ' visible' : ''}`}>{errors.email || ''}</p>
         </div>
 
         <div>
           <label>Teléfono</label><br />
-          <input type="tel" name="phone" placeholder="123-456-789" value={fields.phone} onChange={set('phone')} />
+          <div className="phone-container">
+            <div style={{ position: 'relative' }}>
+              <select 
+                name="countryISO" 
+                value={fields.countryISO} 
+                onChange={handleCountryChange}
+                style={{ appearance: 'none', color: 'transparent', border: 'none', width: '100%', background: 'transparent' }}
+              >
+                {countries.map(c => (
+                  <option key={`${c.code}-${c.dialCode}`} value={c.code} style={{ color: '#333' }}>
+                    {c.dialCode} {c.native}
+                  </option>
+                ))}
+              </select>
+              <div style={{
+                position: 'absolute',
+                top: 0, left: 0, right: 0, bottom: 0,
+                pointerEvents: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+                paddingLeft: '12px',
+                fontSize: '14px',
+                color: '#333',
+                background: '#f5f5f5'
+              }}>
+                {fields.countryCode}
+              </div>
+            </div>
+            <input type="tel" name="phone" placeholder="123 456 789" value={fields.phone} onChange={set('phone')} />
+          </div>
           <p className={`field-error${errors.phone ? ' visible' : ''}`}>{errors.phone || ''}</p>
         </div>
 
         <div>
           <label>Contraseña</label><br />
-          <input type="password" name="contrasena" value={fields.password} onChange={set('password')} />
+          <input 
+            type="password" 
+            name="password" 
+            value={fields.password} 
+            onChange={set('password')} 
+            autoComplete="new-password"
+          />
           <p className={`field-error${errors.password ? ' visible' : ''}`}>{errors.password || ''}</p>
         </div>
 
         <div>
           <label>Confirmar contraseña</label><br />
-          <input type="password" name="confirmPassword" value={fields.confirmPassword} onChange={set('confirmPassword')} />
+          <input 
+            type="password" 
+            name="confirmPassword" 
+            value={fields.confirmPassword} 
+            onChange={set('confirmPassword')} 
+            autoComplete="new-password"
+          />
           <p className={`field-error${errors.confirmPassword ? ' visible' : ''}`}>{errors.confirmPassword || ''}</p>
         </div>
 
