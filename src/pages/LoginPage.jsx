@@ -58,13 +58,26 @@ export default function LoginPage() {
 
         <div>
           <label>Correo electronico</label><br />
-          <input type="email" name="email" placeholder="Email" value={fields.email} onChange={set('email')} />
+          <input 
+            type="email" 
+            name="email" 
+            placeholder="Email" 
+            value={fields.email} 
+            onChange={set('email')} 
+            autoComplete="username"
+          />
           <p className={`field-error${errors.email ? ' visible' : ''}`}>{errors.email || ''}</p>
         </div>
 
         <div>
           <label>Contraseña</label><br />
-          <input type="password" name="password" value={fields.password} onChange={set('password')} />
+          <input 
+            type="password" 
+            name="password" 
+            value={fields.password} 
+            onChange={set('password')} 
+            autoComplete="current-password"
+          />
           <p className={`field-error${errors.password ? ' visible' : ''}`}>{errors.password || ''}</p>
         </div>
 

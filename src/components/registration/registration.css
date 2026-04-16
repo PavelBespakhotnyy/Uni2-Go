@@ -108,6 +108,36 @@ form#registroForm input[type="tel"] {
     background-color: #f5f5f5;
 }
 
+.phone-container {
+    display: flex;
+    gap: 0;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    background-color: #f5f5f5;
+    overflow: hidden;
+}
+
+.phone-container > div:first-child {
+    width: 80px !important;
+    flex-shrink: 0;
+    border-right: 1px solid #cccccc;
+}
+
+.phone-container select {
+    width: 100%;
+    padding: 12px 10px;
+    font-size: 14px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.phone-container input[type="tel"] {
+    flex: 1;
+    border: none;
+    background: transparent;
+}
+
 /* BOTÓN DE REGISTRARSE */
 form#registroForm input[type="submit"] {
     width: 180px;

@@ -10,6 +10,8 @@ export async function registerUser(formData) {
     name,
     surname,
     phone,
+    countryCode,
+    countryISO,
     dateOfBirth,
     username,
   } = formData;
@@ -39,6 +41,8 @@ export async function registerUser(formData) {
         name,
         surname,
         phone,
+        countryCode,
+        countryISO,
         dateOfBirth,
         email,
         username: normalizedUsername,

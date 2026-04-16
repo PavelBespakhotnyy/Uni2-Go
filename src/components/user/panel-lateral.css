@@ -100,6 +100,23 @@
     color: #4D67AF;
 }
 
+.field-box input.readonly-field {
+    cursor: not-allowed;
+    background: #eeeeee;
+    color: #777;
+}
+
+.field-box select {
+    border: none;
+    background: transparent;
+    padding: 12px 0 12px 12px;
+    font-size: 0.9rem;
+    color: #555;
+    outline: none;
+    max-width: 120px;
+    border-right: 1px solid #e0e0e0;
+}
+
 /* Footer del panel con botón guardar */
 .info-panel-footer {
     padding: 16px 25px;
