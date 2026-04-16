@@ -27,7 +27,6 @@
     align-items: center;
     justify-content: space-between;
     padding: 20px 0;
-    border-bottom: 1px solid #f0f0f0;
     gap: 32px;
     min-height: 0;
 }
@@ -35,7 +34,7 @@
 .sn-hero-left { flex: 1; min-width: 0; }
 
 .sn-hero-eyebrow {
-    font-size: 12px;
+    font-size: 24px;
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -62,7 +61,7 @@
 
 .sn-hero-right {
     flex-shrink: 0;
-    width: 500px;
+    width: 560px;
     background: linear-gradient(135deg, #eeeefe 0%, #dce8f8 100%);
     border-radius: 28px;
     padding: 24px 28px;
@@ -81,7 +80,7 @@
 
 .sn-hero-svg {
     width: 100%;
-    max-width: 360px;
+    max-width: 440px;
     height: auto;
     filter: drop-shadow(0 8px 28px rgba(79,70,229,0.16));
 }
@@ -93,7 +92,6 @@
     gap: 12px;
     padding: 14px 0;
     flex-shrink: 0;
-    border-bottom: 1px solid #f0f0f0;
 }
 
 .sn-feature-card {
@@ -185,6 +183,17 @@
     flex-shrink: 0;
     width: 38%;
     height: auto;
+}
+
+.sn-about-svg-bottom {
+    align-self: flex-end;
+}
+
+@keyframes snPersonJump {
+    0%   { transform: translateY(0); }
+    35%  { transform: translateY(-10px); }
+    70%  { transform: translateY(-2px); }
+    100% { transform: translateY(0); }
 }
 
 .sn-about-text h2 {

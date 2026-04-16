@@ -13,7 +13,11 @@ const FEATURES = [
 function SvgCalendarUI() {
   const [hovered, setHovered] = useState(null);
   const leaveTimer = useRef(null);
-  const today = 16;
+  const now = new Date();
+  const today = now.getDate();
+  const monthLabel = now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+    .replace(' de ', ' ')
+    .replace(/^\w/, c => c.toUpperCase());
 
   const handleEnter = (date) => {
     clearTimeout(leaveTimer.current);
@@ -54,15 +58,7 @@ function SvgCalendarUI() {
       <rect x="1" y="32" width={W-2} height="17" fill="#4f46e5"/>
 
       {/* Month */}
-      <text x="20" y="26" fill="white" fontSize="15" fontWeight="800" fontFamily="sans-serif">Abril 2026</text>
-
-      {/* Left arrow */}
-      <circle cx={W - 44} cy="22" r="12" fill="rgba(255,255,255,0.18)"/>
-      <path d={`M${W-40} 18 L${W-45} 22 L${W-40} 26`} stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-
-      {/* Right arrow */}
-      <circle cx={W - 18} cy="22" r="12" fill="rgba(255,255,255,0.18)"/>
-      <path d={`M${W-22} 18 L${W-17} 22 L${W-22} 26`} stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      <text x={W / 2} y="25" fill="white" fontSize="20" fontWeight="800" fontFamily="sans-serif" textAnchor="middle" dominantBaseline="central">{monthLabel}</text>
 
       {/* Day headers */}
       {days.map((d, i) => (
@@ -186,24 +182,28 @@ function SvgPlanner() {
 }
 
 function SvgTeam() {
-  // Person: head (circle) + body (rounded rect)
-  const Person = ({ cx, headY, color, bodyColor }) => (
-    <g>
+  const [jumping, setJumping] = useState(null);
+
+  const Person = ({ idx, cx, headY, color, bodyColor }) => (
+    <g
+      onMouseEnter={() => setJumping(idx)}
+      onAnimationEnd={() => setJumping(null)}
+      style={{
+        animation: jumping === idx ? 'snPersonJump 0.5s ease-in-out' : 'none',
+        cursor: 'pointer',
+      }}
+    >
       <circle cx={cx} cy={headY} r="13" fill={color} />
-      {/* face */}
-      {/* body */}
       <rect x={cx - 16} y={headY + 18} width="32" height="28" rx="10" fill={bodyColor} />
     </g>
   );
 
   return (
-    <svg viewBox="0 0 160 140" fill="none" xmlns="http://www.w3.org/2000/svg" className="sn-about-svg">
-      <Person cx={38}  headY={45} color="#4f46e5" bodyColor="#7b77d1" />
-      <Person cx={80}  headY={38} color="#7b77d1" bodyColor="#9d99e0" />
-      <Person cx={122} headY={45} color="#f28c18" bodyColor="#f5aa4a" />
-      {/* ground */}
+    <svg viewBox="0 0 160 140" fill="none" xmlns="http://www.w3.org/2000/svg" className="sn-about-svg sn-about-svg-bottom">
+      <Person idx={0} cx={38}  headY={45} color="#4f46e5" bodyColor="#7b77d1" />
+      <Person idx={1} cx={80}  headY={38} color="#7b77d1" bodyColor="#9d99e0" />
+      <Person idx={2} cx={122} headY={45} color="#f28c18" bodyColor="#f5aa4a" />
       <rect x="16" y="96" width="128" height="3" rx="1.5" fill="#e0dff8"/>
-      {/* sparkles */}
       <path d="M14 28 L15.5 24 L17 28 L21 29.5 L17 31 L15.5 35 L14 31 L10 29.5 Z" fill="#f28c18" opacity="0.45"/>
       <path d="M140 58 L141 55 L142 58 L145 59 L142 60 L141 63 L140 60 L137 59 Z" fill="#4f46e5" opacity="0.4"/>
       <circle cx="80" cy="116" r="5" fill="#d9d7f2"/>
