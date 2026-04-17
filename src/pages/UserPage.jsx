@@ -76,6 +76,13 @@ export default function UserPage() {
 
   const handleSave = async () => {
     if (!user) return;
+    
+    // Validar teléfono si se ha ingresado algo
+    if (fields.phone && !/^[0-9\s]{7,15}$/.test(fields.phone.trim())) {
+      setSaveMsg({ text: 'Teléfono inválido (mín. 7 dígitos).', ok: false });
+      return;
+    }
+
     setSaving(true);
     setSaveMsg({ text: '', ok: true });
     try {
@@ -132,7 +139,7 @@ export default function UserPage() {
             { id: 'surname',  label: 'Apellido', type: 'text',  readOnly: false },
             { id: 'username', label: 'Usuario',  type: 'text',  readOnly: true  },
             { id: 'email',    label: 'Email',    type: 'email', readOnly: true  },
-            { id: 'phone',    label: 'Teléfono', type: 'text',  readOnly: false },
+            { id: 'phone',    label: 'Teléfono', type: 'tel',   readOnly: false },
           ].map(({ id, label, type, readOnly }) => (
             <div className="field" key={id}>
               <label>{label}</label>
@@ -216,12 +223,16 @@ export default function UserPage() {
 
       <div className="user-content">
         <div>
-          <h1>Nombre</h1>
-          <h1 id="user-name"><span className="field-text">{profile?.name || ''}</span></h1>
+          <p className="field-label">Nombre</p>
+          <div className="field-pill">
+            <span className="field-text">{profile?.name || ''}</span>
+          </div>
         </div>
         <div>
-          <h1>Apellido</h1>
-          <h1 id="user-lastname"><span className="field-text">{profile?.surname || ''}</span></h1>
+          <p className="field-label">Apellido</p>
+          <div className="field-pill">
+            <span className="field-text">{profile?.surname || ''}</span>
+          </div>
         </div>
       </div>
 
