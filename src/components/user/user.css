@@ -51,8 +51,8 @@
   gap: 0.4rem;
 }
 
-/* Etiqueta "Nombre" / "Apellido" */
-.user-content h1:first-child {
+/* Etiqueta del campo */
+.field-label {
   font-size: 0.95rem;
   font-weight: 700;
   color: #333;
@@ -60,29 +60,25 @@
   letter-spacing: 0.01em;
 }
 
-/* Pill de nombre/apellido */
-.user-content h1#user-name,
-.user-content h1#user-lastname {
+/* Pill de información */
+.field-pill {
   font-size: 1.05rem;
   font-weight: 500;
   color: #222;
   margin: 0;
   background-color: #d0d0d0;
   border-radius: 10px;
-  padding: 0.45rem 1rem 0.45rem 1.4rem;
+  padding: 0.45rem 1rem;
   min-width: 160px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 0.8rem;
-  cursor: pointer;
   transition: background-color 0.2s ease;
 }
 
-
-
 /* Texto del campo */
-.user-content h1 .field-text {
+.field-pill .field-text {
   flex: 1;
 }
 
