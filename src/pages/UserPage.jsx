@@ -1,15 +1,18 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { signOut, updatePassword } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../firebase/firebase.js';
-import { getUserProfile, updateUserProfile, uploadUserAvatar, deleteUserAvatar } from '../services/userService.js';
+import { getUserProfile, updateUserProfile, deleteUserAvatar } from '../services/userService.js';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { countries } from '../utils/countries.js';
 import Layout from '../components/Layout.jsx';
 import '../components/user/user.css';
 import '../components/user/panel-lateral.css';
 
-const PIXABAY_API_KEY = import.meta.env.VITE_PIXABAY_API_KEY || ''; // Use env variable
+const PIXABAY_API_KEY = import.meta.env.VITE_PIXABAY_API_KEY || '';
+
+// 20 standard emojis for profile pictures (matching the groups example)
+const PROFILE_EMOJIS = ['👤','👨‍💻','👩‍💻','👨‍🎓','👩‍🎓','🦸‍♂️','🦸‍♀️','🕵️‍♂️','🕵️‍♀️','🧙‍♂️','🧙‍♀️','🧛‍♂️','🧛‍♀️','🧚‍♂️','🧚‍♀️','🧜‍♂️','🧜‍♀️','🤖','👽','👾'];
 
 function getInitials(name, surname) {
   const n = (name || '').trim();
@@ -19,72 +22,9 @@ function getInitials(name, surname) {
   return '?';
 }
 
-function compressImage(file, maxWidth = 300, maxHeight = 300) {
-  return new Promise((resolve, reject) => {
-    // Validar que sea una imagen
-    if (!file.type.startsWith('image/')) {
-      reject(new Error("El archivo seleccionado no es una imagen."));
-      return;
-    }
-
-    const img = new Image();
-    const objectUrl = URL.createObjectURL(file);
-    
-    img.onload = () => {
-      try {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-          if (width > maxWidth) {
-            height *= maxWidth / width;
-            width = maxWidth;
-          }
-        } else {
-          if (height > maxHeight) {
-            width *= maxHeight / height;
-            height = maxHeight;
-          }
-        }
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error("No se pudo obtener el contexto del canvas"));
-          return;
-        }
-        ctx.drawImage(img, 0, 0, width, height);
-        canvas.toBlob((blob) => {
-          URL.revokeObjectURL(objectUrl);
-          if (blob) {
-            console.log("Compresión completada:", blob.size);
-            resolve(blob);
-          } else {
-            reject(new Error("Error al crear el Blob del canvas"));
-          }
-        }, 'image/jpeg', 0.8);
-      } catch (err) {
-        URL.revokeObjectURL(objectUrl);
-        console.error("Error durante la compresión:", err);
-        reject(err);
-      }
-    };
-
-    img.onerror = (err) => {
-      URL.revokeObjectURL(objectUrl);
-      console.error("Error al cargar la imagen en el objeto Image:", err);
-      reject(new Error("Error al cargar la imagen. El archivo podría estar corrupto o no ser una imagen válida."));
-    };
-
-    img.src = objectUrl;
-  });
-}
-
 export default function UserPage() {
-  const { user, profile, refreshProfile, loading: authLoading } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
-  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (user) refreshProfile();
@@ -105,7 +45,6 @@ export default function UserPage() {
     name: '', surname: '', username: '', email: '', phone: '', countryCode: '', countryISO: '', password: '',
   });
 
-  // Load data into panel when opened
   const openPanel = async () => {
     if (!user) return;
     try {
@@ -121,7 +60,6 @@ export default function UserPage() {
         password: '',
       });
     } catch {
-      // use profile fallback
       setFields(f => ({
         ...f,
         name: profile?.name || '',
@@ -147,8 +85,6 @@ export default function UserPage() {
 
   const handleSave = async () => {
     if (!user) return;
-    
-    // Validar teléfono si se ha ingresado algo
     if (fields.phone && !/^[0-9\s]{7,15}$/.test(fields.phone.trim())) {
       setSaveMsg({ text: 'Teléfono inválido (mín. 7 dígitos).', ok: false });
       return;
@@ -179,7 +115,7 @@ export default function UserPage() {
       setSaveMsg({ text: 'Cambios guardados correctamente.', ok: true });
     } catch (err) {
       if (err.code === 'auth/requires-recent-login') {
-        setSaveMsg({ text: 'Por seguridad, cierra sesión y vuelve a iniciarla para cambiar email o contraseña.', ok: false });
+        setSaveMsg({ text: 'Por seguridad, cierra sesión и vuelve a iniciarla para cambiar email o contraseña.', ok: false });
       } else {
         setSaveMsg({ text: 'Error al guardar. Intenta de nuevo.', ok: false });
       }
@@ -188,63 +124,19 @@ export default function UserPage() {
     }
   };
 
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file || !user) return;
-
-    console.log("File selected:", file.name, file.size, file.type);
-    setUploading(true);
-    try {
-      console.log("Compressing image...");
-      const compressedBlob = await compressImage(file);
-      console.log("Compressed size:", compressedBlob.size);
-      
-      console.log("Uploading to Firebase...");
-      await uploadUserAvatar(user.uid, compressedBlob);
-      console.log("Upload successful");
-      
-      await refreshProfile();
-      setPhotoModalOpen(false);
-      setSaveMsg({ text: 'Foto actualizada correctamente.', ok: true });
-    } catch (error) {
-      console.error("Detailed upload error:", error);
-      alert("Error al procesar o subir la imagen: " + error.message);
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  };
-
   const searchPixabay = async () => {
     if (!pixabayQuery.trim()) return;
-    
     if (!PIXABAY_API_KEY) {
-      console.error("Pixabay API key is missing. Please set VITE_PIXABAY_API_KEY in your .env file.");
-      alert("La búsqueda de imágenes no está configurada. Por favor, contacta al administrador.");
+      alert("La búsqueda de imágenes no está configurada.");
       return;
     }
-
     setPixabayLoading(true);
-    setPixabayImages([]); // Clear previous results
-    console.log("Searching Pixabay for:", pixabayQuery);
-    
+    setPixabayImages([]);
     try {
       const res = await fetch(`https://pixabay.com/api/?key=${PIXABAY_API_KEY}&q=${encodeURIComponent(pixabayQuery)}&image_type=photo&per_page=12`);
-      
-      if (!res.ok) {
-        if (res.status === 400) {
-          throw new Error("Error en la solicitud (posible clave API inválida).");
-        }
-        throw new Error(`Error de Pixabay: ${res.status}`);
-      }
-      
+      if (!res.ok) throw new Error(`Error de Pixabay: ${res.status}`);
       const data = await res.json();
-      console.log("Pixabay results:", data.hits?.length || 0);
       setPixabayImages(data.hits || []);
-      
-      if (!data.hits || data.hits.length === 0) {
-        setSaveMsg({ text: 'No se encontraron imágenes para esta búsqueda.', ok: false });
-      }
     } catch (error) {
       console.error("Pixabay search error:", error);
       alert("Error al buscar imágenes: " + error.message);
@@ -253,17 +145,12 @@ export default function UserPage() {
     }
   };
 
-  const selectPixabayImage = async (url) => {
+  const selectImage = async (url) => {
     if (!user || uploading) return;
-    
     setUploading(true);
     try {
-      console.log("Saving selected photo URL...");
       await updateUserProfile(user.uid, { avatarUrl: url });
-      
-      console.log("Refreshing profile...");
       await refreshProfile();
-      
       setPhotoModalOpen(false);
       setSaveMsg({ text: 'Foto actualizada correctamente.', ok: true });
     } catch (error) {
@@ -277,7 +164,6 @@ export default function UserPage() {
   const handleDeletePhoto = async () => {
     if (!user || uploading) return;
     if (!confirm("¿Estás seguro de que quieres eliminar tu foto de perfil?")) return;
-
     setUploading(true);
     try {
       await deleteUserAvatar(user.uid);
@@ -298,6 +184,11 @@ export default function UserPage() {
   };
 
   const initials = getInitials(profile?.name, profile?.surname);
+
+  const isEmoji = (url) => {
+    if (!url) return false;
+    return PROFILE_EMOJIS.includes(url);
+  };
 
   return (
     <Layout contentClass="user-wrapper">
@@ -396,24 +287,56 @@ export default function UserPage() {
         <div className="modal-overlay" onClick={() => setPhotoModalOpen(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Cambiar foto de perfil</h3>
+              <h3>Elige tu avatar</h3>
               <span className="close-btn" onClick={() => setPhotoModalOpen(false)}>×</span>
             </div>
             <div className="modal-body">
-              <div className="photo-options" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <button className="btn-secondary" onClick={() => fileInputRef.current.click()} disabled={uploading}>
-                  {uploading ? 'Procesando...' : 'Subir desde mi equipo'}
-                </button>
-                {profile?.avatarUrl && (
-                  <button className="btn-tertiary" onClick={handleDeletePhoto} disabled={uploading} style={{ backgroundColor: '#ffcccc' }}>
-                    Eliminar foto actual
-                  </button>
-                )}
-                <input type="file" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} accept="image/*" />
+              <div className="avatar-selection-section">
+                <p>Iconos estándar:</p>
+                <div className="standard-avatars-grid" style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(5, 1fr)', 
+                  gap: '12px', 
+                  marginBottom: '20px',
+                  maxHeight: '200px',
+                  overflowY: 'auto',
+                  padding: '10px',
+                  background: '#f8f9fa',
+                  borderRadius: '12px'
+                }}>
+                  {PROFILE_EMOJIS.map((emoji, idx) => (
+                    <div 
+                      key={idx} 
+                      onClick={() => selectImage(emoji)}
+                      style={{ 
+                        fontSize: '32px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '50px',
+                        height: '50px',
+                        cursor: 'pointer', 
+                        borderRadius: '12px',
+                        transition: 'all 0.2s',
+                        background: profile?.avatarUrl === emoji ? '#0056FF' : 'white',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                        border: '2px solid transparent'
+                      }} 
+                    >
+                      {emoji}
+                    </div>
+                  ))}
+                </div>
               </div>
 
+              {profile?.avatarUrl && (
+                <button className="btn-tertiary" onClick={handleDeletePhoto} disabled={uploading} style={{ backgroundColor: '#ffcccc', width: '100%', marginBottom: '20px', borderRadius: '12px', fontWeight: 'bold' }}>
+                  Eliminar foto actual
+                </button>
+              )}
+
               <div className="pixabay-search">
-                <p>O elige una foto libre de Pixabay:</p>
+                <p>O busca una foto en Pixabay:</p>
                 <div className="search-box">
                   <input 
                     type="text" 
@@ -432,7 +355,7 @@ export default function UserPage() {
                       key={img.id} 
                       src={img.previewURL} 
                       alt="pixabay" 
-                      onClick={() => !uploading && selectPixabayImage(img.webformatURL)}
+                      onClick={() => !uploading && selectImage(img.webformatURL)}
                       style={{ opacity: uploading ? 0.5 : 1, cursor: uploading ? 'not-allowed' : 'pointer' }}
                     />
                   ))}
@@ -447,7 +370,13 @@ export default function UserPage() {
       <div className="user-profile">
         <div className="avatar-container" onClick={() => setPhotoModalOpen(true)}>
           {profile?.avatarUrl ? (
-            <img src={profile.avatarUrl} alt="Perfil" className="user-avatar-img" key={profile.avatarUrl} />
+            isEmoji(profile.avatarUrl) ? (
+              <div className="user-avatar-emoji" style={{ fontSize: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+                {profile.avatarUrl}
+              </div>
+            ) : (
+              <img src={profile.avatarUrl} alt="Perfil" className="user-avatar-img" key={profile.avatarUrl} />
+            )
           ) : (
             <div className="user-avatar-initials">{initials}</div>
           )}

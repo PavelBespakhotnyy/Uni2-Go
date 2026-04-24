@@ -60,14 +60,20 @@ export async function uploadUserAvatar(uid, file) {
 export async function deleteUserAvatar(uid) {
     try {
         const docRef = doc(db, "users", uid);
+        const docSnap = await getDoc(docRef);
         
-        // Intentar borrar de Storage por si acaso
-        try {
-            const storageRef = ref(storage, `avatars/${uid}`);
-            await deleteObject(storageRef);
-        } catch (e) {
-            // Ignorar si no existe en storage (ej. si era de Pixabay)
-            console.log("No se encontró archivo en storage para borrar o ya fue borrado.");
+        if (docSnap.exists()) {
+            const currentUrl = docSnap.data().avatarUrl;
+            
+            // Удаляем из Storage только если это внутренняя ссылка Firebase
+            if (currentUrl && currentUrl.includes('firebasestorage.googleapis.com')) {
+                try {
+                    const storageRef = ref(storage, `avatars/${uid}`);
+                    await deleteObject(storageRef);
+                } catch (e) {
+                    console.log("Файл в Storage не найден или уже удален.");
+                }
+            }
         }
 
         await updateDoc(docRef, {
