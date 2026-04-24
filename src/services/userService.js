@@ -1,5 +1,6 @@
-import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "../firebase/firebase";
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { db, storage } from "../firebase/firebase";
 
 const ALLOWED_PROFILE_FIELDS = [
     'name', 'surname', 'phone', 'countryCode', 'countryISO', 'dateOfBirth',
@@ -31,12 +32,50 @@ export async function updateUserProfile(uid, data) {
         if (Object.keys(safeData).length === 0) return;
 
         const docRef = doc(db, "users", uid);
-        await updateDoc(docRef, {
+        // Usamos setDoc con merge: true para asegurar que el documento exista
+        await setDoc(docRef, {
             ...safeData,
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+    } catch (error) {
+        console.error("Error en updateUserProfile:", error);
+        throw error;
+    }
+}
+
+export async function uploadUserAvatar(uid, file) {
+    try {
+        const storageRef = ref(storage, `avatars/${uid}`);
+        await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(storageRef);
+        
+        await updateUserProfile(uid, { avatarUrl: downloadURL });
+        return downloadURL;
+    } catch (error) {
+        console.error("Error en uploadUserAvatar:", error);
+        throw error;
+    }
+}
+
+export async function deleteUserAvatar(uid) {
+    try {
+        const docRef = doc(db, "users", uid);
+        
+        // Intentar borrar de Storage por si acaso
+        try {
+            const storageRef = ref(storage, `avatars/${uid}`);
+            await deleteObject(storageRef);
+        } catch (e) {
+            // Ignorar si no existe en storage (ej. si era de Pixabay)
+            console.log("No se encontró archivo en storage para borrar o ya fue borrado.");
+        }
+
+        await updateDoc(docRef, {
+            avatarUrl: "",
             updatedAt: serverTimestamp()
         });
     } catch (error) {
-        console.error("Error en updateUserProfile:", error);
+        console.error("Error en deleteUserAvatar:", error);
         throw error;
     }
 }
