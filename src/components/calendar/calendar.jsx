@@ -320,7 +320,10 @@ export default function Calendar({ initialDate }) {
       if (selectedEvent) await updateEvent(selectedEvent.id, eventData);
       else await addEvent(eventData);
       setIsModalOpen(false);
-    } catch (error) { console.error("Error saving event:", error); }
+    } catch (error) { 
+      console.error("Error saving event:", error); 
+      setErrorMsg(error.message || "Error al guardar el evento");
+    }
   };
 
   const handleDelete = async () => {
@@ -330,7 +333,11 @@ export default function Calendar({ initialDate }) {
         setShowDeleteConfirm(false);
         setIsModalOpen(false); 
       }
-      catch (error) { console.error("Error deleting event:", error); }
+      catch (error) { 
+        console.error("Error deleting event:", error); 
+        setErrorMsg(error.message || "Error al eliminar el evento");
+        setShowDeleteConfirm(false);
+      }
     }
   };
 

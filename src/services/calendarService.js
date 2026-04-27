@@ -168,11 +168,12 @@ export async function updateEvent(id, updatedData) {
 export async function deleteEvent(id) {
   const user = auth.currentUser;
   if (!user) throw new Error("Usuario no autenticado");
+  if (!id || typeof id !== 'string') throw new Error("ID de evento no válido");
 
   try {
     const eventRef = doc(db, COLLECTION_NAME, id);
     const eventSnap = await getDoc(eventRef);
-    if (!eventSnap.exists()) return;
+    if (!eventSnap.exists()) throw new Error("Evento no encontrado");
     if (eventSnap.data().userId !== user.uid) throw new Error("No autorizado");
 
     await deleteDoc(eventRef);

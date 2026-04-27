@@ -2,12 +2,17 @@ import { useState, useEffect } from 'react';
 import { signOut, updatePassword } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../firebase/firebase.js';
-import { getUserProfile, updateUserProfile } from '../services/userService.js';
+import { getUserProfile, updateUserProfile, deleteUserAvatar } from '../services/userService.js';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { countries } from '../utils/countries.js';
 import Layout from '../components/Layout.jsx';
 import '../components/user/user.css';
 import '../components/user/panel-lateral.css';
+
+const PIXABAY_API_KEY = import.meta.env.VITE_PIXABAY_API_KEY || '';
+
+// 20 standard emojis for profile pictures (matching the groups example)
+const PROFILE_EMOJIS = ['👤','👨‍💻','👩‍💻','👨‍🎓','👩‍🎓','🦸‍♂️','🦸‍♀️','🕵️‍♂️','🕵️‍♀️','🧙‍♂️','🧙‍♀️','🧛‍♂️','🧛‍♀️','🧚‍♂️','🧚‍♀️','🧜‍♂️','🧜‍♀️','🤖','👽','👾'];
 
 function getInitials(name, surname) {
   const n = (name || '').trim();
@@ -18,7 +23,7 @@ function getInitials(name, surname) {
 }
 
 export default function UserPage() {
-  const { user, profile, refreshProfile, loading: authLoading } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,15 +31,20 @@ export default function UserPage() {
   }, [user]);
 
   const [panelOpen, setPanelOpen] = useState(false);
+  const [photoModalOpen, setPhotoModalOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [saveMsg, setSaveMsg] = useState({ text: '', ok: true });
+  
+  const [pixabayQuery, setPixabayQuery] = useState('');
+  const [pixabayImages, setPixabayImages] = useState([]);
+  const [pixabayLoading, setPixabayLoading] = useState(false);
 
   const [fields, setFields] = useState({
     name: '', surname: '', username: '', email: '', phone: '', countryCode: '', countryISO: '', password: '',
   });
 
-  // Load data into panel when opened
   const openPanel = async () => {
     if (!user) return;
     try {
@@ -50,7 +60,6 @@ export default function UserPage() {
         password: '',
       });
     } catch {
-      // use profile fallback
       setFields(f => ({
         ...f,
         name: profile?.name || '',
@@ -76,8 +85,6 @@ export default function UserPage() {
 
   const handleSave = async () => {
     if (!user) return;
-    
-    // Validar teléfono si se ha ingresado algo
     if (fields.phone && !/^[0-9\s]{7,15}$/.test(fields.phone.trim())) {
       setSaveMsg({ text: 'Teléfono inválido (mín. 7 dígitos).', ok: false });
       return;
@@ -108,12 +115,66 @@ export default function UserPage() {
       setSaveMsg({ text: 'Cambios guardados correctamente.', ok: true });
     } catch (err) {
       if (err.code === 'auth/requires-recent-login') {
-        setSaveMsg({ text: 'Por seguridad, cierra sesión y vuelve a iniciarla para cambiar email o contraseña.', ok: false });
+        setSaveMsg({ text: 'Por seguridad, cierra sesión и vuelve a iniciarla para cambiar email o contraseña.', ok: false });
       } else {
         setSaveMsg({ text: 'Error al guardar. Intenta de nuevo.', ok: false });
       }
     } finally {
       setSaving(false);
+    }
+  };
+
+  const searchPixabay = async () => {
+    if (!pixabayQuery.trim()) return;
+    if (!PIXABAY_API_KEY) {
+      alert("La búsqueda de imágenes no está configurada.");
+      return;
+    }
+    setPixabayLoading(true);
+    setPixabayImages([]);
+    try {
+      const res = await fetch(`https://pixabay.com/api/?key=${PIXABAY_API_KEY}&q=${encodeURIComponent(pixabayQuery)}&image_type=photo&per_page=12`);
+      if (!res.ok) throw new Error(`Error de Pixabay: ${res.status}`);
+      const data = await res.json();
+      setPixabayImages(data.hits || []);
+    } catch (error) {
+      console.error("Pixabay search error:", error);
+      alert("Error al buscar imágenes: " + error.message);
+    } finally {
+      setPixabayLoading(false);
+    }
+  };
+
+  const selectImage = async (url) => {
+    if (!user || uploading) return;
+    setUploading(true);
+    try {
+      await updateUserProfile(user.uid, { avatarUrl: url });
+      await refreshProfile();
+      setPhotoModalOpen(false);
+      setSaveMsg({ text: 'Foto actualizada correctamente.', ok: true });
+    } catch (error) {
+      console.error("Error setting profile photo:", error);
+      alert("No se pudo guardar la foto seleccionada: " + error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDeletePhoto = async () => {
+    if (!user || uploading) return;
+    if (!confirm("¿Estás seguro de que quieres eliminar tu foto de perfil?")) return;
+    setUploading(true);
+    try {
+      await deleteUserAvatar(user.uid);
+      await refreshProfile();
+      setPhotoModalOpen(false);
+      setSaveMsg({ text: 'Foto eliminada correctamente.', ok: true });
+    } catch (error) {
+      console.error("Error deleting photo:", error);
+      alert("Error al eliminar la foto: " + error.message);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -123,6 +184,11 @@ export default function UserPage() {
   };
 
   const initials = getInitials(profile?.name, profile?.surname);
+
+  const isEmoji = (url) => {
+    if (!url) return false;
+    return PROFILE_EMOJIS.includes(url);
+  };
 
   return (
     <Layout contentClass="user-wrapper">
@@ -216,9 +282,108 @@ export default function UserPage() {
         </div>
       </div>
 
+      {/* Modal de selección de foto */}
+      {photoModalOpen && (
+        <div className="modal-overlay" onClick={() => setPhotoModalOpen(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Elige tu avatar</h3>
+              <span className="close-btn" onClick={() => setPhotoModalOpen(false)}>×</span>
+            </div>
+            <div className="modal-body">
+              <div className="avatar-selection-section">
+                <p>Iconos estándar:</p>
+                <div className="standard-avatars-grid" style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(5, 1fr)', 
+                  gap: '12px', 
+                  marginBottom: '20px',
+                  maxHeight: '200px',
+                  overflowY: 'auto',
+                  padding: '10px',
+                  background: '#f8f9fa',
+                  borderRadius: '12px'
+                }}>
+                  {PROFILE_EMOJIS.map((emoji, idx) => (
+                    <div 
+                      key={idx} 
+                      onClick={() => selectImage(emoji)}
+                      style={{ 
+                        fontSize: '32px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '50px',
+                        height: '50px',
+                        cursor: 'pointer', 
+                        borderRadius: '12px',
+                        transition: 'all 0.2s',
+                        background: profile?.avatarUrl === emoji ? '#0056FF' : 'white',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                        border: '2px solid transparent'
+                      }} 
+                    >
+                      {emoji}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {profile?.avatarUrl && (
+                <button className="btn-tertiary" onClick={handleDeletePhoto} disabled={uploading} style={{ backgroundColor: '#ffcccc', width: '100%', marginBottom: '20px', borderRadius: '12px', fontWeight: 'bold' }}>
+                  Eliminar foto actual
+                </button>
+              )}
+
+              <div className="pixabay-search">
+                <p>O busca una foto en Pixabay:</p>
+                <div className="search-box">
+                  <input 
+                    type="text" 
+                    placeholder="Buscar fotos..." 
+                    value={pixabayQuery} 
+                    onChange={e => setPixabayQuery(e.target.value)}
+                    onKeyPress={e => e.key === 'Enter' && searchPixabay()}
+                  />
+                  <button onClick={searchPixabay} disabled={pixabayLoading || uploading}>
+                    {pixabayLoading ? '...' : 'Buscar'}
+                  </button>
+                </div>
+                <div className="pixabay-results">
+                  {pixabayImages.map(img => (
+                    <img 
+                      key={img.id} 
+                      src={img.previewURL} 
+                      alt="pixabay" 
+                      onClick={() => !uploading && selectImage(img.webformatURL)}
+                      style={{ opacity: uploading ? 0.5 : 1, cursor: uploading ? 'not-allowed' : 'pointer' }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Contenido principal */}
       <div className="user-profile">
-        <div className="user-avatar-initials">{initials}</div>
+        <div className="avatar-container" onClick={() => setPhotoModalOpen(true)}>
+          {profile?.avatarUrl ? (
+            isEmoji(profile.avatarUrl) ? (
+              <div className="user-avatar-emoji" style={{ fontSize: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+                {profile.avatarUrl}
+              </div>
+            ) : (
+              <img src={profile.avatarUrl} alt="Perfil" className="user-avatar-img" key={profile.avatarUrl} />
+            )
+          ) : (
+            <div className="user-avatar-initials">{initials}</div>
+          )}
+          <div className="avatar-overlay">
+            <i className="bx bx-camera"></i>
+          </div>
+        </div>
       </div>
 
       <div className="user-content">
