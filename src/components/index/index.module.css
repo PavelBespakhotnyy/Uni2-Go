@@ -2,7 +2,7 @@
 
 :global(body) {
     font-family: "Sarala", sans-serif;
-    background-color: #ffffff;
+    background-color: var(--color-bg);
 }
 
 .page {
@@ -66,15 +66,15 @@
 }
 
 .btnRegister {
-    background-color: #f28c18;
-    color: white;
-    border: 2px solid #f28c18;
+    background-color: var(--color-accent);
+    color: var(--color-bg);
+    border: 2px solid var(--color-accent);
 }
 
 .btnLogin {
-    background-color: white;
-    color: #f28c18;
-    border: 2px solid #f28c18;
+    background-color: var(--color-bg);
+    color: var(--color-accent);
+    border: 2px solid var(--color-accent);
 }
 
 /* --- FEATURE SECTIONS --- */
@@ -184,7 +184,7 @@
     content: '+';
     font-size: 24px;
     font-weight: 300;
-    color: #7b77d1;
+    color: var(--color-accent);
     flex-shrink: 0;
     width: 28px;
     height: 28px;
@@ -207,7 +207,7 @@
     margin: 0;
     font-size: 17px;
     font-weight: 600;
-    color: #1a1a2e;
+    color: var(--color-text);
     line-height: 1.4;
 }
 
@@ -216,5 +216,5 @@
     padding: 0 24px 20px 24px;
     font-size: 16px;
     line-height: 1.6;
-    color: #444;
+    color: var(--color-muted);
 }

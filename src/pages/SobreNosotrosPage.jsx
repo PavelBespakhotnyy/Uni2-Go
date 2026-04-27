@@ -1,16 +1,30 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout.jsx';
 import '../components/sobre_nosotros/sobre_nosotros.css';
 
+function useDarkMode() {
+  const [dark, setDark] = useState(() =>
+    document.documentElement.getAttribute('data-dark') === 'true'
+  );
+  useEffect(() => {
+    const observer = new MutationObserver(() =>
+      setDark(document.documentElement.getAttribute('data-dark') === 'true')
+    );
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-dark'] });
+    return () => observer.disconnect();
+  }, []);
+  return dark;
+}
+
 const FEATURES = [
-  { icon: 'bx-calendar-check', title: 'Calendario inteligente', desc: 'Eventos, reuniones y tareas siempre a mano.', color: '#eeeefe', iconColor: '#4f46e5', to: '/calendar', goto: 'Ir al Calendario' },
-  { icon: 'bx-conversation',   title: 'Chat con amigos',        desc: 'Mensajes en tiempo real sin salir de la app.', color: '#fff3e0', iconColor: '#f28c18', to: '/chat',     goto: 'Ir al Chat' },
+  { icon: 'bx-calendar-check', title: 'Calendario inteligente', desc: 'Eventos, reuniones y tareas siempre a mano.', color: '#fff0ee', iconColor: 'var(--color-accent)', to: '/calendar', goto: 'Ir al Calendario' },
+  { icon: 'bx-conversation',   title: 'Chat con amigos',        desc: 'Mensajes en tiempo real sin salir de la app.', color: '#fff3e0', iconColor: 'var(--color-accent-soft)', to: '/chat',     goto: 'Ir al Chat' },
   { icon: 'bx-group',          title: 'Grupos y eventos',       desc: 'Comparte y sincronízate con tu equipo.', color: '#e8f5e9', iconColor: '#2e7d32', to: '/grupos',   goto: 'Ir a Grupos' },
   { icon: 'bx-cart',           title: 'Lista de la compra',     desc: 'Listas compartidas con un clic.', color: '#fce4e4', iconColor: '#c0392b', to: '/lista',    goto: 'Ir a la Lista' },
 ];
 
-function SvgCalendarUI() {
+function SvgCalendarUI({ dark }) {
   const [hovered, setHovered] = useState(null);
   const leaveTimer = useRef(null);
   const now = new Date();
@@ -49,9 +63,9 @@ function SvgCalendarUI() {
   return (
     <svg viewBox={`0 0 ${W} 222`} fill="none" xmlns="http://www.w3.org/2000/svg" className="sn-hero-svg">
       {/* Shadow */}
-      <rect x="4" y="6" width={W-8} height="214" rx="18" fill="rgba(79,70,229,0.07)"/>
+      <rect x="4" y="6" width={W-8} height="214" rx="18" fill={dark ? 'rgba(79,70,229,0.15)' : 'rgba(79,70,229,0.07)'}/>
       {/* Body */}
-      <rect x="1" y="1" width={W-2} height="214" rx="18" fill="white" stroke="#e4e2f8" strokeWidth="1.5"/>
+      <rect x="1" y="1" width={W-2} height="214" rx="18" fill={dark ? '#1a2a35' : 'white'} stroke={dark ? '#2a3d4a' : '#e4e2f8'} strokeWidth="1.5"/>
 
       {/* Header */}
       <rect x="1" y="1" width={W-2} height="48" rx="18" fill="#4f46e5"/>
@@ -64,7 +78,7 @@ function SvgCalendarUI() {
       {days.map((d, i) => (
         <text key={d}
           x={padX + i * cellW + cellW / 2} y={65}
-          fill={i >= 5 ? '#f28c18' : '#aaa'}
+          fill={i >= 5 ? '#f28c18' : (dark ? '#6b8a96' : '#aaa')}
           fontSize="8.5" fontWeight="700" fontFamily="sans-serif" textAnchor="middle">
           {d}
         </text>
@@ -98,7 +112,7 @@ function SvgCalendarUI() {
                 onMouseEnter={() => handleEnter(date)}>
                 <rect x={padX + c * cellW} y={gridTop + r * cellH} width={cellW} height={cellH} fill="transparent"/>
                 <text x={cx} y={cy + 4.5}
-                  fill={isActive ? 'white' : isWeekend ? '#f28c18' : '#222'}
+                  fill={isActive ? 'white' : isWeekend ? '#f28c18' : (dark ? '#c8d8e3' : '#222')}
                   fontSize="11" fontFamily="sans-serif" textAnchor="middle"
                   fontWeight={isActive ? '700' : '400'}>
                   {date}
@@ -118,7 +132,7 @@ function SvgCalendarUI() {
 const PLANNER_COLORS = ['#4f46e5','#f28c18','#2e7d32','#c0392b','#7b77d1','#0891b2','#d97706','#db2777'];
 function randColor() { return PLANNER_COLORS[Math.floor(Math.random() * PLANNER_COLORS.length)]; }
 
-function SvgPlanner() {
+function SvgPlanner({ dark }) {
   const [cells, setCells] = useState({
     '1-0': '#4f46e5',
     '4-1': '#f28c18',
@@ -142,7 +156,7 @@ function SvgPlanner() {
   return (
     <svg viewBox="0 0 160 140" fill="none" xmlns="http://www.w3.org/2000/svg" className="sn-about-svg" style={{ cursor: 'pointer' }}>
       {/* Calendar body */}
-      <rect x="16" y="24" width="128" height="104" rx="12" fill="#fff" stroke="#d0cef8" strokeWidth="2"/>
+      <rect x="16" y="24" width="128" height="104" rx="12" fill={dark ? '#1a2a35' : '#fff'} stroke={dark ? '#2a3d4a' : '#d0cef8'} strokeWidth="2"/>
       {/* Header bar */}
       <rect x="16" y="24" width="128" height="32" rx="12" fill="#4f46e5"/>
       <rect x="16" y="44" width="128" height="12" fill="#4f46e5"/>
@@ -159,7 +173,7 @@ function SvgPlanner() {
           const key = `${col}-${row}`;
           const x = 26 + col * 17;
           const y = 66 + row * 18;
-          const color = cells[key] || '#f0efff';
+          const color = cells[key] || (dark ? '#253540' : '#f0efff');
           const isColored = !!cells[key];
           return (
             <g key={key} onClick={() => toggle(key)} style={{ cursor: 'pointer' }}>
@@ -214,6 +228,7 @@ function SvgTeam() {
 }
 
 export default function SobreNosotrosPage() {
+  const dark = useDarkMode();
   return (
     <Layout contentClass="sn-wrapper">
       <div className="sn-page">
@@ -229,7 +244,7 @@ export default function SobreNosotrosPage() {
             </p>
           </div>
           <div className="sn-hero-right">
-            <SvgCalendarUI />
+            <SvgCalendarUI dark={dark} />
           </div>
         </section>
 
@@ -250,7 +265,7 @@ export default function SobreNosotrosPage() {
         {/* ABOUT */}
         <section className="sn-about">
           <div className="sn-about-card sn-about-card-purple">
-            <SvgPlanner />
+            <SvgPlanner dark={dark} />
             <div className="sn-about-text">
               <h2>¿Qué es Uni2Go?</h2>
               <p>Una plataforma diseñada para estudiantes que buscan optimizar su tiempo y conectar con su comunidad académica — disponible en web y móvil.</p>

@@ -29,7 +29,7 @@
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important;
-    background-color: #f5f5f5;
+    background-color: var(--color-surface);
 }
 
 .calendarGridScrollable {
@@ -58,7 +58,7 @@
 }
 
 .modalContent {
-    background: #fff;
+    background: var(--color-bg);
     border-radius: 20px;
     width: 100%;
     max-width: 460px;
@@ -78,18 +78,18 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--color-border);
     flex-shrink: 0;
 }
 
 .modalTitle {
     font-size: 17px;
     font-weight: 700;
-    color: #1a1a1a;
+    color: var(--color-text);
 }
 
 .modalCloseBtn {
-    background: #f5f5f5;
+    background: var(--color-surface);
     border: none;
     cursor: pointer;
     width: 32px;
@@ -98,12 +98,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #555;
+    color: var(--color-muted);
     transition: background 0.15s;
 }
 
 .modalCloseBtn:hover {
-    background: #ebebeb;
+    background: var(--color-surface-2);
 }
 
 .modalBody {
@@ -117,7 +117,7 @@
     display: block;
     font-size: 11px;
     font-weight: 700;
-    color: #888;
+    color: var(--color-muted);
     text-transform: uppercase;
     letter-spacing: 0.06em;
     margin-bottom: 6px;
@@ -126,17 +126,17 @@
 .inputField {
     width: 100%;
     padding: 11px 14px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--color-border);
     border-radius: 10px;
     font-size: 14px;
     outline: none;
-    background: #fff;
+    background: var(--color-bg);
     transition: border-color 0.15s;
-    color: #1a1a1a;
+    color: var(--color-text);
 }
 
 .inputField:focus {
-    border-color: #0056FF;
+    border-color: var(--color-accent);
 }
 
 .colorGrid {
@@ -160,8 +160,8 @@
 }
 
 .colorSwatchActive {
-    border-color: #1a1a1a;
-    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #1a1a1a;
+    border-color: var(--color-text);
+    box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-text);
     transform: scale(1.1);
 }
 
@@ -178,13 +178,13 @@
 }
 
 .formTimeSection {
-    background: #f7f9fc;
+    background: var(--color-surface);
     border-radius: 12px;
     padding: 14px;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    border: 1px solid #eef0f4;
+    border: 1px solid var(--color-border);
 }
 
 .allDayRow {
@@ -199,7 +199,7 @@
     gap: 6px;
     font-size: 12px;
     font-weight: 600;
-    color: #555;
+    color: var(--color-muted);
     cursor: pointer;
 }
 
@@ -207,13 +207,13 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: #f0f4ff;
-    color: #0056FF;
+    background: #fff0ee;
+    color: var(--color-accent);
     padding: 5px 10px;
     border-radius: 20px;
     font-size: 12px;
     font-weight: 600;
-    border: 1px solid #e0e8ff;
+    border: 1px solid var(--color-accent-soft);
 }
 
 .friendTagRemove {
@@ -224,7 +224,7 @@
     transition: opacity 0.15s;
     background: none;
     border: none;
-    color: #0056FF;
+    color: var(--color-accent);
     padding: 0;
 }
 
@@ -246,8 +246,8 @@
 .btnPrimary {
     flex: 1;
     padding: 11px 22px;
-    background: #0056FF;
-    color: #fff;
+    background: var(--color-accent);
+    color: var(--color-bg);
     border: none;
     border-radius: 10px;
     font-size: 14px;
@@ -256,12 +256,12 @@
     transition: background 0.15s;
 }
 
-.btnPrimary:hover { background: #003fc2; }
+.btnPrimary:hover { background: var(--color-accent-soft); }
 
 .btnCancel {
     padding: 11px 22px;
-    background: #f0f0f0;
-    color: #555;
+    background: var(--color-surface);
+    color: var(--color-muted);
     border: none;
     border-radius: 10px;
     font-size: 14px;
@@ -270,7 +270,7 @@
     transition: background 0.15s;
 }
 
-.btnCancel:hover { background: #e0e0e0; }
+.btnCancel:hover { background: var(--color-surface-2); }
 
 .btnDanger {
     padding: 11px 14px;
@@ -306,8 +306,8 @@
     top: calc(100% + 4px);
     left: 0;
     right: 0;
-    background: #fff;
-    border: 1.5px solid #e0e0e0;
+    background: var(--color-bg);
+    border: 1.5px solid var(--color-border);
     border-radius: 10px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.12);
     z-index: 50;
@@ -324,17 +324,17 @@
     border-bottom: 1px solid #f5f5f5;
     font-size: 13px;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--color-text);
     transition: background 0.12s;
 }
 
 .groupDropdownItem:last-child { border-bottom: none; }
-.groupDropdownItem:hover { background: #f7f9ff; }
+.groupDropdownItem:hover { background: #fff0ee; }
 
 .groupDropdownItem input[type="checkbox"] {
     width: 14px;
     height: 14px;
-    accent-color: #0056FF;
+    accent-color: var(--color-accent);
     cursor: pointer;
     flex-shrink: 0;
 }
@@ -345,7 +345,7 @@
     flex-direction: column;
     height: 100%;
     width: 100%;
-    background-color: #f5f5f5;
+    background-color: var(--color-surface);
     font-family: sans-serif;
     overflow: hidden;
 }
@@ -356,8 +356,8 @@
     align-items: center;
     justify-content: space-between;
     padding: 1.25rem 2rem;
-    background-color: #ffffff;
-    border-bottom: 1px solid #e5e7eb;
+    background-color: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
     z-index: 50;
     flex-shrink: 0;
 }
@@ -384,6 +384,7 @@
     margin: 0;
     min-width: 200px;
     text-align: center;
+    color: var(--color-text);
 }
 
 .navGroup {
@@ -399,26 +400,26 @@
     width: 34px;
     height: 34px;
     border-radius: 8px;
-    border: 1px solid #e5e7eb;
-    background: #f5f5f5;
-    color: #555;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-muted);
     cursor: pointer;
     transition: all 0.15s;
     flex-shrink: 0;
 }
 
 .navArrow:hover {
-    background: #ebebeb;
-    color: #1a1a1a;
-    border-color: #d0d0d0;
+    background: var(--color-surface-2);
+    color: var(--color-text);
+    border-color: var(--color-border);
 }
 
 .todayButton {
     padding: 0.5rem 1.25rem;
     border-radius: 8px;
-    border: 1px solid #e5e7eb;
-    background: #f5f5f5;
-    color: #555;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-muted);
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
@@ -426,39 +427,72 @@
 }
 
 .todayButton:hover {
-    background: #ebebeb;
-    color: #1a1a1a;
-    border-color: #d0d0d0;
+    background: var(--color-surface-2);
+    color: var(--color-text);
+    border-color: var(--color-border);
 }
 
 .viewGroup {
     display: flex;
-    background-color: #f0f0f0;
-    padding: 0.375rem;
-    border-radius: 0.5rem;
-    border: 1px solid #e5e7eb;
-    gap: 0.25rem;
+    background-color: var(--color-surface);
+    padding: 5px;
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    gap: 6px;
+    align-items: center;
+}
+
+.viewButton {
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background: transparent;
+    color: var(--color-muted);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.viewButton:hover {
+    color: var(--color-text);
+    background-color: var(--color-surface-2);
+}
+
+.activeView {
+    background-color: var(--color-bg);
+    color: var(--color-accent) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: var(--color-border);
+}
+
+:global([data-dark="true"]) .activeView {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .actionButton {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    background-color: #0056FF;
-    color: #ffffff;
+    background-color: var(--color-accent);
+    color: var(--color-bg);
     padding: 0.625rem 1.5rem;
     border-radius: 0.5rem;
     font-weight: 700;
     font-size: 0.8rem;
     letter-spacing: 0.05em;
     transition: all 0.2s;
-    box-shadow: 0 4px 14px rgba(0, 86, 255, 0.3);
+    box-shadow: 0 4px 14px rgba(244, 44, 4, 0.3);
 }
 
 .actionButton:hover {
-    background-color: #003fc2;
+    background-color: var(--color-accent-soft);
     transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(0, 86, 255, 0.4);
+    box-shadow: 0 6px 18px rgba(244, 44, 4, 0.4);
 }
 
 @media (max-width: 1024px) {
@@ -474,4 +508,28 @@
     :global(body.calendar-page #navbar.sidebar) {
         display: none !important;
     }
+}
+
+/* ── Dark mode overrides ── */
+:global([data-dark="true"]) .friendTag {
+    background: var(--color-surface-2);
+}
+
+:global([data-dark="true"]) .btnDanger {
+    background: rgba(229, 62, 62, 0.15);
+    border-color: rgba(229, 62, 62, 0.4);
+}
+
+:global([data-dark="true"]) .errorBox {
+    background: rgba(229, 62, 62, 0.12);
+    border-left-color: #e53e3e;
+    color: #fc8181;
+}
+
+:global([data-dark="true"]) .groupDropdownItem {
+    border-bottom-color: var(--color-border);
+}
+
+:global([data-dark="true"]) .groupDropdownItem:hover {
+    background: var(--color-surface-2);
 }

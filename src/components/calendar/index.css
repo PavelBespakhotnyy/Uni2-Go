@@ -36,7 +36,7 @@ body.calendar-page #navbar.sidebar {
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important;
-    background-color: #f5f5f5;
+    background-color: var(--color-surface);
 }
 
 /* 6. Calendar wrapper */

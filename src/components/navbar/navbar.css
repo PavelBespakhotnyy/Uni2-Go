@@ -1,10 +1,4 @@
-:root {
-    --sidebar-width-expanded: 220px;
-    --sidebar-width-collapsed: 80px;
-    --transition-speed: 0.35s;
-    --ease: cubic-bezier(0.4, 0, 0.2, 1);
-    --ease-out: cubic-bezier(0, 0, 0.2, 1);
-}
+/* navbar.css — :root lives in style.css, NOT here */
 
 .sidebar {
     display: flex;
@@ -12,55 +6,50 @@
     position: fixed;
     height: 100vh;
     width: var(--sidebar-width-expanded);
-    border-right: solid #000000 1px;
+    border-right: 1px solid var(--color-border);
     z-index: 9990;
-    background-color: #ffffff;
+    background-color: var(--color-bg);
 }
 
-/* Enable transitions only after page load to avoid initial animation */
+/* Enable transitions only after page load */
 body.sidebar-ready .sidebar {
-    transition: width var(--transition-speed) var(--ease);
+    transition: width var(--transition-slow);
 }
 
 body.sidebar-ready .sidebar-top-part {
-    transition: padding var(--transition-speed) var(--ease),
-                gap var(--transition-speed) var(--ease);
+    transition: padding var(--transition-slow), gap var(--transition-slow);
 }
 
 body.sidebar-ready .sidebar-logo {
-    transition: width var(--transition-speed) var(--ease),
-                opacity var(--transition-speed) var(--ease);
+    transition: width var(--transition-slow), opacity var(--transition-slow);
 }
 
-/* Expanding: sidebar expands first, then text slides in */
+/* Expanding: text slides in after sidebar */
 body.sidebar-ready:not(.sidebar-collapsed) .buttons-list li a .nav-label {
-    transition: opacity 0.2s var(--ease-out) 0.18s,
-                max-width 0.22s var(--ease-out) 0.14s;
+    transition: opacity 0.2s ease 0.18s, max-width 0.22s ease 0.14s;
 }
 
-/* Collapsing: text disappears first, then sidebar shrinks */
+/* Collapsing: text disappears first */
 body.sidebar-ready.sidebar-collapsed .buttons-list li a .nav-label {
-    transition: opacity 0.14s var(--ease),
-                max-width 0.18s var(--ease);
+    transition: opacity 0.14s ease, max-width 0.18s ease;
 }
 
-/* Sidebar shrinks with slight delay so text can exit first */
 body.sidebar-ready.sidebar-collapsed .sidebar {
-    transition: width var(--transition-speed) var(--ease) 0.08s;
+    transition: width var(--transition-slow) 0.08s;
 }
 
 body.sidebar-ready .calendar-wrapper,
 body.sidebar-ready .content-wrapper {
-    transition: margin-left var(--transition-speed) var(--ease),
-                width var(--transition-speed) var(--ease),
-                max-width var(--transition-speed) var(--ease);
+    transition: margin-left var(--transition-slow),
+                width var(--transition-slow),
+                max-width var(--transition-slow);
 }
 
 body.sidebar-collapsed .sidebar {
     width: var(--sidebar-width-collapsed);
 }
 
-/* Logo with close/open sidebar button */
+/* ── Top part ── */
 .sidebar-top-part {
     display: flex;
     align-items: center;
@@ -72,13 +61,12 @@ body.sidebar-collapsed .sidebar {
 }
 
 body.sidebar-collapsed .sidebar-top-part {
-    padding: 10px 26px;
+    padding: 0;
     gap: 0;
+    justify-content: center;
 }
 
-/* Logo size */
 .sidebar-logo {
-    scale: 1;
     width: 120px;
 }
 
@@ -91,41 +79,36 @@ body.sidebar-collapsed .sidebar-logo {
 .sidebar-button {
     cursor: pointer;
     flex-shrink: 0;
+    color: var(--color-text);
 }
 
-body.sidebar-collapsed .sidebar-button {
-    transform: none;
-}
-
+/* ── Nav list ── */
 .buttons-list {
     display: flex;
     flex-direction: column;
     margin: 20px 0 0 0;
-    gap: 30px;
+    gap: 4px;
     flex: 1;
     overflow-y: auto;
 }
 
-/* Hide scrollbar for sidebar buttons */
-.buttons-list::-webkit-scrollbar {
-    width: 0px;
-}
+.buttons-list::-webkit-scrollbar { width: 0; }
 
-/* Button styles */
 .buttons-list li a {
-    margin: 0 10px;
     padding: 10px 16px;
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     position: relative;
     display: flex;
     justify-content: flex-start;
     align-items: center;
     gap: 15px;
     white-space: nowrap;
-    transition: background-color 0.2s var(--ease);
+    color: var(--color-text);
+    text-decoration: none;
+    transition: background-color var(--transition-base);
 }
 
-/* Active indicator — pseudo-element so it doesn't shift icon position */
+/* Active indicator stripe */
 .buttons-list li a::before {
     content: '';
     position: absolute;
@@ -135,7 +118,7 @@ body.sidebar-collapsed .sidebar-button {
     width: 3px;
     border-radius: 0 3px 3px 0;
     background-color: transparent;
-    transition: background-color 0.2s var(--ease);
+    transition: background-color var(--transition-base);
 }
 
 .buttons-list li a i {
@@ -144,12 +127,10 @@ body.sidebar-collapsed .sidebar-button {
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: transform 0.2s var(--ease);
+    transition: transform var(--transition-base);
 }
 
-.buttons-list li a:hover i {
-    transform: scale(1.15);
-}
+.buttons-list li a:hover i { transform: scale(1.15); }
 
 .nav-icon-wrapper {
     flex-shrink: 0;
@@ -164,86 +145,151 @@ body.sidebar-collapsed .sidebar-button {
     position: absolute;
     top: -8px;
     right: -8px;
-    background-color: #ff0000;
-    color: white;
+    background-color: var(--color-accent);
+    color: var(--color-bg);
     font-size: 10px;
-    font-weight: bold;
+    font-weight: 700;
     min-width: 16px;
     height: 16px;
-    border-radius: 50%;
+    border-radius: var(--radius-pill);
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 0 4px;
-    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    box-shadow: var(--shadow-sm);
     z-index: 10;
 }
 
+/* ── Collapsed: icon-only ── */
 body.sidebar-collapsed .buttons-list li a {
     justify-content: flex-start;
 }
 
-/* Button text — stays in flow, animates via max-width */
 .buttons-list li a .nav-label {
     opacity: 1;
     max-width: 160px;
     overflow: hidden;
     white-space: nowrap;
+    font-family: var(--font-sans);
+    font-weight: 700;
 }
 
-/* Collapsed: shrink in-flow so no layout jump */
 body.sidebar-collapsed .buttons-list li a .nav-label {
     max-width: 0;
     opacity: 0;
 }
 
-/* Tooltip on hover when collapsed */
+/* Tooltip when collapsed */
 body.sidebar-collapsed .buttons-list li:hover a .nav-label {
     position: absolute;
     left: 70px;
     max-width: 220px;
     overflow: visible;
     opacity: 1;
-    background-color: #1f1f1f;
-    color: #fff;
+    background-color: var(--color-text);
+    color: var(--color-bg);
     padding: 5px 11px;
-    border-radius: 7px;
+    border-radius: var(--radius-sm);
     font-size: 13px;
     pointer-events: none;
     z-index: 10000;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+    box-shadow: var(--shadow-md);
     white-space: nowrap;
 }
 
 body.sidebar-ready.sidebar-collapsed .buttons-list li:hover a .nav-label {
-    transition: opacity 0.15s var(--ease-out);
+    transition: opacity var(--transition-fast);
 }
 
-/* Button effects on hover */
+/* ── Hover / Active ── */
 .buttons-list li a:hover:not(.button-change-page-active) {
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: var(--color-surface);
 }
 
-/* Active buttons */
 .button-change-page-active {
-    background-color: rgba(0, 0, 0, 0.08);
+    background-color: var(--color-surface-2);
 }
 
 .button-change-page-active::before {
-    background-color: #4f46e5;
+    background-color: var(--color-accent);
 }
 
-body.sidebar-ready .buttons-list li a {
-    transition: background-color 0.2s var(--ease);
-}
-
-/* Make USUARIO button at the bottom */
-.buttons-list > :last-child {
+/* ── Bottom group pinned to bottom ── */
+.buttons-list .nav-bottom-group {
     margin-top: auto;
     margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Main container layout adjustment */
+/* ── Dark mode toggle button ── */
+.dark-toggle-nav {
+    padding: 10px 16px;
+    border-radius: var(--radius-md);
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 15px;
+    white-space: nowrap;
+    color: var(--color-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: background-color var(--transition-base), color var(--transition-base);
+}
+
+.dark-toggle-nav:hover {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+}
+
+.dark-toggle-nav--active {
+    color: var(--color-accent);
+}
+
+.dark-toggle-nav--active:hover {
+    background-color: var(--color-accent-muted);
+}
+
+/* Collapsed: hide label same as nav labels */
+body.sidebar-collapsed .dark-toggle-nav {
+    justify-content: flex-start;
+}
+
+body.sidebar-collapsed .dark-toggle-nav .nav-label {
+    max-width: 0;
+    opacity: 0;
+}
+
+body.sidebar-ready.sidebar-collapsed .dark-toggle-nav .nav-label {
+    transition: opacity 0.14s ease, max-width 0.18s ease;
+}
+
+body.sidebar-ready:not(.sidebar-collapsed) .dark-toggle-nav .nav-label {
+    transition: opacity 0.2s ease 0.18s, max-width 0.22s ease 0.14s;
+}
+
+/* Tooltip when collapsed */
+body.sidebar-collapsed .nav-bottom-group:hover .dark-toggle-nav .nav-label {
+    position: absolute;
+    left: 70px;
+    max-width: 220px;
+    overflow: visible;
+    opacity: 1;
+    background-color: var(--color-text);
+    color: var(--color-bg);
+    padding: 5px 11px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    pointer-events: none;
+    z-index: 10000;
+    box-shadow: var(--shadow-md);
+    white-space: nowrap;
+}
+
+/* ── Content offset ── */
 .content-wrapper {
     margin-left: var(--sidebar-width-expanded);
     width: calc(100vw - var(--sidebar-width-expanded));

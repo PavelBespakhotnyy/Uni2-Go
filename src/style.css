@@ -1,9 +1,47 @@
 @import "tailwindcss";
 
 :root {
-    --sidebar-width-expanded: 220px;
-    --sidebar-width-hidden: 60px;
-    --header-height: 80px;
+    /* Layout */
+    --sidebar-width-expanded:  220px;
+    --sidebar-width-collapsed: 60px;
+    --sidebar-width-hidden:    60px;
+    --header-height:           80px;
+
+    /* Base palette — overridden by loadPalette() on app start */
+    --color-bg:            #f5f9fc;
+    --color-text:          #0c1a24;
+    --color-muted:         #6b8a96;
+    --color-border:        #9ab5c3;
+    --color-accent:        #3b82f6;
+    --color-accent-soft:   #60a5fa;
+    --color-accent-muted:  rgba(59,130,246,0.09);
+    --color-accent-shadow: rgba(59,130,246,0.22);
+
+    /* Surfaces */
+    --color-surface:   #eef3f7;
+    --color-surface-2: #dde8ef;
+    --color-surface-3: #c8d8e3;
+
+    /* Chat messages */
+    --color-msg-sent:     #c3dff0;
+    --color-msg-received: #c8d8e3;
+
+    /* Transitions */
+    --transition-slow: 0.35s cubic-bezier(0.4,0,0.2,1);
+    --transition-base: 0.2s ease;
+    --transition-fast: 0.15s ease;
+
+    /* Radii */
+    --radius-sm:   6px;
+    --radius-md:   10px;
+    --radius-pill: 999px;
+
+    /* Font */
+    --font-sans: system-ui, -apple-system, sans-serif;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+    --shadow-md: 0 4px 14px rgba(0,0,0,0.18);
 }
 
 /* Universal Top Bar for Friends, Groups, Notifications */
@@ -13,8 +51,8 @@
     grid-template-columns: 1fr auto 1fr; /* Left, Center, Right zones */
     align-items: center;
     padding: 0 30px;
-    background-color: #ffffff;
-    border-bottom: 2px solid #d1d1d1;
+    background-color: var(--color-bg);
+    border-bottom: 2px solid var(--color-border);
     box-sizing: border-box;
     width: 100%;
     flex-shrink: 0;
@@ -50,8 +88,8 @@
     top: calc(100% + 5px);
     left: 0;
     right: 0;
-    background: white;
-    border: 1px solid #ccc;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
     border-radius: 12px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     z-index: 10000;
@@ -70,7 +108,7 @@
 }
 
 .search-result-item:hover {
-    background: #f5f5f5;
+    background: var(--color-surface);
 }
 
 .search-result-item .user-info {
@@ -81,12 +119,12 @@
 .search-result-item .user-name {
     font-weight: 700;
     font-size: 14px;
-    color: #1a1a1a;
+    color: var(--color-text);
 }
 
 .search-result-item .user-handle {
     font-size: 12px;
-    color: #888;
+    color: var(--color-muted);
 }
 
 .header-search-container i {
@@ -94,19 +132,21 @@
     left: 15px;
     top: 50%;
     transform: translateY(-50%);
-    color: #888;
+    color: var(--color-muted);
 }
 
 .header-search-input {
     width: 100%;
     padding: 10px 15px 10px 40px;
     border-radius: 20px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-bg);
+    color: var(--color-text);
     outline: none;
     font-size: 14px;
     transition: all 0.2s;
 }
 
 .header-search-input:focus {
-    border-color: #1a1a1a;
+    border-color: var(--color-accent);
 }

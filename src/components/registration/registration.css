@@ -4,7 +4,7 @@ body {
     margin: 0;
     padding: 0;
     font-family: "Sarala", Arial, sans-serif;
-    background-color: #ffffff;
+    background-color: var(--color-bg);
     overflow-x: hidden;
     width: 100%;
 }
@@ -17,7 +17,6 @@ body {
     justify-content: center;
     min-height: 100vh;
     padding: 20px;
-    /* Eliminamos 'position: relative' para que la flecha se posicione respecto a la pantalla (body) */
     width: 100%;
     max-width: 980px;
     margin: 0 auto;
@@ -25,7 +24,7 @@ body {
 
 /* --- FLECHA DE REGRESO (POSICIÓN GLOBAL) --- */
 #content > a:first-of-type {
-    position: fixed; /* Cambiado a fixed para que se pegue al borde de la ventana del navegador */
+    position: fixed;
     top: 50px;
     left: 50px;
     z-index: 100;
@@ -60,7 +59,7 @@ form#registroForm h1 {
     font-weight: bold;
     margin-bottom: 30px;
     text-align: center;
-    color: #000000;
+    color: var(--color-text);
 }
 
 /* CONTENEDORES DE INPUTS */
@@ -90,7 +89,7 @@ form#registroForm label {
     display: block;
     font-size: 16px;
     margin-bottom: 8px;
-    color: #000000;
+    color: var(--color-text);
 }
 
 /* ENTRADAS (INPUTS) */
@@ -102,25 +101,25 @@ form#registroForm input[type="tel"] {
     width: 100%;
     padding: 12px 15px;
     font-size: 16px;
-    border: 1px solid #cccccc;
+    border: 1px solid var(--color-border);
     border-radius: 4px;
     box-sizing: border-box;
-    background-color: #f5f5f5;
+    background-color: var(--color-surface);
 }
 
 .phone-container {
     display: flex;
     gap: 0;
-    border: 1px solid #cccccc;
+    border: 1px solid var(--color-border);
     border-radius: 4px;
-    background-color: #f5f5f5;
+    background-color: var(--color-surface);
     overflow: hidden;
 }
 
 .phone-container > div:first-child {
     width: 80px !important;
     flex-shrink: 0;
-    border-right: 1px solid #cccccc;
+    border-right: 1px solid var(--color-border);
 }
 
 .phone-container select {
@@ -144,8 +143,8 @@ form#registroForm input[type="submit"] {
     padding: 12px 20px;
     font-size: 16px;
     font-weight: 500;
-    background-color: #d3d3d3;
-    color: #000000;
+    background-color: var(--color-accent);
+    color: var(--color-bg);
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -153,7 +152,7 @@ form#registroForm input[type="submit"] {
 }
 
 form#registroForm input[type="submit"]:hover {
-    background-color: #b8b8b8;
+    background-color: var(--color-accent-soft);
 }
 
 /* ERROR MESSAGE */
@@ -183,7 +182,7 @@ form#registroForm input[type="submit"]:hover {
 /* DISEÑO RESPONSIVE */
 @media (max-width: 600px) {
     #content > a:first-of-type {
-        top: 30px; /* Un poco más arriba en móviles si lo prefieres, o déjalo en 50px */
-        left: 20px; /* Un poco más pegado en móviles */
+        top: 30px;
+        left: 20px;
     }
 }
