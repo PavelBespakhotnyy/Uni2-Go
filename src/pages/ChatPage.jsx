@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { chatService } from '../services/chatService.js';
 import { friendsService } from '../services/friendsService.js';
+import { getUserProfile } from '../services/userService.js';
 import Layout from '../components/Layout.jsx';
 import '../components/chat/style.css';
 
@@ -22,7 +23,28 @@ function chatInitials(name) {
   return '?';
 }
 
-function ChatAvatar({ name }) {
+function isEmoji(str) {
+  return str && !/^https?:\/\//.test(str) && str.length <= 8;
+}
+
+function ChatAvatar({ name, avatarUrl }) {
+  if (avatarUrl && isEmoji(avatarUrl)) {
+    return (
+      <div className="chat-contact-avatar" style={{ backgroundColor: '#f0f0f0', fontSize: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {avatarUrl}
+      </div>
+    );
+  }
+  if (avatarUrl) {
+    return (
+      <div className="chat-contact-avatar">
+        <img src={avatarUrl} alt={name} onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+        <span style={{ display: 'none', width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center', backgroundColor: hashAvatarColor(name), color: '#fff', fontWeight: 700, fontSize: '16px' }}>
+          {chatInitials(name)}
+        </span>
+      </div>
+    );
+  }
   return (
     <div className="chat-contact-avatar" style={{ backgroundColor: hashAvatarColor(name), color: '#fff', fontWeight: 700, fontSize: '16px' }}>
       {chatInitials(name)}
@@ -44,6 +66,7 @@ export default function ChatPage() {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [activeChatOtherUid, setActiveChatOtherUid] = useState(null);
   const [isFriend, setIsFriend] = useState(true);
+  const [avatarCache, setAvatarCache] = useState({});
   const messagesEndRef = useRef(null);
   const unsubMessagesRef = useRef(null);
   const autoOpenedRef = useRef(null);
@@ -62,6 +85,22 @@ export default function ChatPage() {
     if (!activeChatOtherUid) { setIsFriend(true); return; }
     setIsFriend(friends.some(f => f.uid === activeChatOtherUid));
   }, [activeChatOtherUid, friends]);
+
+  useEffect(() => {
+    if (!user || chats.length === 0) return;
+    const unknownUids = chats
+      .map(c => c.participants.find(p => p !== user.uid))
+      .filter(uid => uid && !(uid in avatarCache));
+    if (unknownUids.length === 0) return;
+    const unique = [...new Set(unknownUids)];
+    Promise.allSettled(unique.map(uid => getUserProfile(uid).then(p => ({ uid, avatarUrl: p?.avatarUrl || '' })))).then(results => {
+      setAvatarCache(prev => {
+        const next = { ...prev };
+        results.forEach(r => { if (r.status === 'fulfilled') next[r.value.uid] = r.value.avatarUrl; });
+        return next;
+      });
+    });
+  }, [chats, user]);
 
   useEffect(() => {
     if (!user) return;
@@ -183,6 +222,8 @@ export default function ChatPage() {
             )}
             {filteredChats.map(chat => {
               const otherName = getOtherName(chat, myName, user);
+              const otherUid = chat.participants.find(p => p !== user?.uid);
+              const otherAvatar = avatarCache[otherUid] ?? null;
               const unread = chat.unreadCount?.[user?.uid] || 0;
               const lastMsg = chat.lastMessage?.text
                 ? (chat.lastMessage.senderId === user?.uid ? 'Tú: ' : '') + chat.lastMessage.text
@@ -192,6 +233,7 @@ export default function ChatPage() {
                   key={chat.id}
                   chatId={chat.id}
                   name={otherName}
+                  avatarUrl={otherAvatar}
                   lastMessage={lastMsg}
                   unread={unread}
                   isActive={activeChatId === chat.id}
@@ -208,7 +250,7 @@ export default function ChatPage() {
                   className="chat-contact-item"
                   onClick={() => handleCreateChatWithFriend(friend.uid, name, [user.uid, friend.uid])}
                 >
-                  <ChatAvatar name={name} />
+                  <ChatAvatar name={name} avatarUrl={friend.avatarUrl || null} />
                   <div className="chat-contact-info">
                     <div className="chat-contact-name">{name}</div>
                     <div className="chat-last-message" style={{ color: '#0056FF' }}>Amigo (clic para chatear)</div>
@@ -227,7 +269,7 @@ export default function ChatPage() {
           <div className="chat-window-header" id="chat-header" style={{ borderBottom: activeChatId ? '2px solid #d1d1d1' : 'none' }}>
             {activeChatId && (
               <>
-                <ChatAvatar name={activeChatName} />
+                <ChatAvatar name={activeChatName} avatarUrl={activeChatOtherUid ? (avatarCache[activeChatOtherUid] ?? null) : null} />
                 <div className="chat-header-info">
                   <h2>{activeChatName}</h2>
                   <span className="chat-header-status">En línea</span>
@@ -323,11 +365,11 @@ export default function ChatPage() {
   );
 }
 
-function ChatContactItem({ chatId, name, lastMessage, unread, isActive, onClick, onDelete }) {
+function ChatContactItem({ chatId, name, avatarUrl, lastMessage, unread, isActive, onClick, onDelete }) {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
     <li className={`chat-contact-item${isActive ? ' active' : ''}`} data-chat-id={chatId} onClick={onClick}>
-      <ChatAvatar name={name} />
+      <ChatAvatar name={name} avatarUrl={avatarUrl} />
       <div className="chat-contact-info">
         <div className="chat-contact-name">{name}</div>
         <div className="chat-last-message">{lastMessage}</div>

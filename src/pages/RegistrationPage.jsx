@@ -35,7 +35,13 @@ export default function RegistrationPage() {
     } else if (!/^[a-z0-9_\.]{3,20}$/.test(fields.username.toLowerCase())) {
       e.username = 'Solo letras, números, _ y . (3-20 caracteres).';
     }
-    if (!fields.dateOfBirth) e.dateOfBirth = 'Introduzca su fecha de nacimiento.';
+    if (!fields.dateOfBirth) {
+      e.dateOfBirth = 'Introduzca su fecha de nacimiento.';
+    } else {
+      const year = new Date(fields.dateOfBirth).getFullYear();
+      if (year <= 1900) e.dateOfBirth = 'La fecha debe ser posterior a 1900.';
+      else if (year > 2015) e.dateOfBirth = 'Debes haber nacido antes de 2015.';
+    }
     if (!fields.email) {
       e.email = 'Introduzca su correo.';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email)) {
@@ -113,7 +119,7 @@ export default function RegistrationPage() {
 
         <div>
           <label>Fecha de nacimiento</label><br />
-          <input type="date" name="dateOfBirth" value={fields.dateOfBirth} onChange={set('dateOfBirth')} />
+          <input type="date" name="dateOfBirth" value={fields.dateOfBirth} onChange={set('dateOfBirth')} min="1901-01-01" max="2015-12-31" />
           <p className={`field-error${errors.dateOfBirth ? ' visible' : ''}`}>{errors.dateOfBirth || ''}</p>
         </div>
 

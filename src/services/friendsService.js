@@ -180,6 +180,7 @@ class FriendsService {
                     name: u.name || '',
                     surname: u.surname || '',
                     username: u.username || '',
+                    avatarUrl: u.avatarUrl || '',
                     status: data.status,
                     requested_by: data.requested_by,
                 });
