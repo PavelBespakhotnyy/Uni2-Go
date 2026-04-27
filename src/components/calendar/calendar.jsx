@@ -47,14 +47,34 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 
 const EVENT_COLORS = [
-  { bg: 'bg-[#e2f2e3]', border: 'border-[#4caf50]', text: 'text-[#1b5e20]' },
-  { bg: 'bg-[#fff4e5]', border: 'border-[#ff9800]', text: 'text-[#e65100]' },
-  { bg: 'bg-[#e3f2fd]', border: 'border-[#2196f3]', text: 'text-[#0d47a1]' },
-  { bg: 'bg-[#f3e5f5]', border: 'border-[#9c27b0]', text: 'text-[#4a148c]' },
-  { bg: 'bg-[#fffde7]', border: 'border-[#fbc02d]', text: 'text-[#f57f17]' },
-  { bg: 'bg-[#ffebee]', border: 'border-[#f44336]', text: 'text-[#b71c1c]' },
-  { bg: 'bg-[#e0f7fa]', border: 'border-[#00bcd4]', text: 'text-[#006064]' },
+  { bg: 'bg-[#e2f2e3]', border: 'border-[#4caf50]', text: 'text-[#1b5e20]', darkBg: '#1a3a22', darkBorder: '#4caf50', darkText: '#81c784' },
+  { bg: 'bg-[#fff4e5]', border: 'border-[#ff9800]', text: 'text-[#e65100]', darkBg: '#3d2200', darkBorder: '#ff9800', darkText: '#ffb74d' },
+  { bg: 'bg-[#e3f2fd]', border: 'border-[#2196f3]', text: 'text-[#0d47a1]', darkBg: '#0a2540', darkBorder: '#2196f3', darkText: '#64b5f6' },
+  { bg: 'bg-[#f3e5f5]', border: 'border-[#9c27b0]', text: 'text-[#4a148c]', darkBg: '#2d1040', darkBorder: '#9c27b0', darkText: '#ce93d8' },
+  { bg: 'bg-[#fffde7]', border: 'border-[#fbc02d]', text: 'text-[#f57f17]', darkBg: '#332b00', darkBorder: '#fbc02d', darkText: '#fff176' },
+  { bg: 'bg-[#ffebee]', border: 'border-[#f44336]', text: 'text-[#b71c1c]', darkBg: '#3d0a0a', darkBorder: '#f44336', darkText: '#ef9a9a' },
+  { bg: 'bg-[#e0f7fa]', border: 'border-[#00bcd4]', text: 'text-[#006064]', darkBg: '#002d30', darkBorder: '#00bcd4', darkText: '#80deea' },
 ];
+
+function useDarkMode() {
+  const [dark, setDark] = useState(() =>
+    document.documentElement.getAttribute('data-dark') === 'true'
+  );
+  useEffect(() => {
+    const observer = new MutationObserver(() =>
+      setDark(document.documentElement.getAttribute('data-dark') === 'true')
+    );
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-dark'] });
+    return () => observer.disconnect();
+  }, []);
+  return dark;
+}
+
+const getDarkEventStyle = (colors) => ({
+  backgroundColor: colors.darkBg,
+  borderColor: colors.darkBorder,
+  color: colors.darkText,
+});
 
 const getEventColor = (event) => {
   if (typeof event === 'string') {
@@ -75,6 +95,7 @@ const getEventColor = (event) => {
 };
 
 export default function Calendar({ initialDate }) {
+  const dark = useDarkMode();
   const [currentDate, setCurrentDate] = useState(initialDate ? new Date(initialDate) : new Date());
   const [view, setView] = useState(VIEWS.MONTH);
   const [events, setEvents] = useState([]);
@@ -616,6 +637,7 @@ export default function Calendar({ initialDate }) {
 }
 
 function MonthView({ currentDate, events, onEventClick, onDayClick, onMoreClick }) {
+  const dark = useDarkMode();
   const monthStart = startOfMonth(currentDate); const monthEnd = endOfMonth(monthStart);
   const startDate = startOfWeek(monthStart, { weekStartsOn: 1 }); const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: startDate, end: endDate });
@@ -651,7 +673,7 @@ function MonthView({ currentDate, events, onEventClick, onDayClick, onMoreClick 
                 >{format(day, 'd')}</div>
               </div>
             ))}
-            <div className="absolute top-8 left-0 right-0 bottom-0 pointer-events-none px-1">{renderHorizontalEvents(weekDays, events, onEventClick, true, onMoreClick)}</div>
+            <div className="absolute top-8 left-0 right-0 bottom-0 pointer-events-none px-1">{renderHorizontalEvents(weekDays, events, onEventClick, true, onMoreClick, dark)}</div>
           </div>
         ))}
       </div>
@@ -660,6 +682,7 @@ function MonthView({ currentDate, events, onEventClick, onDayClick, onMoreClick 
 }
 
 function WeekView({ currentDate, events, onEventClick }) {
+  const dark = useDarkMode();
   const startDate = startOfWeek(currentDate, { weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: startDate, end: addDays(startDate, 6) });
   const hours = Array.from({ length: 24 }, (_, i) => i);
@@ -683,7 +706,7 @@ function WeekView({ currentDate, events, onEventClick }) {
 
       <div className="grid grid-cols-[60px_1fr] border-b border-[var(--color-border)] bg-[var(--color-bg)] shrink-0 min-h-[30px]">
         <div className="border-r border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-center"><CalendarIcon size={12} className="text-[var(--color-muted)]" /></div>
-        <div className="relative py-1 bg-[var(--color-bg)]">{renderHorizontalEvents(days, events, onEventClick)}</div>
+        <div className="relative py-1 bg-[var(--color-bg)]">{renderHorizontalEvents(days, events, onEventClick, false, null, dark)}</div>
       </div>
 
       <div className={`flex-1 ${css.calendarGridScrollable} relative bg-[var(--color-bg)] min-h-0`}>
@@ -708,10 +731,10 @@ function WeekView({ currentDate, events, onEventClick }) {
                   {layout.map(({ event, style }, i) => {
                     const colors = getEventColor(event);
                     return (
-                      <div 
-                        key={`${event.id}-${i}`} 
-                        onClick={() => onEventClick(event)} 
-                        style={{...style, borderLeftWidth: '5px'}} 
+                      <div
+                        key={`${event.id}-${i}`}
+                        onClick={() => onEventClick(event)}
+                        style={{...style, borderLeftWidth: '5px', ...(dark ? getDarkEventStyle(colors) : {})}}
                         className={`absolute pl-2.5 pr-1 py-1 text-[10px] font-bold rounded shadow-sm hover:brightness-95 hover:!z-[100] hover:scale-[1.01] cursor-pointer z-10 overflow-hidden leading-tight transition-all ${colors.bg} ${colors.text} ${colors.border}`}
                       >
                         <div className="truncate">{event.title}</div>
@@ -729,6 +752,7 @@ function WeekView({ currentDate, events, onEventClick }) {
 }
 
 function DayView({ currentDate, events, onEventClick }) {
+  const dark = useDarkMode();
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const dayStart = startOfDay(currentDate);
   const dayEnd = endOfDay(currentDate);
@@ -755,7 +779,7 @@ function DayView({ currentDate, events, onEventClick }) {
            <span className="text-[9px] font-bold text-[var(--color-muted)] uppercase px-2 flex items-center gap-1"><CalendarIcon size={10}/> Todo el día</span>
         </div>
         <div className="relative py-1 bg-[var(--color-bg)] min-h-[30px]">
-           {renderHorizontalEvents([currentDate], events, onEventClick)}
+           {renderHorizontalEvents([currentDate], events, onEventClick, false, null, dark)}
         </div>
       </div>
 
@@ -779,10 +803,10 @@ function DayView({ currentDate, events, onEventClick }) {
             {layout.items.map(({ event, style }, i) => {
               const colors = getEventColor(event);
               return (
-                <div 
-                  key={`${event.id}-${i}`} 
-                  onClick={() => onEventClick(event)} 
-                  style={style} 
+                <div
+                  key={`${event.id}-${i}`}
+                  onClick={() => onEventClick(event)}
+                  style={{...style, ...(dark ? getDarkEventStyle(colors) : {})}}
                   className={`absolute px-4 py-3 rounded border-l-4 shadow-sm hover:brightness-95 cursor-pointer z-10 flex flex-col group overflow-hidden transition-all ${colors.bg} ${colors.text} ${colors.border}`}
                 >
                   <div className="font-bold text-[11px] truncate">{event.title}</div>
@@ -908,7 +932,7 @@ function computeTimedLayout(dayEvents, hourHeight, day) {
   return results;
 }
 
-function renderHorizontalEvents(days, events, onEventClick, showAll = false, onMoreClick = null) {
+function renderHorizontalEvents(days, events, onEventClick, showAll = false, onMoreClick = null, dark = false) {
   const rangeStart = startOfDay(days[0]); const rangeEnd = endOfDay(days[days.length - 1]);
   const rangeEvents = events.filter(e => {
     const s = new Date(e.start); const f = new Date(e.end);
@@ -954,10 +978,10 @@ function renderHorizontalEvents(days, events, onEventClick, showAll = false, onM
       {eventPositions.map(({ event, level, startIdx, span }, i) => {
         const colors = getEventColor(event);
         return (
-          <div 
-            key={i} 
-            onClick={(ev) => { ev.stopPropagation(); onEventClick(event); }} 
-            style={{ gridColumn: `${startIdx + 1} / span ${span}`, gridRow: level + 1, pointerEvents: 'auto', paddingLeft: '8px' }}
+          <div
+            key={i}
+            onClick={(ev) => { ev.stopPropagation(); onEventClick(event); }}
+            style={{ gridColumn: `${startIdx + 1} / span ${span}`, gridRow: level + 1, pointerEvents: 'auto', paddingLeft: '8px', ...(dark ? getDarkEventStyle(colors) : {}) }}
             className={`pr-2 py-0.5 text-[10px] font-semibold rounded-sm border-l-[3px] shadow-sm hover:brightness-95 cursor-pointer truncate transition-all leading-5 ${colors.bg} ${colors.text} ${colors.border}`}
           >
             {event.title}
