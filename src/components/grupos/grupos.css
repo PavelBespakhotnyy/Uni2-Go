@@ -3,7 +3,7 @@
     height: 100vh;
     display: flex;
     flex-direction: column;
-    background-color: #f5f5f5;
+    background-color: var(--color-surface);
     overflow: hidden;
     box-sizing: border-box;
 }
@@ -17,27 +17,28 @@
 
 /* ── Top bar ── */
 .controls-bar {
-    background: #fff;
+    background: var(--color-bg);
     padding: 18px 30px;
     display: flex;
     align-items: center;
-    justify-content: center; /* Center content */
+    justify-content: center;
     gap: 15px;
-    border-bottom: 1px solid #e8e8e8;
+    border-bottom: 1px solid var(--color-border);
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     flex-shrink: 0;
 }
 
 .search-container {
     position: relative;
-    width: 640px; /* Doubled from 320px */
+    width: 640px;
 }
 
 .search-input {
     width: 100%;
     padding: 10px 15px 10px 40px;
-    background-color: #fff;
-    border: 1.5px solid #d0d0d0;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    border: 1.5px solid var(--color-border);
     border-radius: 30px;
     font-size: 14px;
     outline: none;
@@ -46,7 +47,7 @@
 }
 
 .search-input:focus {
-    border-color: #0056FF;
+    border-color: var(--color-accent);
 }
 
 .search-icon {
@@ -54,9 +55,28 @@
     left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    color: #999;
+    color: var(--color-muted);
     font-size: 18px;
     pointer-events: none;
+}
+
+/* ── Filter select (matches notifications style) ── */
+.filters-select {
+    height: 40px;
+    padding: 0 10px;
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+    outline: none;
+    background-color: var(--color-surface-2);
+    color: var(--color-text);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color-scheme: light dark;
+}
+
+.filters-select:focus {
+    border-color: var(--color-accent);
 }
 
 /* ── Groups scroll area ── */
@@ -147,8 +167,8 @@
     justify-content: center;
     font-size: 11px;
     font-weight: 700;
-    color: #fff;
-    border: 2px solid #fff;
+    color: var(--color-bg);
+    border: 2px solid var(--color-bg);
     margin-left: -7px;
     flex-shrink: 0;
 }
@@ -165,7 +185,7 @@
 
 /* ── Add card ── */
 .add-card {
-    background: #e0e0e0 !important;
+    background: var(--color-surface-2) !important;
     display: flex;
     align-items: center;
     gap: 16px;
@@ -176,7 +196,7 @@
 }
 
 .add-card:hover {
-    background: #d4d4d4 !important;
+    background: var(--color-surface-3) !important;
 }
 
 .add-card-placeholder {
@@ -198,7 +218,7 @@
     color: rgba(0,0,0,0.55);
 }
 
-/* Three-dot menu container — anchors button + dropdown together */
+/* Three-dot menu container */
 .card-menu-container {
     position: absolute;
     top: 10px;
@@ -231,18 +251,17 @@
     color: rgba(0,0,0,0.75);
 }
 
-/* Button becomes top of the dropdown when open */
 .card-menu-container.open .group-card-menu-btn {
-    background: #fff;
+    background: var(--color-bg);
     color: rgba(0,0,0,0.75);
-    border: 1px solid #e8e8e8;
+    border: 1px solid var(--color-border);
     border-bottom: none;
     border-radius: 8px 8px 0 0;
 }
 
 .group-card-submenu {
-    background: #fff;
-    border: 1px solid #e8e8e8;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
     border-top: none;
     border-radius: 0 0 8px 8px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.12);
@@ -272,7 +291,7 @@
 }
 
 .submenu-item:hover {
-    background-color: #f8f8f8;
+    background-color: var(--color-surface);
 }
 
 .submenu-item.icon-only {
@@ -280,12 +299,12 @@
     padding: 0;
     justify-content: center;
     font-size: 18px;
-    color: #1a1a1a;
+    color: var(--color-text);
     box-sizing: border-box;
 }
 
 .submenu-item.icon-only:hover {
-    background-color: #f0f0f0;
+    background-color: var(--color-surface);
 }
 
 .submenu-item.icon-only.delete {
@@ -302,7 +321,7 @@
     bottom: 14px;
     left: 14px;
     font-size: 20px;
-    color: #1a1a1a;
+    color: var(--color-text);
     pointer-events: none;
     z-index: 1;
 }
@@ -315,14 +334,14 @@
     justify-content: center;
     padding: 60px 30px;
     gap: 12px;
-    color: #bbb;
+    color: var(--color-muted);
     grid-column: 1 / -1;
     text-align: center;
 }
 
 .empty-state i {
     font-size: 52px;
-    color: #ddd;
+    color: var(--color-border);
 }
 
 .empty-state p {
@@ -350,7 +369,7 @@
 }
 
 .modal-content {
-    background: #fff;
+    background: var(--color-bg);
     border-radius: 20px;
     width: 100%;
     max-width: 500px;
@@ -367,18 +386,18 @@
     align-items: center;
     justify-content: space-between;
     padding: 18px 22px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--color-border);
     flex-shrink: 0;
 }
 
 .modal-title {
     font-size: 17px;
     font-weight: 700;
-    color: #1a1a1a;
+    color: var(--color-text);
 }
 
 .modal-close-btn {
-    background: #f5f5f5;
+    background: var(--color-surface);
     border: none;
     cursor: pointer;
     width: 32px;
@@ -388,12 +407,12 @@
     align-items: center;
     justify-content: center;
     font-size: 20px;
-    color: #555;
+    color: var(--color-muted);
     transition: background 0.15s;
 }
 
 .modal-close-btn:hover {
-    background: #ebebeb;
+    background: var(--color-surface-2);
 }
 
 .modal-body {
@@ -409,7 +428,7 @@
     gap: 15px;
     margin-bottom: 22px;
     padding-bottom: 20px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--color-border);
 }
 
 .modal-group-avatar {
@@ -421,7 +440,7 @@
     justify-content: center;
     font-size: 20px;
     font-weight: 700;
-    color: #fff;
+    color: var(--color-bg);
     flex-shrink: 0;
 }
 
@@ -433,18 +452,18 @@
 .modal-group-name {
     font-size: 19px;
     font-weight: 700;
-    color: #1a1a1a;
+    color: var(--color-text);
     margin: 0 0 5px 0;
 }
 
 .modal-group-desc {
     font-size: 13px;
-    color: #999;
+    color: var(--color-muted);
     margin: 0;
 }
 
 .modal-edit-btn {
-    background: #f5f5f5;
+    background: var(--color-surface);
     border: none;
     cursor: pointer;
     width: 34px;
@@ -454,14 +473,14 @@
     align-items: center;
     justify-content: center;
     font-size: 17px;
-    color: #777;
+    color: var(--color-muted);
     transition: all 0.15s;
     flex-shrink: 0;
 }
 
 .modal-edit-btn:hover {
-    background: #e8e8e8;
-    color: #333;
+    background: var(--color-surface-2);
+    color: var(--color-text);
 }
 
 /* Members section */
@@ -475,15 +494,15 @@
 .modal-members-header h3 {
     font-size: 12px;
     font-weight: 600;
-    color: #aaa;
+    color: var(--color-muted);
     margin: 0;
     text-transform: uppercase;
     letter-spacing: 0.8px;
 }
 
 .modal-add-member-btn {
-    background: #0056FF;
-    color: #fff;
+    background: var(--color-accent);
+    color: var(--color-bg);
     border: none;
     border-radius: 20px;
     padding: 7px 14px;
@@ -497,7 +516,7 @@
 }
 
 .modal-add-member-btn:hover {
-    background: #003fc2;
+    background: var(--color-accent-soft);
 }
 
 /* Add member form */
@@ -507,24 +526,25 @@
     gap: 8px;
     margin-bottom: 14px;
     padding: 12px;
-    background: #f8f9ff;
+    background: var(--color-surface);
     border-radius: 12px;
-    border: 1px solid #e0e8ff;
+    border: 1px solid var(--color-border);
 }
 
 .member-code-input {
     flex: 1;
     padding: 9px 12px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--color-border);
     border-radius: 8px;
     font-size: 14px;
     outline: none;
     transition: border-color 0.2s;
-    background: #fff;
+    background: var(--color-bg);
+    color: var(--color-text);
 }
 
 .member-code-input:focus {
-    border-color: #0056FF;
+    border-color: var(--color-accent);
 }
 
 .add-member-submit-btn,
@@ -543,12 +563,12 @@
 }
 
 .add-member-submit-btn {
-    background: #0056FF;
-    color: #fff;
+    background: var(--color-accent);
+    color: var(--color-bg);
 }
 
 .add-member-submit-btn:hover {
-    background: #003fc2;
+    background: var(--color-accent-soft);
 }
 
 .add-member-submit-btn:disabled {
@@ -557,12 +577,12 @@
 }
 
 .add-member-cancel-btn {
-    background: #f0f0f0;
-    color: #666;
+    background: var(--color-surface);
+    color: var(--color-muted);
 }
 
 .add-member-cancel-btn:hover {
-    background: #e0e0e0;
+    background: var(--color-surface-2);
 }
 
 /* Members list */
@@ -585,7 +605,7 @@
 }
 
 .modal-member-item:hover {
-    background: #f8f8f8;
+    background: var(--color-surface);
 }
 
 .member-avatar {
@@ -597,7 +617,7 @@
     justify-content: center;
     font-size: 14px;
     font-weight: 700;
-    color: #fff;
+    color: var(--color-bg);
     flex-shrink: 0;
 }
 
@@ -610,7 +630,7 @@
     display: block;
     font-size: 15px;
     font-weight: 500;
-    color: #1a1a1a;
+    color: var(--color-text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -619,13 +639,13 @@
 .member-code {
     display: block;
     font-size: 12px;
-    color: #bbb;
+    color: var(--color-muted);
 }
 
 .member-you-badge {
     font-size: 12px;
-    color: #0056FF;
-    background: #f0f4ff;
+    color: var(--color-accent);
+    background: #fff0ee;
     padding: 3px 9px;
     border-radius: 20px;
     font-weight: 500;
@@ -648,7 +668,7 @@
     border: none;
     cursor: pointer;
     font-size: 18px;
-    color: #ccc;
+    color: var(--color-border);
     padding: 5px;
     border-radius: 8px;
     display: flex;
@@ -671,14 +691,14 @@
     justify-content: center;
     padding: 50px 20px;
     gap: 14px;
-    color: #aaa;
+    color: var(--color-muted);
 }
 
 .loading-spinner {
     width: 34px;
     height: 34px;
-    border: 3px solid #e8e8e8;
-    border-top-color: #0056FF;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-accent);
     border-radius: 50%;
     animation: spin 0.7s linear infinite;
 }
@@ -699,7 +719,7 @@
 .form-group label {
     font-size: 12px;
     font-weight: 600;
-    color: #aaa;
+    color: var(--color-muted);
     text-transform: uppercase;
     letter-spacing: 0.7px;
 }
@@ -709,13 +729,14 @@
 .form-input,
 .form-textarea {
     padding: 11px 14px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--color-border);
     border-radius: 10px;
     font-size: 15px;
     outline: none;
     font-family: inherit;
     transition: border-color 0.2s;
-    background: #fff;
+    background: var(--color-bg);
+    color: var(--color-text);
     width: 100%;
     box-sizing: border-box;
 }
@@ -724,7 +745,7 @@
 .edit-group-textarea:focus,
 .form-input:focus,
 .form-textarea:focus {
-    border-color: #0056FF;
+    border-color: var(--color-accent);
 }
 
 .edit-group-textarea,
@@ -743,8 +764,8 @@
 
 .btn-save {
     padding: 10px 22px;
-    background: #0056FF;
-    color: #fff;
+    background: var(--color-accent);
+    color: var(--color-bg);
     border: none;
     border-radius: 10px;
     font-size: 14px;
@@ -754,7 +775,7 @@
 }
 
 .btn-save:hover {
-    background: #003fc2;
+    background: var(--color-accent-soft);
 }
 
 .btn-save:disabled {
@@ -764,8 +785,8 @@
 
 .btn-cancel {
     padding: 10px 22px;
-    background: #f0f0f0;
-    color: #555;
+    background: var(--color-surface);
+    color: var(--color-muted);
     border: none;
     border-radius: 10px;
     font-size: 14px;
@@ -775,7 +796,7 @@
 }
 
 .btn-cancel:hover {
-    background: #e0e0e0;
+    background: var(--color-surface-2);
 }
 
 .btn-leave-group {
@@ -796,7 +817,7 @@
 
 .btn-leave-group:hover {
     background: #e74c3c;
-    color: #fff;
+    color: var(--color-bg);
 }
 
 /* Create group form */
@@ -840,7 +861,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f5f5f5;
+    background: var(--color-surface);
     border-radius: 14px;
     flex-shrink: 0;
 }
@@ -862,12 +883,12 @@
 }
 
 .create-emoji-grid .emoji-option:hover {
-    background: #f0f0f0;
+    background: var(--color-surface);
 }
 
 .create-emoji-grid .emoji-option.active {
-    background: #e0e8ff;
-    border-color: #0056FF;
+    background: #fff0ee;
+    border-color: var(--color-accent);
 }
 
 /* Confirm dialog */
@@ -884,7 +905,7 @@
 }
 
 .confirm-dialog {
-    background: #fff;
+    background: var(--color-bg);
     border-radius: 16px;
     padding: 24px;
     max-width: 360px;
@@ -897,13 +918,13 @@
     margin: 0 0 8px 0;
     font-size: 17px;
     font-weight: 700;
-    color: #1a1a1a;
+    color: var(--color-text);
 }
 
 .confirm-dialog p {
     margin: 0 0 20px 0;
     font-size: 14px;
-    color: #888;
+    color: var(--color-muted);
 }
 
 .confirm-actions {
@@ -915,7 +936,7 @@
 .btn-confirm-delete {
     padding: 10px 20px;
     background: #e74c3c;
-    color: #fff;
+    color: var(--color-bg);
     border: none;
     border-radius: 10px;
     font-size: 14px;
@@ -945,7 +966,7 @@
     border-radius: 12px;
     font-size: 14px;
     font-weight: 500;
-    color: #fff;
+    color: var(--color-bg);
     animation: toastIn 0.22s ease;
     box-shadow: 0 4px 16px rgba(0,0,0,0.15);
 }
@@ -988,8 +1009,8 @@
     transition: background 0.15s;
 }
 
-.pagination-item:hover { background: #f0f0f0; }
-.pagination-item.active { background-color: #0056FF; color: #fff; }
+.pagination-item:hover { background: var(--color-surface); }
+.pagination-item.active { background-color: var(--color-accent); color: var(--color-bg); }
 .pagination-item.disabled { opacity: 0.3; pointer-events: none; }
 
 /* ── Emoji & Friend Selector in Modal ── */
@@ -1010,12 +1031,12 @@
 }
 
 .emoji-option:hover {
-    background: #f0f0f0;
+    background: var(--color-surface);
 }
 
 .emoji-option.active {
-    background: #e0e8ff;
-    border-color: #0056FF;
+    background: #fff0ee;
+    border-color: var(--color-accent);
 }
 
 .card-emoji-container {
@@ -1035,8 +1056,8 @@
 }
 
 .btn-add-friend {
-    background: #0056FF;
-    color: #fff;
+    background: var(--color-accent);
+    color: var(--color-bg);
     border: none;
     border-radius: 10px;
     width: 40px;
@@ -1057,21 +1078,21 @@
 }
 
 .selected-friend-tag {
-    background: #f0f4ff;
-    color: #0056FF;
+    background: #fff0ee;
+    color: var(--color-accent);
     padding: 6px 12px;
     border-radius: 20px;
     font-size: 13px;
     display: flex;
     align-items: center;
     gap: 6px;
-    border: 1px solid #e0e8ff;
+    border: 1px solid var(--color-accent-soft);
 }
 
 .selected-friend-tag .remove-friend {
     cursor: pointer;
     font-size: 16px;
-    color: #0056FF;
+    color: var(--color-accent);
     opacity: 0.6;
 }
 
@@ -1087,6 +1108,26 @@
 @keyframes modalIn {
     from { opacity: 0; transform: scale(0.96) translateY(12px); }
     to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ── Dark mode overrides ── */
+[data-dark="true"] .selected-friend-tag {
+    background: var(--color-surface-2);
+}
+
+[data-dark="true"] .modal-content,
+[data-dark="true"] .modal-body,
+[data-dark="true"] .modal-header {
+    background: var(--color-bg);
+}
+
+[data-dark="true"] .group-card {
+    background: var(--color-surface);
+}
+
+[data-dark="true"] .create-group-card {
+    background: var(--color-surface);
+    border-color: var(--color-border);
 }
 
 @keyframes spin {

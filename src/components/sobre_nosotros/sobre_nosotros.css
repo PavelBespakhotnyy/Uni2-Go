@@ -7,7 +7,7 @@
     flex-direction: column;
     overflow: hidden;
     box-sizing: border-box;
-    background: #fff;
+    background: var(--color-bg);
 }
 
 .sn-page {
@@ -38,14 +38,14 @@
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #4f46e5;
+    color: var(--color-accent);
     margin: 0 0 14px 0;
 }
 
 .sn-hero-title {
     font-size: 52px;
     font-weight: 800;
-    color: #0f0f1a;
+    color: var(--color-text);
     margin: 0 0 16px 0;
     line-height: 1.1;
     letter-spacing: -1px;
@@ -53,7 +53,7 @@
 
 .sn-hero-sub {
     font-size: 17px;
-    color: #666;
+    color: var(--color-muted);
     line-height: 1.65;
     margin: 0;
     max-width: 500px;
@@ -82,7 +82,7 @@
     width: 100%;
     max-width: 440px;
     height: auto;
-    filter: drop-shadow(0 8px 28px rgba(79,70,229,0.16));
+    filter: drop-shadow(0 8px 28px rgba(244,44,4,0.12));
 }
 
 /* ── FEATURES ───────────────────────────────────────────────── */
@@ -109,7 +109,7 @@
 .sn-feature-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 24px rgba(0,0,0,0.09);
-    background: #fff;
+    background: var(--color-bg);
 }
 
 .sn-feature-icon {
@@ -126,13 +126,13 @@
 .sn-feature-title {
     font-size: 17px;
     font-weight: 700;
-    color: #0f0f1a;
+    color: var(--color-text);
     margin: 0;
 }
 
 .sn-feature-desc {
     font-size: 15px;
-    color: #888;
+    color: var(--color-muted);
     line-height: 1.5;
     margin: 0;
     flex: 1;
@@ -199,14 +199,14 @@
 .sn-about-text h2 {
     font-size: 22px;
     font-weight: 700;
-    color: #0f0f1a;
+    color: var(--color-text);
     margin: 0 0 10px 0;
 }
 
 .sn-about-text p {
     font-size: 15px;
     line-height: 1.7;
-    color: #444;
+    color: var(--color-muted);
     margin: 0;
 }
 
@@ -216,7 +216,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 10px 0 14px 0;
-    border-top: 1px solid #f0f0f0;
+    border-top: 1px solid var(--color-border);
     flex-shrink: 0;
     margin-top: 12px;
 }
@@ -232,15 +232,38 @@
     text-decoration: none;
     font-size: 13px;
     font-weight: 500;
-    color: #555;
+    color: var(--color-muted);
     transition: background 0.15s, color 0.15s;
 }
 
 .sn-footer-link i { font-size: 15px; }
 
 .sn-footer-link:hover {
-    background: #f0efff;
-    color: #4f46e5;
+    background: #fff0ee;
+    color: var(--color-accent);
 }
 
-.sn-footer-copy { font-size: 12px; color: #bbb; }
+.sn-footer-copy { font-size: 12px; color: var(--color-border); }
+
+/* ── Dark mode overrides ── */
+[data-dark="true"] .sn-hero-right {
+    background: var(--color-surface-2);
+}
+
+[data-dark="true"] .sn-about-card-purple,
+[data-dark="true"] .sn-about-card-orange {
+    background: var(--color-surface);
+}
+
+[data-dark="true"] .sn-feature-card {
+    background: var(--color-surface);
+}
+
+[data-dark="true"] .sn-footer-link:hover {
+    background: var(--color-accent-muted);
+}
+
+[data-dark="true"] .sn-feature-icon {
+    background: var(--color-surface-3) !important;
+    color: #fff !important;
+}

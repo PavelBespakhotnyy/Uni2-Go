@@ -6,7 +6,7 @@ import Layout from '../components/Layout.jsx';
 import '../components/grupos/grupos.css';
 
 const CARD_COLORS = ['#fce4e4','#dce8f8','#d8f0d8','#fddcb0','#f8d8f0','#e8e0f8','#fef3cc','#d8f0f0'];
-const MEMBER_COLORS = ['#4f46e5','#0284c7','#059669','#d97706','#7c3aed','#db2777','#0891b2','#0056FF'];
+const MEMBER_COLORS = ['#f42c04','#0284c7','#059669','#d97706','#7c3aed','#db2777','#0891b2','#e2856e'];
 const EMOJIS = ['👥','🏠','🎓','🏀','🍕','✈️','🎮','💡','🎉','💼','❤️','🌟','🔥','📚','🎨','🎬','🎸','🌈','🐶','🐱','🍎','🍺','⚽','🚗','📱','💻','🔒','🛠️','🌍','🚀'];
 
 function hashColor(arr, str) {
@@ -137,7 +137,6 @@ export default function GruposPage() {
         <div className="header-left-zone">
           <select
             className="filters-select"
-            style={{ height: '40px', padding: '0 10px', borderRadius: '10px', border: '1px solid #ccc', outline: 'none', background: '#fff', fontSize: '14px', colorScheme: 'light' }}
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
           >

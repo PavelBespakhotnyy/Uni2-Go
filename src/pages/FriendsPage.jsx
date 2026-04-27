@@ -115,7 +115,7 @@ export default function FriendsPage() {
             {/* Live Search Dropdown */}
             {(searchResults.length > 0 || searching) && (
               <div className="search-results-dropdown">
-                {searching && <div style={{ padding: '15px', textAlign: 'center', fontSize: '12px', color: '#888' }}>Buscando...</div>}
+                {searching && <div style={{ padding: '15px', textAlign: 'center', fontSize: '12px', color: 'var(--color-muted)' }}>Buscando...</div>}
                 {searchResults.map(result => (
                   <div key={result.id} className="search-result-item">
                     <div className="user-info">

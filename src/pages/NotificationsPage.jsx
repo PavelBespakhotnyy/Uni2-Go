@@ -125,12 +125,11 @@ export default function NotificationsPage() {
         <div className="header-left-zone">
           <select
             className="filters-select"
-            style={{ height: '40px', padding: '0 10px', borderRadius: '10px', border: '1px solid #ccc', outline: 'none', background: '#fff', fontSize: '14px' }}
             id="statusFilter"
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
           >
-            <option value="all">Todas</option>
+            <option value="all">Todos</option>
             <option value="unread">No leídas</option>
             <option value="read">Leídas</option>
           </select>
@@ -157,7 +156,7 @@ export default function NotificationsPage() {
         <div className="notifications-container" id="notificationsList" ref={listRef}>
           <div className="notifications-list">
             {pageItems.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px', color: '#888', fontSize: '18px' }}>
+              <div style={{ textAlign: 'center', padding: '40px', color: 'var(--color-muted)', fontSize: '18px' }}>
                 No hay notificaciones.
               </div>
             ) : (

@@ -320,10 +320,7 @@ export default function Calendar({ initialDate }) {
       if (selectedEvent) await updateEvent(selectedEvent.id, eventData);
       else await addEvent(eventData);
       setIsModalOpen(false);
-    } catch (error) { 
-      console.error("Error saving event:", error); 
-      setErrorMsg(error.message || "Error al guardar el evento");
-    }
+    } catch (error) { console.error("Error saving event:", error); }
   };
 
   const handleDelete = async () => {
@@ -333,11 +330,7 @@ export default function Calendar({ initialDate }) {
         setShowDeleteConfirm(false);
         setIsModalOpen(false); 
       }
-      catch (error) { 
-        console.error("Error deleting event:", error); 
-        setErrorMsg(error.message || "Error al eliminar el evento");
-        setShowDeleteConfirm(false);
-      }
+      catch (error) { console.error("Error deleting event:", error); }
     }
   };
 
@@ -380,7 +373,7 @@ export default function Calendar({ initialDate }) {
               <button
                 key={v}
                 onClick={() => setView(v)}
-                className={`px-7 py-3 text-base font-bold rounded-md transition-all ${view === v ? 'bg-white text-[#0056FF] shadow-sm border border-blue-100' : 'text-gray-500 hover:text-[#1a1a1a]'}`}
+                className={`${styles.viewButton} ${view === v ? styles.activeView : ''}`}
               >
                 {v === VIEWS.MONTH ? 'Mes' : v === VIEWS.WEEK ? 'Semana' : 'Día'}
               </button>
@@ -394,7 +387,7 @@ export default function Calendar({ initialDate }) {
       </header>
 
       <main className="flex-1 overflow-hidden min-h-0">
-        <div className="h-full bg-white overflow-hidden flex flex-col min-h-0">
+        <div className="h-full bg-[var(--color-bg)] overflow-hidden flex flex-col min-h-0">
           {view === VIEWS.MONTH && (
             <MonthView 
               currentDate={currentDate} 
@@ -470,7 +463,7 @@ export default function Calendar({ initialDate }) {
                         type="checkbox"
                         checked={formData.allDay}
                         onChange={(e) => setFormData({ ...formData, allDay: e.target.checked })}
-                        style={{accentColor:'#0056FF', width:14, height:14, cursor:'pointer'}}
+                        style={{accentColor:'var(--color-accent)', width:14, height:14, cursor:'pointer'}}
                       />
                       Todo el día
                     </label>
@@ -607,8 +600,8 @@ export default function Calendar({ initialDate }) {
                 <Trash2 size={28} style={{color:'#e53e3e'}} />
               </div>
               <div>
-                <p style={{fontWeight:700, fontSize:17, color:'#1a1a1a', marginBottom:6}}>¿Eliminar evento?</p>
-                <p style={{fontSize:13, color:'#888'}}>Esta acción no se puede deshacer.</p>
+                <p style={{fontWeight:700, fontSize:17, color:'var(--color-text)', marginBottom:6}}>¿Eliminar evento?</p>
+                <p style={{fontSize:13, color:'var(--color-muted)'}}>Esta acción no se puede deshacer.</p>
               </div>
               <div className={styles.modalActions} style={{width:'100%'}}>
                 <button className={styles.btnCancel} onClick={() => setShowDeleteConfirm(false)}>Cancelar</button>
@@ -629,30 +622,33 @@ function MonthView({ currentDate, events, onEventClick, onDayClick, onMoreClick 
   const weeks = []; for (let i = 0; i < days.length; i += 7) weeks.push(days.slice(i, i + 7));
 
   return (
-    <div className="flex flex-col h-full bg-[#e2e8ef] gap-px overflow-hidden">
-      <div className="grid grid-cols-7 bg-white border-b border-[#e2e8ef] shrink-0">
+    <div className="flex flex-col h-full bg-[var(--color-surface-2)] gap-px overflow-hidden">
+      <div className="grid grid-cols-7 bg-[var(--color-bg)] border-b border-[var(--color-border)] shrink-0">
         {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((d) => (
-          <div key={d} className="py-3 text-center text-[11px] font-bold text-gray-400 uppercase tracking-widest">{d}</div>
+          <div key={d} className="py-3 text-center text-[11px] font-bold text-[var(--color-muted)] uppercase tracking-widest">{d}</div>
         ))}
       </div>
-      <div className="flex-1 flex flex-col min-h-0 bg-[#e2e8ef] gap-px">
+      <div className="flex-1 flex flex-col min-h-0 bg-[var(--color-surface-2)] gap-px">
         {weeks.map((weekDays, weekIdx) => (
           <div key={weekIdx} className="flex-1 grid grid-cols-7 relative gap-px min-h-0">
             {weekDays.map((day, dIdx) => (
               <div
                 key={dIdx}
                 className={`relative p-2 pt-2 transition-colors cursor-pointer group ${
-                  !isSameMonth(day, monthStart) ? 'bg-[#f7f8fa]' :
-                  isSameDay(day, new Date()) ? 'bg-[#eff4ff]' :
-                  'bg-white hover:bg-[#f5f8ff]'
+                  !isSameMonth(day, monthStart) ? 'bg-[var(--color-surface)]' :
+                  isSameDay(day, new Date()) ? 'bg-[var(--color-accent-muted)]' :
+                  'bg-[var(--color-bg)] hover:bg-[var(--color-surface)]'
                 }`}
                 onClick={() => onDayClick(day)}
               >
-                <div className={`text-sm font-bold w-7 h-7 flex items-center justify-center rounded-full mb-1 ${
-                  isSameDay(day, new Date()) ? 'bg-[#0056FF] text-white shadow-md' :
-                  !isSameMonth(day, monthStart) ? 'text-gray-300' :
-                  'text-[#1a1a1a] group-hover:bg-gray-100'
-                }`}>{format(day, 'd')}</div>
+                <div
+                  className={`text-sm font-bold w-7 h-7 flex items-center justify-center rounded-full mb-1 ${
+                    isSameDay(day, new Date()) ? 'shadow-md' :
+                    !isSameMonth(day, monthStart) ? 'text-[var(--color-muted)]' :
+                    'text-[var(--color-text)]'
+                  }`}
+                  style={isSameDay(day, new Date()) ? {backgroundColor: 'var(--color-accent)', color: 'var(--color-bg)'} : {}}
+                >{format(day, 'd')}</div>
               </div>
             ))}
             <div className="absolute top-8 left-0 right-0 bottom-0 pointer-events-none px-1">{renderHorizontalEvents(weekDays, events, onEventClick, true, onMoreClick)}</div>
@@ -670,29 +666,32 @@ function WeekView({ currentDate, events, onEventClick }) {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <div className="grid grid-cols-[60px_1fr] bg-[#f8f9fa] border-b border-[#c0c8cf] shrink-0">
-        <div className="border-r border-[#c0c8cf]"></div>
+      <div className="grid grid-cols-[60px_1fr] bg-[var(--color-surface)] border-b border-[var(--color-border)] shrink-0">
+        <div className="border-r border-[var(--color-border)]"></div>
         <div className="grid grid-cols-7">
           {days.map((day) => (
-            <div key={day.toString()} className={`p-3 text-center border-r border-[#c0c8cf] last:border-0 ${isSameDay(day, new Date()) ? 'bg-[#eff4ff]' : ''}`}>
-              <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{format(day, 'EEE', { locale: es })}</div>
-              <div className={`text-base font-bold mt-1 w-8 h-8 flex items-center justify-center rounded-full mx-auto ${isSameDay(day, new Date()) ? 'bg-[#0056FF] text-white shadow-md' : 'text-[#1a1a1a]'}`}>{format(day, 'd')}</div>
+            <div key={day.toString()} className={`p-3 text-center border-r border-[var(--color-border)] last:border-0 ${isSameDay(day, new Date()) ? 'bg-[var(--color-accent-muted)]' : ''}`}>
+              <div className="text-[10px] font-bold text-[var(--color-muted)] uppercase tracking-widest">{format(day, 'EEE', { locale: es })}</div>
+              <div
+                className={`text-base font-bold mt-1 w-8 h-8 flex items-center justify-center rounded-full mx-auto ${isSameDay(day, new Date()) ? 'shadow-md' : ''}`}
+                style={isSameDay(day, new Date()) ? {backgroundColor: 'var(--color-accent)', color: 'var(--color-bg)'} : {color: 'var(--color-text)'}}
+              >{format(day, 'd')}</div>
             </div>
           ))}
         </div>
       </div>
-      
-      <div className="grid grid-cols-[60px_1fr] border-b border-[#c0c8cf] bg-white shrink-0 min-h-[30px]">
-        <div className="border-r border-[#c0c8cf] bg-gray-50 flex items-center justify-center"><CalendarIcon size={12} className="text-gray-400" /></div>
-        <div className="relative py-1 bg-white">{renderHorizontalEvents(days, events, onEventClick)}</div>
+
+      <div className="grid grid-cols-[60px_1fr] border-b border-[var(--color-border)] bg-[var(--color-bg)] shrink-0 min-h-[30px]">
+        <div className="border-r border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-center"><CalendarIcon size={12} className="text-[var(--color-muted)]" /></div>
+        <div className="relative py-1 bg-[var(--color-bg)]">{renderHorizontalEvents(days, events, onEventClick)}</div>
       </div>
 
-      <div className={`flex-1 ${css.calendarGridScrollable} relative bg-white min-h-0`}>
+      <div className={`flex-1 ${css.calendarGridScrollable} relative bg-[var(--color-bg)] min-h-0`}>
         <div className="grid grid-cols-[60px_1fr] relative">
-          <div className="bg-[#f8f9fa] border-r border-[#c0c8cf] shrink-0">
-            {hours.map(h => (<div key={h} className="h-20 p-2 text-right text-[10px] font-bold text-gray-400 border-b border-[#f0f0f0]">{h.toString().padStart(2, '0')}:00</div>))}
+          <div className="bg-[var(--color-surface)] border-r border-[var(--color-border)] shrink-0">
+            {hours.map(h => (<div key={h} className="h-20 p-2 text-right text-[10px] font-bold text-[var(--color-muted)] border-b border-[var(--color-border)]">{h.toString().padStart(2, '0')}:00</div>))}
           </div>
-          <div className="grid grid-cols-7 relative divide-x divide-[#f0f0f0] flex-1">
+          <div className="grid grid-cols-7 relative divide-x divide-[var(--color-border)] flex-1">
             {days.map((day) => {
               const dayStart = startOfDay(day);
               const dayEnd = endOfDay(day);
@@ -705,7 +704,7 @@ function WeekView({ currentDate, events, onEventClick }) {
               const layout = computeTimedLayout(dayEvents, 80, day);
               return (
                 <div key={day.toString()} className="relative h-full">
-                  {hours.map(h => <div key={h} className="h-20 border-b border-[#f0f0f0]"></div>)}
+                  {hours.map(h => <div key={h} className="h-20 border-b border-[var(--color-border)]"></div>)}
                   {layout.map(({ event, style }, i) => {
                     const colors = getEventColor(event);
                     return (
@@ -744,27 +743,27 @@ function DayView({ currentDate, events, onEventClick }) {
   const layout = computeHorizontalLayout(timedEvents, hourWidth, currentDate);
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-white">
-      <div className="px-6 py-2 bg-gray-50/50 border-b border-gray-100 flex items-center justify-between shrink-0">
-        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+    <div className="flex flex-col h-full overflow-hidden bg-[var(--color-bg)]">
+      <div className="px-6 py-2 bg-[var(--color-surface)] border-b border-[var(--color-border)] flex items-center justify-between shrink-0">
+        <span className="text-[10px] font-black text-[var(--color-muted)] uppercase tracking-widest">
           {format(currentDate, 'EEEE, d MMMM', { locale: es })}
         </span>
       </div>
 
-      <div className="flex flex-col border-b border-[#c0c8cf] bg-white shrink-0">
-        <div className="flex min-w-max p-1 bg-gray-50 border-b border-gray-100">
-           <span className="text-[9px] font-bold text-gray-400 uppercase px-2 flex items-center gap-1"><CalendarIcon size={10}/> Todo el día</span>
+      <div className="flex flex-col border-b border-[var(--color-border)] bg-[var(--color-bg)] shrink-0">
+        <div className="flex min-w-max p-1 bg-[var(--color-surface)] border-b border-[var(--color-border)]">
+           <span className="text-[9px] font-bold text-[var(--color-muted)] uppercase px-2 flex items-center gap-1"><CalendarIcon size={10}/> Todo el día</span>
         </div>
-        <div className="relative py-1 bg-white min-h-[30px]">
+        <div className="relative py-1 bg-[var(--color-bg)] min-h-[30px]">
            {renderHorizontalEvents([currentDate], events, onEventClick)}
         </div>
       </div>
-      
+
       <div className="flex-1 overflow-auto relative">
-        <div className="sticky top-0 z-30 flex bg-[#f8f9fa] border-b border-[#c0c8cf] min-w-max">
+        <div className="sticky top-0 z-30 flex bg-[var(--color-surface)] border-b border-[var(--color-border)] min-w-max">
           {hours.map(h => (
-            <div key={h} style={{ width: `${hourWidth}px` }} className="shrink-0 p-3 text-center border-r border-[#f0f0f0] last:border-r-0">
-              <div className="text-[10px] font-bold text-gray-400 uppercase">{h.toString().padStart(2, '0')}:00</div>
+            <div key={h} style={{ width: `${hourWidth}px` }} className="shrink-0 p-3 text-center border-r border-[var(--color-border)] last:border-r-0">
+              <div className="text-[10px] font-bold text-[var(--color-muted)] uppercase">{h.toString().padStart(2, '0')}:00</div>
             </div>
           ))}
         </div>
@@ -772,7 +771,7 @@ function DayView({ currentDate, events, onEventClick }) {
         <div className="relative min-w-max p-6" style={{ height: `${Math.max(400, layout.totalHeight + 100)}px` }}>
           <div className="absolute inset-0 flex pointer-events-none px-6">
             {hours.map(h => (
-              <div key={h} style={{ width: `${hourWidth}px` }} className="h-full border-r border-[#f0f0f0] last:border-r-0 shrink-0"></div>
+              <div key={h} style={{ width: `${hourWidth}px` }} className="h-full border-r border-[var(--color-border)] last:border-r-0 shrink-0"></div>
             ))}
           </div>
 
@@ -970,7 +969,7 @@ function renderHorizontalEvents(days, events, onEventClick, showAll = false, onM
           key={`more-${idx}`}
           onClick={(ev) => { ev.stopPropagation(); if (onMoreClick) onMoreClick(days[idx]); }}
           style={{ gridColumn: idx + 1, gridRow: MAX_VISIBLE_LEVELS + 1 }}
-          className="text-[9px] font-black text-gray-400 px-1.5 py-0.5 mt-0.5 pointer-events-auto cursor-pointer hover:text-[#1a1a1a] hover:bg-gray-100 rounded transition-colors"
+          className="text-[9px] font-black text-[var(--color-muted)] px-1.5 py-0.5 mt-0.5 pointer-events-auto cursor-pointer hover:text-[var(--color-text)] hover:bg-[var(--color-surface)] rounded transition-colors"
         >
           +{count} más
         </div>

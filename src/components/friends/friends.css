@@ -14,7 +14,7 @@
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #6b7280;
+    color: var(--color-muted);
     margin-bottom: 0.75rem;
     display: flex;
     align-items: center;
@@ -25,10 +25,10 @@
 .search-bar {
     display: flex;
     gap: 0.75rem;
-    background-color: #f0f0f0;
+    background-color: var(--color-surface);
     padding: 0.5rem;
     border-radius: 0.75rem;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--color-border);
 }
 
 .search-bar input {
@@ -38,15 +38,15 @@
     border-radius: 0.5rem;
     font-size: 0.875rem;
     outline: none;
-    background: #fff;
-    color: #111;
+    background: var(--color-bg);
+    color: var(--color-text);
     font-weight: 600;
 }
 
 .search-bar button {
     padding: 0.75rem 1.5rem;
-    background: #1a1a1a;
-    color: #fff;
+    background: var(--color-accent);
+    color: var(--color-bg);
     border: none;
     border-radius: 0.5rem;
     font-size: 0.75rem;
@@ -59,7 +59,7 @@
 }
 
 .search-bar button:hover:not(:disabled) {
-    background: #000;
+    background: var(--color-accent-soft);
     transform: translateY(-1px);
 }
 
@@ -79,7 +79,7 @@
     justify-content: space-between;
     gap: 1rem;
     padding: 0.75rem 0;
-    border-top: 1px solid #f3f4f6;
+    border-top: 1px solid var(--color-border);
 }
 
 .sr-info,
@@ -93,13 +93,13 @@
 .friend-name {
     font-weight: 700;
     font-size: 0.95rem;
-    color: #111;
+    color: var(--color-text);
 }
 
 .sr-username,
 .friend-username {
     font-size: 0.8rem;
-    color: #6b7280;
+    color: var(--color-muted);
 }
 
 .sr-error {
@@ -121,16 +121,16 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.75rem 0;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid var(--color-border);
 }
 
 .friend-item:first-child {
-    border-top: 1px solid #f3f4f6;
+    border-top: 1px solid var(--color-border);
 }
 
 .friends-empty {
     font-size: 0.85rem;
-    color: #9ca3af;
+    color: var(--color-muted);
     padding: 0.5rem 0;
 }
 
@@ -138,8 +138,8 @@
 .btn-send-request,
 .btn-accept {
     padding: 0.6rem 1.25rem;
-    background: #1a1a1a;
-    color: #fff;
+    background: var(--color-accent);
+    color: var(--color-bg);
     border: none;
     border-radius: 0.5rem;
     font-size: 0.7rem;
@@ -153,7 +153,7 @@
 
 .btn-send-request:hover,
 .btn-accept:hover {
-    background: #000;
+    background: var(--color-accent-soft);
     transform: translateY(-1px);
 }
 
@@ -161,9 +161,9 @@
 .btn-remove,
 .btn-chat {
     padding: 0.6rem 0.8rem;
-    background: #fff;
-    color: #1a1a1a;
-    border: 2px solid #1a1a1a;
+    background: var(--color-bg);
+    color: var(--color-text);
+    border: 2px solid var(--color-text);
     border-radius: 0.5rem;
     font-size: 0.8rem;
     display: flex;
@@ -174,8 +174,8 @@
 }
 
 .btn-chat:hover {
-    background: #f0f0f0;
-    border-color: #000;
+    background: var(--color-surface);
+    border-color: var(--color-text);
 }
 
 .btn-decline:hover,
@@ -198,8 +198,8 @@ button:disabled {
 
 /* ── Badge ── */
 #requests-badge {
-    background: #111;
-    color: #fff;
+    background: var(--color-text);
+    color: var(--color-bg);
     border-radius: 999px;
     font-size: 0.65rem;
     font-weight: 700;
@@ -221,11 +221,11 @@ button:disabled {
 }
 
 .modal-confirm-card {
-    background: white;
+    background: var(--color-bg);
     width: 100%;
     max-width: 400px;
     border-radius: 1rem;
-    border: 2px solid #1a1a1a;
+    border: 2px solid var(--color-text);
     overflow: hidden;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
     animation: zoomIn 0.2s ease;
@@ -253,13 +253,13 @@ button:disabled {
     font-size: 1.25rem;
     font-weight: 900;
     text-transform: uppercase;
-    color: #1a1a1a;
+    color: var(--color-text);
     margin-bottom: 0.5rem;
 }
 
 .modal-confirm-body p {
     font-size: 0.875rem;
-    color: #6b7280;
+    color: var(--color-muted);
     font-weight: 600;
 }
 
@@ -267,20 +267,20 @@ button:disabled {
     display: flex;
     gap: 1rem;
     padding: 1.5rem;
-    background: #f9fafb;
-    border-top: 1px solid #f3f4f6;
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
 }
 
 .btn-modal-cancel {
     flex: 1;
     padding: 1rem;
-    background: #fff;
-    border: 2px solid #e5e7eb;
+    background: var(--color-bg);
+    border: 2px solid var(--color-border);
     border-radius: 0.75rem;
     font-weight: 900;
     text-transform: uppercase;
     font-size: 0.75rem;
-    color: #6b7280;
+    color: var(--color-muted);
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -289,7 +289,7 @@ button:disabled {
     flex: 1;
     padding: 1rem;
     background: #ef4444;
-    color: #fff;
+    color: var(--color-bg);
     border: none;
     border-radius: 0.75rem;
     font-weight: 900;

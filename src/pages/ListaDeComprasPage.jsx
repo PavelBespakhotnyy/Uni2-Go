@@ -48,7 +48,7 @@ export default function ListaDeComprasPage() {
         newData.lists[tempId] = {
           name: 'Lista de la compra',
           description: 'Qué hay que comprar',
-          color_tag: '#f28c18',
+          color_tag: 'var(--color-accent)',
           is_shared: false,
           shared_with: [],
           items: [
@@ -153,7 +153,7 @@ export default function ListaDeComprasPage() {
 
           <div style={{ padding: '15px' }}>
             <div style={{ position: 'relative' }}>
-              <i className="bx bx-search" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#888' }} />
+              <i className="bx bx-search" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted)' }} />
               <input
                 type="text"
                 placeholder="Buscar..."
@@ -174,7 +174,7 @@ export default function ListaDeComprasPage() {
                       className={`lists-header${id === selectedListId ? ' active-list' : ''}`}
                       onClick={() => setSelectedListId(id)}
                     >
-                      <div className="list-color" style={{ background: data.lists[id].color_tag || '#f28c18' }} />
+                      <div className="list-color" style={{ background: data.lists[id].color_tag || 'var(--color-accent)' }} />
                       <div className="list-meta">
                         {editingListNameId === id ? (
                           <input
@@ -217,7 +217,7 @@ export default function ListaDeComprasPage() {
                 </div>
                 <button className="add-btn" onClick={() => {
                   const id = 'list-' + Date.now();
-                  setData(d => ({ ...d, lists: { ...d.lists, [id]: { name: 'Nueva Lista', description: '', color_tag: '#f28c18', items: [], is_shared: false } } }));
+                  setData(d => ({ ...d, lists: { ...d.lists, [id]: { name: 'Nueva Lista', description: '', color_tag: 'var(--color-accent)', items: [], is_shared: false } } }));
                   setSelectedListId(id);
                 }}>+ Nueva lista</button>
               </>
@@ -269,7 +269,7 @@ export default function ListaDeComprasPage() {
                 </div>
                 <button className="add-btn" onClick={() => {
                   const id = 'note-' + Date.now();
-                  setData(d => ({ ...d, notes: { ...d.notes, [id]: { title: 'Nueva Nota', content: '', color_tag: '#f28c18' } } }));
+                  setData(d => ({ ...d, notes: { ...d.notes, [id]: { title: 'Nueva Nota', content: '', color_tag: 'var(--color-accent)' } } }));
                   setSelectedNoteId(id);
                 }}>+ Nueva nota</button>
               </>
