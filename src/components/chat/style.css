@@ -160,6 +160,11 @@
     font-weight: 500;
 }
 
+.chat-header-status.offline {
+    color: var(--color-muted);
+    font-weight: 400;
+}
+
 .chat-window-header .chat-contact-avatar {
     margin-right: 15px;
     width: 45px;
@@ -264,12 +269,35 @@
     word-wrap: break-word;
 }
 
+.chat-message-meta {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 2px;
+    margin-top: 3px;
+}
+
 .chat-message-time {
     font-size: 10px;
     opacity: 0.5;
-    margin-top: 3px;
-    text-align: right;
     line-height: 1;
+}
+
+.chat-msg-status {
+    font-size: 14px;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.5);
+    display: flex;
+    align-items: center;
+}
+
+.chat-msg-status.read {
+    color: #53bdeb;
+}
+
+.chat-message.sent .chat-message-time {
+    opacity: 0.6;
+    color: inherit;
 }
 
 .chat-message-delete-btn {

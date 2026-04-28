@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { chatService } from '../services/chatService.js';
 import { friendsService } from '../services/friendsService.js';
 import { getUserProfile } from '../services/userService.js';
+import { presenceService } from '../services/presenceService.js';
 import Layout from '../components/Layout.jsx';
 import '../components/chat/style.css';
 
@@ -67,8 +70,11 @@ export default function ChatPage() {
   const [activeChatOtherUid, setActiveChatOtherUid] = useState(null);
   const [isFriend, setIsFriend] = useState(true);
   const [avatarCache, setAvatarCache] = useState({});
+  const [otherUserStatus, setOtherUserStatus] = useState({ isOnline: false, lastSeenAt: null });
+  const [activeChatLastReadAt, setActiveChatLastReadAt] = useState(null);
   const messagesEndRef = useRef(null);
   const unsubMessagesRef = useRef(null);
+  const unsubStatusRef = useRef(null);
   const autoOpenedRef = useRef(null);
 
   const myName = profile
@@ -85,6 +91,19 @@ export default function ChatPage() {
     if (!activeChatOtherUid) { setIsFriend(true); return; }
     setIsFriend(friends.some(f => f.uid === activeChatOtherUid));
   }, [activeChatOtherUid, friends]);
+
+  useEffect(() => {
+    if (unsubStatusRef.current) { unsubStatusRef.current(); unsubStatusRef.current = null; }
+    if (!activeChatOtherUid) { setOtherUserStatus({ isOnline: false, lastSeenAt: null }); return; }
+    unsubStatusRef.current = presenceService.listenUserStatus(activeChatOtherUid, setOtherUserStatus);
+    return () => { if (unsubStatusRef.current) { unsubStatusRef.current(); unsubStatusRef.current = null; } };
+  }, [activeChatOtherUid]);
+
+  useEffect(() => {
+    if (!activeChatId) { setActiveChatLastReadAt(null); return; }
+    const chat = chats.find(c => c.id === activeChatId);
+    setActiveChatLastReadAt(chat?.lastReadAt ?? null);
+  }, [activeChatId, chats]);
 
   useEffect(() => {
     if (!user || chats.length === 0) return;
@@ -272,7 +291,13 @@ export default function ChatPage() {
                 <ChatAvatar name={activeChatName} avatarUrl={activeChatOtherUid ? (avatarCache[activeChatOtherUid] ?? null) : null} />
                 <div className="chat-header-info">
                   <h2>{activeChatName}</h2>
-                  <span className="chat-header-status">En línea</span>
+                  <span className={`chat-header-status${otherUserStatus.isOnline ? '' : ' offline'}`}>
+                    {otherUserStatus.isOnline
+                      ? 'En línea'
+                      : otherUserStatus.lastSeenAt
+                        ? `Última vez ${formatDistanceToNow(otherUserStatus.lastSeenAt, { addSuffix: true, locale: es })}`
+                        : 'Desconectado'}
+                  </span>
                 </div>
               </>
             )}
@@ -289,6 +314,10 @@ export default function ChatPage() {
               const time = msgDate
                 ? msgDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                 : '';
+
+              const otherReadAt = activeChatOtherUid ? activeChatLastReadAt?.[activeChatOtherUid]?.toDate?.() : null;
+              const msgTime = msgDate;
+              const isRead = otherReadAt && msgTime && msgTime <= otherReadAt;
 
               const prevDate = messages[i - 1]?.timestamp?.toDate ? messages[i - 1].timestamp.toDate() : null;
               const showDateSep = msgDate && (
@@ -329,7 +358,14 @@ export default function ChatPage() {
                     )}
                     <div className={`chat-message ${isSent ? 'sent' : 'received'}`}>
                       <div className="chat-message-content">{msg.text || msg.messageText || ''}</div>
-                      <div className="chat-message-time">{time}</div>
+                      <div className="chat-message-meta">
+                        <span className="chat-message-time">{time}</span>
+                        {isSent && (
+                          <span className={`chat-msg-status${isRead ? ' read' : ''}`}>
+                            <i className={`bx ${isRead || msg.isDelivered ? 'bx-check-double' : 'bx-check'}`} />
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </React.Fragment>

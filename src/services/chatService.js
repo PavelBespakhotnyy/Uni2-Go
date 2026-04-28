@@ -230,6 +230,7 @@ class ChatService {
         const chatRef = doc(db, "chats", chatId);
         const updateData = {};
         updateData[`unreadCount.${userId}`] = 0;
+        updateData[`lastReadAt.${userId}`] = serverTimestamp();
         await updateDoc(chatRef, updateData);
     }
 
