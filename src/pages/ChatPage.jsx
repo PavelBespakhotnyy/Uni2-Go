@@ -460,11 +460,14 @@ export default function ChatPage() {
                     title="GIFs"
                     onClick={(e) => { 
                       e.stopPropagation();
+                      console.log('Toggle GIF picker. Current state:', !gifPickerOpen);
                       setGifPickerOpen(!gifPickerOpen); 
                       setEmojiPickerOpen(false); 
                     }}
+                    style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}
                   >
-                    <i className="bx bx-gif" />
+                    <i className="bx bx-image" />
+                    <span style={{fontSize: '10px', fontWeight: 'bold'}}>GIF</span>
                   </button>
                 </div>
 
