@@ -7,6 +7,8 @@ import { chatService } from '../services/chatService.js';
 import { friendsService } from '../services/friendsService.js';
 import { getUserProfile } from '../services/userService.js';
 import { presenceService } from '../services/presenceService.js';
+import { Picker } from 'emoji-mart';
+import GifPicker from '../components/chat/GifPicker.jsx';
 import Layout from '../components/Layout.jsx';
 import '../components/chat/style.css';
 
@@ -55,6 +57,28 @@ function ChatAvatar({ name, avatarUrl }) {
   );
 }
 
+function EmojiPickerWrapper({ onSelect, onClose }) {
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    
+    const picker = new Picker({
+      parent: containerRef.current,
+      onEmojiSelect: onSelect,
+      onClickOutside: onClose,
+      theme: 'light',
+      locale: 'es'
+    });
+
+    return () => {
+      if (containerRef.current) containerRef.current.innerHTML = '';
+    };
+  }, [onSelect, onClose]);
+
+  return <div ref={containerRef} />;
+}
+
 export default function ChatPage() {
   const { user, profile } = useAuth();
   const [searchParams] = useSearchParams();
@@ -76,6 +100,37 @@ export default function ChatPage() {
   const unsubMessagesRef = useRef(null);
   const unsubStatusRef = useRef(null);
   const autoOpenedRef = useRef(null);
+
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+  const [gifPickerOpen, setGifPickerOpen] = useState(false);
+
+  const onEmojiSelect = React.useCallback((emoji) => {
+    console.log('Emoji selecionado:', emoji);
+    const emojiChar = emoji.native || emoji.id;
+    if (emojiChar) {
+      setMessageText(prev => prev + emojiChar);
+    }
+    setEmojiPickerOpen(false);
+  }, []);
+
+  const closeEmojiPicker = React.useCallback(() => {
+    setEmojiPickerOpen(false);
+  }, []);
+
+  const onGifSelect = async (gifUrl) => {
+    if (!activeChatId || !user || !isFriend) return;
+    try {
+      await chatService.sendGif(activeChatId, gifUrl, user.uid, activeChatParticipants, myName);
+      setGifPickerOpen(false);
+    } catch (err) {
+      alert('Error al enviar GIF: ' + err.message);
+    }
+  };
+
+  const closePickers = () => {
+    setEmojiPickerOpen(false);
+    setGifPickerOpen(false);
+  };
 
   const myName = profile
     ? `${profile.name || ''} ${profile.surname || ''}`.trim()
@@ -150,6 +205,7 @@ export default function ChatPage() {
       unsubMessagesRef.current();
       unsubMessagesRef.current = null;
     }
+    closePickers();
     setActiveChatId(chatId);
     setActiveChatName(name);
     setActiveChatParticipants(participants);
@@ -357,7 +413,13 @@ export default function ChatPage() {
                       </button>
                     )}
                     <div className={`chat-message ${isSent ? 'sent' : 'received'}`}>
-                      <div className="chat-message-content">{msg.text || msg.messageText || ''}</div>
+                      <div className="chat-message-content">
+                        {msg.messageType === 'gif' ? (
+                          <img src={msg.gifUrl} alt="GIF" className="chat-gif-msg" />
+                        ) : (
+                          msg.text || msg.messageText || ''
+                        )}
+                      </div>
                       <div className="chat-message-meta">
                         <span className="chat-message-time">{time}</span>
                         {isSent && (
@@ -377,6 +439,47 @@ export default function ChatPage() {
           {activeChatId && (
             isFriend ? (
               <div className="chat-input-area">
+                <div className="chat-controls">
+                  <button 
+                    className="chat-control-btn" 
+                    title="Emojis"
+                    onClick={(e) => { 
+                      e.stopPropagation();
+                      setEmojiPickerOpen(!emojiPickerOpen); 
+                      setGifPickerOpen(false); 
+                    }}
+                  >
+                    <i className="bx bx-smile" />
+                  </button>
+                  <button 
+                    className="chat-control-btn" 
+                    title="GIFs"
+                    onClick={(e) => { 
+                      e.stopPropagation();
+                      setGifPickerOpen(!gifPickerOpen); 
+                      setEmojiPickerOpen(false); 
+                    }}
+                  >
+                    <i className="bx bx-gif" />
+                  </button>
+                </div>
+
+                {emojiPickerOpen && (
+                  <div className="emoji-picker-popover" onClick={(e) => e.stopPropagation()}>
+                    <EmojiPickerWrapper 
+                      onSelect={onEmojiSelect} 
+                      onClose={closeEmojiPicker}
+                    />
+                  </div>
+                )}
+
+                {gifPickerOpen && (
+                  <GifPicker 
+                    onSelect={onGifSelect} 
+                    onClose={() => setGifPickerOpen(false)} 
+                  />
+                )}
+
                 <input
                   className="chat-input-field"
                   type="text"

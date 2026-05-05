@@ -163,7 +163,7 @@ class ChatService {
         });
     }
 
-    async sendMessage(chatId, text, senderId, participants, senderName) {
+    async sendMessage(chatId, text, senderId, participants, senderName, messageType = 'text', gifUrl = null) {
         console.log("Envoi de message au chat:", chatId, "Participants:", participants);
         const chatRef = doc(db, "chats", chatId);
         const messagesRef = collection(db, "chats", chatId, "messages");
@@ -175,7 +175,7 @@ class ChatService {
             text: text,
             messageText: text,
             timestamp: timestamp,
-            messageType: 'text',
+            messageType: messageType,
             isDelivered: true,
             isRead: false,
             deliveredAt: timestamp,
@@ -184,11 +184,15 @@ class ChatService {
             reactions: {}
         };
 
+        if (messageType === 'gif' && gifUrl) {
+            newMessage.gifUrl = gifUrl;
+        }
+
         const msgRef = await addDoc(messagesRef, newMessage);
 
         const updateData = {
             lastMessage: {
-                text: text,
+                text: messageType === 'gif' ? 'Sent a GIF' : text,
                 senderId: senderId,
                 timestamp: timestamp,
                 readBy: [senderId]
@@ -207,12 +211,16 @@ class ChatService {
             updateData[`unreadCount.${pId}`] = increment(1);
             
             console.log(`Creacion de notificacion para el usuario: ${pId}`);
+            const notificationText = messageType === 'gif' 
+                ? 'te envió un GIF' 
+                : `te envió un mensaje: "${text.substring(0, 30)}${text.length > 30 ? '...' : ''}"`;
+
             notificationPromises.push(
                 notificationService.createNotification(
                     pId, 
                     'new_message', 
                     senderName || 'Alguien', 
-                    `te envió un mensaje: "${text.substring(0, 30)}${text.length > 30 ? '...' : ''}"`, 
+                    notificationText, 
                     { chatId, messageId: msgRef.id },
                     senderId
                 )
@@ -224,6 +232,10 @@ class ChatService {
             ...notificationPromises
         ]);
         console.log("Message et notifications traites.");
+    }
+
+    async sendGif(chatId, gifUrl, senderId, participants, senderName) {
+        return this.sendMessage(chatId, '[GIF]', senderId, participants, senderName, 'gif', gifUrl);
     }
 
     async markAsRead(chatId, userId) {
