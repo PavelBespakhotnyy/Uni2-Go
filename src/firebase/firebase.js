@@ -19,4 +19,6 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
-export const analytics = getAnalytics(app);
+
+// Initialize Analytics only if measurementId is provided to avoid 404 errors
+export const analytics = firebaseConfig.measurementId ? getAnalytics(app) : null;
