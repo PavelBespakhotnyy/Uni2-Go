@@ -101,6 +101,10 @@ export default function ChatPage() {
   const unsubStatusRef = useRef(null);
   const autoOpenedRef = useRef(null);
 
+  const myName = profile
+    ? `${profile.name || ''} ${profile.surname || ''}`.trim()
+    : (user?.email || '');
+
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [gifPickerOpen, setGifPickerOpen] = useState(false);
 
@@ -117,7 +121,7 @@ export default function ChatPage() {
     setEmojiPickerOpen(false);
   }, []);
 
-  const onGifSelect = async (gifUrl) => {
+  const onGifSelect = React.useCallback(async (gifUrl) => {
     if (!activeChatId || !user || !isFriend) return;
     try {
       await chatService.sendGif(activeChatId, gifUrl, user.uid, activeChatParticipants, myName);
@@ -125,16 +129,16 @@ export default function ChatPage() {
     } catch (err) {
       alert('Error al enviar GIF: ' + err.message);
     }
-  };
+  }, [activeChatId, user, isFriend, activeChatParticipants, myName]);
+
+  const closeGifPicker = React.useCallback(() => {
+    setGifPickerOpen(false);
+  }, []);
 
   const closePickers = () => {
     setEmojiPickerOpen(false);
     setGifPickerOpen(false);
   };
-
-  const myName = profile
-    ? `${profile.name || ''} ${profile.surname || ''}`.trim()
-    : (user?.email || '');
 
   useEffect(() => {
     if (!user) return;
