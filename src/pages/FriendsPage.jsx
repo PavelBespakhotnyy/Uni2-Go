@@ -3,19 +3,125 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { friendsService } from '../services/friendsService.js';
 import { chatService } from '../services/chatService.js';
+import { presenceService } from '../services/presenceService.js';
+import { gruposService } from '../services/gruposService.js';
 import Layout from '../components/Layout.jsx';
 import '../components/friends/friends.css';
 
+const AVATAR_COLORS = ['#4f46e5','#0284c7','#059669','#d97706','#7c3aed','#db2777','#0891b2','#0056FF'];
+
+function hashAvatarColor(str) {
+  if (!str) return AVATAR_COLORS[0];
+  let h = 0;
+  for (const c of str) h = ((h << 5) - h) + c.charCodeAt(0);
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+}
+
+function chatInitials(name) {
+  const parts = (name || '').trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  if (parts[0]?.length) return parts[0].substring(0, 2).toUpperCase();
+  return '?';
+}
+
+function isEmoji(str) {
+  return str && !/^https?:\/\//.test(str) && str.length <= 8;
+}
+
+function FriendAvatar({ name, avatarUrl }) {
+  if (avatarUrl && isEmoji(avatarUrl)) {
+    return (
+      <div className="friend-avatar" style={{ backgroundColor: '#f0f0f0', fontSize: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {avatarUrl}
+      </div>
+    );
+  }
+  if (avatarUrl) {
+    return (
+      <div className="friend-avatar">
+        <img src={avatarUrl} alt={name} onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+        <span style={{ display: 'none', width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center', backgroundColor: hashAvatarColor(name), color: '#fff', fontWeight: 700, fontSize: '14px' }}>
+          {chatInitials(name)}
+        </span>
+      </div>
+    );
+  }
+  return (
+    <div className="friend-avatar" style={{ backgroundColor: hashAvatarColor(name), color: '#fff', fontWeight: 700, fontSize: '14px' }}>
+      {chatInitials(name)}
+    </div>
+  );
+}
+
+function FriendStatus({ uid }) {
+  const [status, setStatus] = useState({ isOnline: false });
+  useEffect(() => {
+    return presenceService.listenUserStatus(uid, setStatus);
+  }, [uid]);
+  
+  if (!status.isOnline) return null;
+  return <span className="friend-status-dot" title="En línea" />;
+}
+
+function FriendGroups({ uid }) {
+  const [groups, setGroups] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Listen to groups where this user is a member
+    return gruposService.listenMyGroups(uid, setGroups);
+  }, [uid]);
+
+  if (groups.length === 0) return null;
+
+  const displayGroups = groups.slice(0, 3);
+  const extraCount = groups.length - 3;
+
+  return (
+    <div className="friend-groups-badges">
+      {displayGroups.map(g => (
+        <span 
+          key={g.id} 
+          className="friend-group-badge" 
+          title={`Ir al grupo ${g.name}`}
+          onClick={(e) => { e.stopPropagation(); navigate(`/grupos?id=${g.id}`); }}
+          style={{ cursor: 'pointer' }}
+        >
+          {g.emoji || '👥'}
+        </span>
+      ))}
+      {extraCount > 0 && (
+        <span className="friend-group-badge extra" onClick={(e) => { e.stopPropagation(); navigate('/grupos'); }} style={{ cursor: 'pointer' }}>
+          +{extraCount}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function RequestAvatar({ uid, name }) {
+  const [avatarUrl, setAvatarUrl] = useState(null);
+  
+  useEffect(() => {
+    getUserProfile(uid).then(p => {
+      if (p?.avatarUrl) setAvatarUrl(p.avatarUrl);
+    });
+  }, [uid]);
+
+  return <FriendAvatar name={name} avatarUrl={avatarUrl} />;
+}
+
 export default function FriendsPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
-  const [searchResults, setSearchResults] = useState([]); // Array for dropdown
+  const [searchResults, setSearchResults] = useState([]); 
   const [searching, setSearching] = useState(false);
   const [friends, setFriends] = useState([]);
   const [requests, setRequests] = useState([]);
-  const [sentRequests, setSentRequests] = useState({}); // { uid: 'sent' | 'error' }
+  const [sentRequests, setSentRequests] = useState({}); 
   const [deleteModal, setDeleteModal] = useState({ open: false, uid: null, name: '' });
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -55,7 +161,6 @@ export default function FriendsPage() {
     try {
       await friendsService.sendFriendRequest(user.uid, uid);
       setSentRequests(prev => ({ ...prev, [uid]: 'sent' }));
-      // Auto-clear search after a short delay to let user see the "Sent" status
       setTimeout(() => {
         setSearch('');
         setSearchResults([]);
@@ -97,10 +202,25 @@ export default function FriendsPage() {
     }
   };
 
+  const handleCopyCode = () => {
+    if (profile?.friend_code) {
+      navigator.clipboard.writeText(profile.friend_code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   return (
     <Layout>
       <div className="universal-page-header">
-        <div className="header-left-zone" />
+        <div className="header-left-zone">
+          {profile?.friend_code && (
+            <div className="my-code-badge" onClick={handleCopyCode} title="Click para copiar mi código">
+              <i className={`bx ${copied ? 'bx-check' : 'bx-copy-alt'}`} />
+              <span>{copied ? 'Copiado' : profile.friend_code}</span>
+            </div>
+          )}
+        </div>
         <div className="header-center-zone">
           <div className="header-search-container">
             <i className="bx bx-search" />
@@ -115,24 +235,24 @@ export default function FriendsPage() {
             {/* Live Search Dropdown */}
             {(searchResults.length > 0 || searching) && (
               <div className="search-results-dropdown">
-                {searching && <div style={{ padding: '15px', textAlign: 'center', fontSize: '12px', color: 'var(--color-muted)' }}>Buscando...</div>}
+                {searching && <div className="searching-indicator">Buscando...</div>}
                 {searchResults.map(result => (
                   <div key={result.id} className="search-result-item">
+                    <FriendAvatar name={`${result.name} ${result.surname}`} avatarUrl={result.avatarUrl} />
                     <div className="user-info">
                       <span className="user-name">{result.name} {result.surname}</span>
                       <span className="user-handle">@{result.username}</span>
                     </div>
                     {sentRequests[result.id] === 'sent' ? (
-                      <span style={{ fontSize: '10px', color: '#27ae60', fontWeight: 'bold' }}>Solicitud enviada ✓</span>
+                      <span className="status-sent">Enviada ✓</span>
                     ) : sentRequests[result.id] === 'error' ? (
-                      <span style={{ fontSize: '10px', color: '#c0392b', fontWeight: 'bold' }}>Error</span>
+                      <span className="status-error">Error</span>
                     ) : (
                       <button
-                        className="btn-send-request"
-                        style={{ padding: '5px 12px', fontSize: '10px' }}
+                        className="btn-add-result"
                         onClick={() => handleSendRequest(result.id)}
                       >
-                        Añadir
+                        <i className="bx bx-plus" />
                       </button>
                     )}
                   </div>
@@ -163,59 +283,78 @@ export default function FriendsPage() {
             </div>
           </div>
         )}
+        
         {/* Solicitudes */}
-        <section className="friends-section">
-          <h2>
-            Solicitudes pendientes
-            {requests.length > 0 && (
-              <span id="requests-badge" className="requests-badge">{requests.length}</span>
-            )}
-          </h2>
-          <ul id="requests-list">
-            {requests.length === 0 ? (
-              <li className="friends-empty">No tienes solicitudes pendientes</li>
-            ) : (
-              requests.map(req => (
-                <li key={req.contactDocId} className="friend-item">
-                  <div className="friend-info">
+        {requests.length > 0 && (
+          <section className="friends-section animated-section">
+            <h2 className="section-title">
+              <i className="bx bx-user-plus" />
+              Solicitudes pendientes
+              <span className="requests-count-badge">{requests.length}</span>
+            </h2>
+            <div className="friend-cards-grid">
+              {requests.map(req => (
+                <div key={req.contactDocId} className="friend-card request-card">
+                  <div className="card-avatar-zone">
+                    <RequestAvatar uid={req.requested_by} name={`${req.name} ${req.surname}`} />
+                  </div>
+                  <div className="card-info-zone">
                     <span className="friend-name">{req.name} {req.surname}</span>
                     <span className="friend-username">@{req.username}</span>
+                    <FriendGroups uid={req.requested_by} />
                   </div>
-                  <div className="friend-actions">
-                    <button className="btn-accept" onClick={() => handleAccept(req)}>Aceptar</button>
-                    <button className="btn-decline" onClick={() => handleDecline(req)}>Rechazar</button>
+                  <div className="card-actions-zone">
+                    <button className="btn-action-accept" onClick={() => handleAccept(req)} title="Aceptar">
+                      <i className="bx bx-check" />
+                    </button>
+                    <button className="btn-action-decline" onClick={() => handleDecline(req)} title="Rechazar">
+                      <i className="bx bx-x" />
+                    </button>
                   </div>
-                </li>
-              ))
-            )}
-          </ul>
-        </section>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Amigos */}
         <section className="friends-section">
-          <h2>Mis amigos</h2>
-          <ul id="friends-list">
-            {friends.length === 0 ? (
-              <li className="friends-empty">No tienes amigos aún</li>
-            ) : (
-              friends.map(f => (
-                <li key={f.uid} className="friend-item">
-                  <div className="friend-info">
+          <h2 className="section-title">
+            <i className="bx bx-group" />
+            Mis amigos
+            <span className="friends-count-badge">{friends.length}</span>
+          </h2>
+          
+          {friends.length === 0 ? (
+            <div className="friends-empty-state">
+              <i className="bx bx-ghost" />
+              <p>No tienes amigos aún. ¡Usa el buscador para añadir a alguien!</p>
+            </div>
+          ) : (
+            <div className="friend-cards-grid">
+              {friends.map(f => (
+                <div key={f.uid} className="friend-card">
+                  <div className="card-avatar-zone">
+                    <FriendAvatar name={`${f.name} ${f.surname}`} avatarUrl={f.avatarUrl} />
+                    <FriendStatus uid={f.uid} />
+                  </div>
+                  <div className="card-info-zone">
                     <span className="friend-name">{f.name} {f.surname}</span>
                     <span className="friend-username">@{f.username}</span>
+                    <FriendGroups uid={f.uid} />
                   </div>
-                  <div className="friend-actions">
-                    <button className="btn-chat" onClick={() => handleChat(f.uid)} title="Abrir chat">
-                      <i className="bx bx-chat" />
+                  <div className="card-actions-zone">
+                    <button className="btn-action-chat" onClick={() => handleChat(f.uid)} title="Abrir chat">
+                      <i className="bx bx-conversation" />
                     </button>
-                    <button className="btn-remove" onClick={() => handleRemove(f.uid, f.name)} title="Eliminar amigo">
-                      <i className="bx bx-user-minus" />
+                    <button className="btn-action-remove" onClick={() => handleRemove(f.uid, f.name)} title="Eliminar amigo">
+                      <i className="bx bx-trash" />
                     </button>
                   </div>
-                </li>
-              ))
-            )}
-          </ul>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       </div>
     </Layout>
