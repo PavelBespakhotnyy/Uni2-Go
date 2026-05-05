@@ -9,6 +9,7 @@ export default function LoginPage() {
   const [errors, setErrors] = useState({});
   const [globalError, setGlobalError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const validate = () => {
     const e = {};
@@ -71,13 +72,23 @@ export default function LoginPage() {
 
         <div>
           <label>Contraseña</label><br />
-          <input 
-            type="password" 
-            name="password" 
-            value={fields.password} 
-            onChange={set('password')} 
-            autoComplete="current-password"
-          />
+          <div className="password-wrapper">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              name="password"
+              value={fields.password}
+              onChange={set('password')}
+              autoComplete="current-password"
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowPassword(v => !v)}
+              tabIndex={-1}
+            >
+              <i className={`bx bx-sm ${showPassword ? 'bx-hide' : 'bx-show'}`} />
+            </button>
+          </div>
           <p className={`field-error${errors.password ? ' visible' : ''}`}>{errors.password || ''}</p>
         </div>
 

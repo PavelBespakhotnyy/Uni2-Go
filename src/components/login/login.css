@@ -34,6 +34,11 @@ body {
     width: 35px;
     height: auto;
     cursor: pointer;
+    transition: filter 0.2s;
+}
+
+html[data-dark="true"] #content > a:first-child img {
+    filter: brightness(0) invert(1);
 }
 
 /* --- CONTENEDOR DEL FORMULARIO --- */
@@ -105,6 +110,7 @@ form#loginForm input[type="password"] {
     border-radius: 4px;
     box-sizing: border-box;
     background-color: var(--color-surface);
+    color: var(--color-text);
 }
 
 /* EFECTO FOCUS */

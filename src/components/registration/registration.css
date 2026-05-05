@@ -35,6 +35,11 @@ body {
     height: auto;
     display: block;
     cursor: pointer;
+    transition: filter 0.2s;
+}
+
+html[data-dark="true"] #content > a:first-of-type img {
+    filter: brightness(0) invert(1);
 }
 
 /* --- CONTENEDOR DEL FORMULARIO --- */
@@ -105,6 +110,7 @@ form#registroForm input[type="tel"] {
     border-radius: 4px;
     box-sizing: border-box;
     background-color: var(--color-surface);
+    color: var(--color-text);
 }
 
 .phone-container {
@@ -113,28 +119,72 @@ form#registroForm input[type="tel"] {
     border: 1px solid var(--color-border);
     border-radius: 4px;
     background-color: var(--color-surface);
-    overflow: hidden;
-}
-
-.phone-container > div:first-child {
-    width: 80px !important;
-    flex-shrink: 0;
-    border-right: 1px solid var(--color-border);
-}
-
-.phone-container select {
-    width: 100%;
-    padding: 12px 10px;
-    font-size: 14px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
 }
 
 .phone-container input[type="tel"] {
     flex: 1;
     border: none;
     background: transparent;
+    color: var(--color-text);
+}
+
+/* Custom country picker */
+.country-picker {
+    position: relative;
+    width: 80px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--color-border);
+}
+
+.country-picker-btn {
+    width: 100%;
+    height: 100%;
+    padding: 12px 8px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2px;
+    white-space: nowrap;
+}
+
+.country-picker-list {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: -1px;
+    min-width: 230px;
+    max-height: 340px;
+    overflow-y: auto;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    z-index: 1000;
+    list-style: none;
+    margin: 0;
+    padding: 4px 0;
+}
+
+.country-picker-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--color-text);
+    white-space: nowrap;
+    transition: background 0.15s;
+}
+
+.country-picker-item:hover {
+    background-color: var(--color-surface-2);
+}
+
+.country-picker-item.selected {
+    background-color: var(--color-accent-muted);
+    color: var(--color-accent);
 }
 
 /* BOTÓN DE REGISTRARSE */

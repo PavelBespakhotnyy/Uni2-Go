@@ -30,6 +30,10 @@ export default function UserPage() {
     if (user) refreshProfile();
   }, [user]);
 
+  useEffect(() => {
+    setAvatarBroken(false);
+  }, [profile?.avatarUrl]);
+
   const [panelOpen, setPanelOpen] = useState(false);
   const [photoModalOpen, setPhotoModalOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -37,6 +41,7 @@ export default function UserPage() {
   const [uploading, setUploading] = useState(false);
   const [saveMsg, setSaveMsg] = useState({ text: '', ok: true });
   
+  const [avatarBroken, setAvatarBroken] = useState(false);
   const [pixabayQuery, setPixabayQuery] = useState('');
   const [pixabayImages, setPixabayImages] = useState([]);
   const [pixabayLoading, setPixabayLoading] = useState(false);
@@ -293,35 +298,12 @@ export default function UserPage() {
             <div className="modal-body">
               <div className="avatar-selection-section">
                 <p>Iconos estándar:</p>
-                <div className="standard-avatars-grid" style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(5, 1fr)', 
-                  gap: '12px', 
-                  marginBottom: '20px',
-                  maxHeight: '200px',
-                  overflowY: 'auto',
-                  padding: '10px',
-                  background: '#f8f9fa',
-                  borderRadius: '12px'
-                }}>
+                <div className="avatar-emoji-grid">
                   {PROFILE_EMOJIS.map((emoji, idx) => (
-                    <div 
-                      key={idx} 
+                    <div
+                      key={idx}
+                      className={`avatar-emoji-btn${profile?.avatarUrl === emoji ? ' selected' : ''}`}
                       onClick={() => selectImage(emoji)}
-                      style={{ 
-                        fontSize: '32px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: '50px',
-                        height: '50px',
-                        cursor: 'pointer', 
-                        borderRadius: '12px',
-                        transition: 'all 0.2s',
-                        background: profile?.avatarUrl === emoji ? '#0056FF' : 'white',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-                        border: '2px solid transparent'
-                      }} 
                     >
                       {emoji}
                     </div>
@@ -330,34 +312,37 @@ export default function UserPage() {
               </div>
 
               {profile?.avatarUrl && (
-                <button className="btn-tertiary" onClick={handleDeletePhoto} disabled={uploading} style={{ backgroundColor: '#ffcccc', width: '100%', marginBottom: '20px', borderRadius: '12px', fontWeight: 'bold' }}>
+                <button className="btn-delete-avatar" onClick={handleDeletePhoto} disabled={uploading}>
                   Eliminar foto actual
                 </button>
               )}
 
               <div className="pixabay-search">
-                <p>O busca una foto en Pixabay:</p>
+                <p className="pixabay-label">Buscar en Pixabay</p>
                 <div className="search-box">
-                  <input 
-                    type="text" 
-                    placeholder="Buscar fotos..." 
-                    value={pixabayQuery} 
+                  <input
+                    type="text"
+                    placeholder="Ej: naturaleza, ciudad..."
+                    value={pixabayQuery}
                     onChange={e => setPixabayQuery(e.target.value)}
                     onKeyPress={e => e.key === 'Enter' && searchPixabay()}
                   />
                   <button onClick={searchPixabay} disabled={pixabayLoading || uploading}>
-                    {pixabayLoading ? '...' : 'Buscar'}
+                    {pixabayLoading ? <i className="bx bx-loader-alt bx-spin" /> : <i className="bx bx-search" />}
                   </button>
                 </div>
                 <div className="pixabay-results">
+                  {pixabayImages.length === 0 && !pixabayLoading && pixabayQuery && (
+                    <p className="pixabay-empty">No se encontraron imágenes</p>
+                  )}
                   {pixabayImages.map(img => (
-                    <img 
-                      key={img.id} 
-                      src={img.previewURL} 
-                      alt="pixabay" 
+                    <div
+                      key={img.id}
+                      className={`pixabay-result-item${uploading ? ' uploading' : ''}`}
                       onClick={() => !uploading && selectImage(img.webformatURL)}
-                      style={{ opacity: uploading ? 0.5 : 1, cursor: uploading ? 'not-allowed' : 'pointer' }}
-                    />
+                    >
+                      <img src={img.previewURL} alt="" />
+                    </div>
                   ))}
                 </div>
               </div>
@@ -369,13 +354,19 @@ export default function UserPage() {
       {/* Contenido principal */}
       <div className="user-profile">
         <div className="avatar-container" onClick={() => setPhotoModalOpen(true)}>
-          {profile?.avatarUrl ? (
+          {profile?.avatarUrl && !avatarBroken ? (
             isEmoji(profile.avatarUrl) ? (
               <div className="user-avatar-emoji" style={{ fontSize: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
                 {profile.avatarUrl}
               </div>
             ) : (
-              <img src={profile.avatarUrl} alt="Perfil" className="user-avatar-img" key={profile.avatarUrl} />
+              <img
+                src={profile.avatarUrl}
+                alt="Perfil"
+                className="user-avatar-img"
+                key={profile.avatarUrl}
+                onError={() => setAvatarBroken(true)}
+              />
             )
           ) : (
             <div className="user-avatar-initials">{initials}</div>

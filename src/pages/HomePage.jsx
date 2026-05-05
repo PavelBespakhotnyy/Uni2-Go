@@ -1,9 +1,25 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import styles from '../components/index/index.module.css';
+import { toggleDarkMode, isDarkMode } from '../utils/theme.js';
 
 export default function HomePage() {
+  const [dark, setDark] = useState(isDarkMode);
+
+  const handleDarkToggle = () => {
+    const next = toggleDarkMode();
+    setDark(next);
+  };
+
   return (
     <div className={styles.page}>
+      <button
+        className={`${styles.themeToggle}${dark ? ` ${styles.themeToggleActive}` : ''}`}
+        onClick={handleDarkToggle}
+        title={dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+      >
+        <i className={`bx bx-sm ${dark ? 'bx-sun' : 'bx-moon'}`} />
+      </button>
       {/* Hero */}
       <div className={styles.hero}>
         <div className={styles.heroContent}>

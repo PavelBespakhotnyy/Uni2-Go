@@ -152,14 +152,14 @@ export default function ListaDeComprasPage() {
           </div>
 
           <div style={{ padding: '15px' }}>
-            <div style={{ position: 'relative' }}>
-              <i className="bx bx-search" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-muted)' }} />
+            <div className="sidebar-search-wrapper">
+              <i className="bx bx-search sidebar-search-icon" />
               <input
                 type="text"
+                className="sidebar-search-input"
                 placeholder="Buscar..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                style={{ width: '100%', padding: '10px 10px 10px 35px', borderRadius: '10px', border: '1px solid #ccc', outline: 'none', fontSize: '14px', boxSizing: 'border-box', backgroundColor: '#ffffff' }}
               />
             </div>
           </div>

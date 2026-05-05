@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+html, body {
+    color: var(--color-text);
+    background-color: var(--color-bg);
+}
+
 :root {
     /* Layout */
     --sidebar-width-expanded:  220px;
@@ -8,14 +13,15 @@
     --header-height:           80px;
 
     /* Base palette — overridden by loadPalette() on app start */
-    --color-bg:            #f5f9fc;
-    --color-text:          #0c1a24;
-    --color-muted:         #6b8a96;
-    --color-border:        #9ab5c3;
-    --color-accent:        #3b82f6;
-    --color-accent-soft:   #60a5fa;
-    --color-accent-muted:  rgba(59,130,246,0.09);
-    --color-accent-shadow: rgba(59,130,246,0.22);
+    --color-bg:             #f5f9fc;
+    --color-text:           #0c1a24;
+    --color-muted:          #6b8a96;
+    --color-border:         #9ab5c3;
+    --color-accent:         #3b82f6;
+    --color-accent-soft:    #60a5fa;
+    --color-accent-muted:   rgba(59,130,246,0.09);
+    --color-accent-shadow:  rgba(59,130,246,0.22);
+    --color-accent-surface: #d9d7f2;
 
     /* Surfaces */
     --color-surface:   #eef3f7;
@@ -42,6 +48,36 @@
     /* Shadows */
     --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
     --shadow-md: 0 4px 14px rgba(0,0,0,0.18);
+}
+
+/* Password toggle wrapper */
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper input {
+    padding-right: 44px !important;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-muted);
+    display: flex;
+    align-items: center;
+    padding: 0;
+    transition: color 0.15s;
+}
+
+.password-toggle:hover {
+    color: var(--color-text);
 }
 
 /* Universal Top Bar for Friends, Groups, Notifications */

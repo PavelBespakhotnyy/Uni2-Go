@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { registerUser } from '../services/authService.js';
 import { countries } from '../utils/countries.js';
@@ -15,6 +15,20 @@ export default function RegistrationPage() {
   const [errors, setErrors] = useState({});
   const [globalError, setGlobalError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [countryOpen, setCountryOpen] = useState(false);
+  const countryRef = useRef(null);
+
+  useEffect(() => {
+    const handleOutside = (e) => {
+      if (countryRef.current && !countryRef.current.contains(e.target)) {
+        setCountryOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, []);
 
   const set = (field) => (e) => setFields(f => ({ ...f, [field]: e.target.value }));
 
@@ -139,33 +153,31 @@ export default function RegistrationPage() {
         <div>
           <label>Teléfono</label><br />
           <div className="phone-container">
-            <div style={{ position: 'relative' }}>
-              <select 
-                name="countryISO" 
-                value={fields.countryISO} 
-                onChange={handleCountryChange}
-                style={{ appearance: 'none', color: 'transparent', border: 'none', width: '100%', background: 'transparent' }}
+            <div className="country-picker" ref={countryRef}>
+              <button
+                type="button"
+                className="country-picker-btn"
+                onClick={() => setCountryOpen(v => !v)}
               >
-                {countries.map(c => (
-                  <option key={`${c.code}-${c.dialCode}`} value={c.code} style={{ color: '#333' }}>
-                    {c.dialCode} {c.native}
-                  </option>
-                ))}
-              </select>
-              <div style={{
-                position: 'absolute',
-                top: 0, left: 0, right: 0, bottom: 0,
-                pointerEvents: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'flex-start',
-                paddingLeft: '12px',
-                fontSize: '14px',
-                color: '#333',
-                background: '#f5f5f5'
-              }}>
                 {fields.countryCode}
-              </div>
+                <i className={`bx bx-xs ${countryOpen ? 'bx-chevron-up' : 'bx-chevron-down'}`} />
+              </button>
+              {countryOpen && (
+                <ul className="country-picker-list">
+                  {countries.map(c => (
+                    <li
+                      key={`${c.code}-${c.dialCode}`}
+                      className={`country-picker-item${fields.countryISO === c.code ? ' selected' : ''}`}
+                      onClick={() => {
+                        handleCountryChange({ target: { value: c.code } });
+                        setCountryOpen(false);
+                      }}
+                    >
+                      {c.dialCode} {c.native}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
             <input type="tel" name="phone" placeholder="123 456 789" value={fields.phone} onChange={set('phone')} />
           </div>
@@ -174,25 +186,45 @@ export default function RegistrationPage() {
 
         <div>
           <label>Contraseña</label><br />
-          <input 
-            type="password" 
-            name="password" 
-            value={fields.password} 
-            onChange={set('password')} 
-            autoComplete="new-password"
-          />
+          <div className="password-wrapper">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              name="password"
+              value={fields.password}
+              onChange={set('password')}
+              autoComplete="new-password"
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowPassword(v => !v)}
+              tabIndex={-1}
+            >
+              <i className={`bx bx-sm ${showPassword ? 'bx-hide' : 'bx-show'}`} />
+            </button>
+          </div>
           <p className={`field-error${errors.password ? ' visible' : ''}`}>{errors.password || ''}</p>
         </div>
 
         <div>
           <label>Confirmar contraseña</label><br />
-          <input 
-            type="password" 
-            name="confirmPassword" 
-            value={fields.confirmPassword} 
-            onChange={set('confirmPassword')} 
-            autoComplete="new-password"
-          />
+          <div className="password-wrapper">
+            <input
+              type={showConfirmPassword ? 'text' : 'password'}
+              name="confirmPassword"
+              value={fields.confirmPassword}
+              onChange={set('confirmPassword')}
+              autoComplete="new-password"
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowConfirmPassword(v => !v)}
+              tabIndex={-1}
+            >
+              <i className={`bx bx-sm ${showConfirmPassword ? 'bx-hide' : 'bx-show'}`} />
+            </button>
+          </div>
           <p className={`field-error${errors.confirmPassword ? ' visible' : ''}`}>{errors.confirmPassword || ''}</p>
         </div>
 

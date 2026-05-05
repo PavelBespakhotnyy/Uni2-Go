@@ -12,9 +12,38 @@
     padding: 20px;
 }
 
+/* --- THEME TOGGLE --- */
+.themeToggle {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid var(--color-border);
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+    z-index: 100;
+}
+
+.themeToggle:hover {
+    background-color: var(--color-surface-2);
+    border-color: var(--color-accent);
+}
+
+.themeToggleActive {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
+
 /* --- HERO --- */
 .hero {
-    background-color: #d9d7f2;
+    background-color: var(--color-accent-surface);
     border-radius: 46px;
     padding: 38px 28px;
     display: flex;
@@ -95,7 +124,7 @@
 
 .featureRow img {
     width: 210px;
-    background-color: #d9d7f2;
+    background-color: var(--color-accent-surface);
     border-radius: 32px;
     padding: 28px;
 }
@@ -132,7 +161,7 @@
 .gridSection img {
     width: 170px;
     margin: 0 auto;
-    background-color: #d9d7f2;
+    background-color: var(--color-accent-surface);
     border-radius: 32px;
     padding: 26px;
 }
@@ -154,12 +183,12 @@
     margin: 0 auto 12px auto;
     border-radius: 16px;
     overflow: hidden;
-    background-color: #f5f4fd;
+    background-color: var(--color-surface);
     transition: background-color 0.2s ease;
 }
 
 .faqContainer > div:hover {
-    background-color: #eceaf9;
+    background-color: var(--color-surface-2);
 }
 
 .faqContainer details {
@@ -192,7 +221,7 @@
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background-color: #d9d7f2;
+    background-color: var(--color-accent-surface);
     line-height: 1;
     transition: transform 0.25s ease, background-color 0.2s ease;
 }
@@ -200,7 +229,7 @@
 .faqContainer details[open] summary::after {
     content: '−';
     transform: rotate(180deg);
-    background-color: #c4c0ea;
+    background-color: var(--color-surface-3);
 }
 
 .faqContainer h3 {

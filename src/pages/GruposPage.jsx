@@ -5,15 +5,38 @@ import { friendsService } from '../services/friendsService.js';
 import Layout from '../components/Layout.jsx';
 import '../components/grupos/grupos.css';
 
-const CARD_COLORS = ['#fce4e4','#dce8f8','#d8f0d8','#fddcb0','#f8d8f0','#e8e0f8','#fef3cc','#d8f0f0'];
+const CARD_COLORS = [
+  { light: '#fce4e4', dark: '#4e2222' },
+  { light: '#dce8f8', dark: '#163a5e' },
+  { light: '#d8f0d8', dark: '#1f4429' },
+  { light: '#fddcb0', dark: '#4a2e00' },
+  { light: '#f8d8f0', dark: '#3a1850' },
+  { light: '#e8e0f8', dark: '#272055' },
+  { light: '#fef3cc', dark: '#403800' },
+  { light: '#d8f0f0', dark: '#00383f' },
+];
 const MEMBER_COLORS = ['#f42c04','#0284c7','#059669','#d97706','#7c3aed','#db2777','#0891b2','#e2856e'];
 const EMOJIS = ['👥','🏠','🎓','🏀','🍕','✈️','🎮','💡','🎉','💼','❤️','🌟','🔥','📚','🎨','🎬','🎸','🌈','🐶','🐱','🍎','🍺','⚽','🚗','📱','💻','🔒','🛠️','🌍','🚀'];
 
-function hashColor(arr, str) {
-  if (!str) return arr[0];
-  let h = 0;
-  for (const c of str) h = ((h << 5) - h) + c.charCodeAt(0);
-  return arr[Math.abs(h) % arr.length];
+function hashColor(arr, str, dark = false) {
+  const item = arr[!str ? 0 : Math.abs(
+    Array.from(str).reduce((h, c) => ((h << 5) - h) + c.charCodeAt(0), 0)
+  ) % arr.length];
+  return typeof item === 'object' ? (dark ? item.dark : item.light) : item;
+}
+
+function useDarkMode() {
+  const [dark, setDark] = useState(() =>
+    document.documentElement.getAttribute('data-dark') === 'true'
+  );
+  useEffect(() => {
+    const observer = new MutationObserver(() =>
+      setDark(document.documentElement.getAttribute('data-dark') === 'true')
+    );
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-dark'] });
+    return () => observer.disconnect();
+  }, []);
+  return dark;
 }
 
 function initials(name, surname) {
@@ -255,7 +278,8 @@ function GroupCard({ group, currentUserId, isFavorite, onOpen, onDelete, onToggl
   const [menuOpen, setMenuOpen] = useState(false);
   const [memberAvatars, setMemberAvatars] = useState([]);
   const containerRef = useRef(null);
-  const color = hashColor(CARD_COLORS, group.name);
+  const dark = useDarkMode();
+  const color = hashColor(CARD_COLORS, group.name, dark);
   const displayName = group.name ? group.name.charAt(0).toUpperCase() + group.name.slice(1) : group.name;
   const isCreator = group.created_by_user_id === currentUserId;
 
@@ -338,7 +362,8 @@ function GroupCard({ group, currentUserId, isFavorite, onOpen, onDelete, onToggl
 function GroupDetailModal({ group, members, loading, currentUserId, showEditForm, onSetEditForm, onClose, onRefresh, onToast }) {
   const isAdmin = members.some(m => m.id === currentUserId && m.role === 'admin');
   const isCreator = group.created_by_user_id === currentUserId;
-  const color = hashColor(CARD_COLORS, group.name);
+  const dark = useDarkMode();
+  const color = hashColor(CARD_COLORS, group.name, dark);
   const [addingMember, setAddingMember] = useState(false);
   const [friends, setFriends] = useState([]);
   const [selectedFriendId, setSelectedFriendId] = useState('');
@@ -480,7 +505,7 @@ function GroupDetailModal({ group, members, loading, currentUserId, showEditForm
                     const canRemove = isAdmin && !isMe && m.role !== 'admin';
                     return (
                       <li key={m.id} className="modal-member-item">
-                        <div className="member-avatar" style={{ backgroundColor: hashColor(CARD_COLORS, m.name || m.id) }}>{initials(m.name, m.surname)}</div>
+                        <div className="member-avatar" style={{ backgroundColor: hashColor(CARD_COLORS, m.name || m.id, dark) }}>{initials(m.name, m.surname)}</div>
                         <div className="member-info">
                           <span className="member-name">{displayName}</span>
                           <span className="member-code">{m.username ? `@${m.username}` : ''}</span>

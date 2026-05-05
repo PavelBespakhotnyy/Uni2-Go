@@ -21,7 +21,7 @@ const FEATURES = [
   { icon: 'bx-calendar-check', title: 'Calendario inteligente', desc: 'Eventos, reuniones y tareas siempre a mano.', color: '#fff0ee', iconColor: 'var(--color-accent)', to: '/calendar', goto: 'Ir al Calendario' },
   { icon: 'bx-conversation',   title: 'Chat con amigos',        desc: 'Mensajes en tiempo real sin salir de la app.', color: '#fff3e0', iconColor: 'var(--color-accent-soft)', to: '/chat',     goto: 'Ir al Chat' },
   { icon: 'bx-group',          title: 'Grupos y eventos',       desc: 'Comparte y sincronízate con tu equipo.', color: '#e8f5e9', iconColor: '#2e7d32', to: '/grupos',   goto: 'Ir a Grupos' },
-  { icon: 'bx-cart',           title: 'Lista de la compra',     desc: 'Listas compartidas con un clic.', color: '#fce4e4', iconColor: '#c0392b', to: '/lista',    goto: 'Ir a la Lista' },
+  { icon: 'bx-cart',           title: 'Lista de la compra',     desc: 'Listas compartidas con un clic.', color: '#fce4e4', iconColor: '#c0392b', to: '/lista-compras',    goto: 'Ir a la Lista' },
 ];
 
 function SvgCalendarUI({ dark }) {
