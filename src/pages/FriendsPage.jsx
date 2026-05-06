@@ -63,19 +63,15 @@ function FriendStatus({ uid }) {
   return <span className="friend-status-dot" title="En línea" />;
 }
 
-function FriendGroups({ uid }) {
-  const [groups, setGroups] = useState([]);
+function FriendGroups({ friendUid, myGroups }) {
   const navigate = useNavigate();
+  // Filter my groups to find those where the friend is also a member
+  const mutualGroups = myGroups.filter(g => g.member_ids?.includes(friendUid));
 
-  useEffect(() => {
-    // Listen to groups where this user is a member
-    return gruposService.listenMyGroups(uid, setGroups);
-  }, [uid]);
+  if (mutualGroups.length === 0) return null;
 
-  if (groups.length === 0) return null;
-
-  const displayGroups = groups.slice(0, 3);
-  const extraCount = groups.length - 3;
+  const displayGroups = mutualGroups.slice(0, 3);
+  const extraCount = mutualGroups.length - 3;
 
   return (
     <div className="friend-groups-badges">
@@ -99,18 +95,6 @@ function FriendGroups({ uid }) {
   );
 }
 
-function RequestAvatar({ uid, name }) {
-  const [avatarUrl, setAvatarUrl] = useState(null);
-  
-  useEffect(() => {
-    getUserProfile(uid).then(p => {
-      if (p?.avatarUrl) setAvatarUrl(p.avatarUrl);
-    });
-  }, [uid]);
-
-  return <FriendAvatar name={name} avatarUrl={avatarUrl} />;
-}
-
 export default function FriendsPage() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
@@ -119,6 +103,7 @@ export default function FriendsPage() {
   const [searching, setSearching] = useState(false);
   const [friends, setFriends] = useState([]);
   const [requests, setRequests] = useState([]);
+  const [myGroups, setMyGroups] = useState([]);
   const [sentRequests, setSentRequests] = useState({}); 
   const [deleteModal, setDeleteModal] = useState({ open: false, uid: null, name: '' });
   const [copied, setCopied] = useState(false);
@@ -127,7 +112,13 @@ export default function FriendsPage() {
     if (!user) return;
     const unsubFriends = friendsService.listenMyFriends(user.uid, setFriends);
     const unsubRequests = friendsService.listenIncomingRequests(user.uid, setRequests);
-    return () => { unsubFriends && unsubFriends(); unsubRequests && unsubRequests(); };
+    const unsubGroups = gruposService.listenMyGroups(user.uid, setMyGroups);
+    
+    return () => { 
+      unsubFriends && unsubFriends(); 
+      unsubRequests && unsubRequests(); 
+      unsubGroups && unsubGroups();
+    };
   }, [user]);
 
   // Live search effect
@@ -236,27 +227,36 @@ export default function FriendsPage() {
             {(searchResults.length > 0 || searching) && (
               <div className="search-results-dropdown">
                 {searching && <div className="searching-indicator">Buscando...</div>}
-                {searchResults.map(result => (
-                  <div key={result.id} className="search-result-item">
-                    <FriendAvatar name={`${result.name} ${result.surname}`} avatarUrl={result.avatarUrl} />
-                    <div className="user-info">
-                      <span className="user-name">{result.name} {result.surname}</span>
-                      <span className="user-handle">@{result.username}</span>
+                {searchResults.map(result => {
+                  const isFriend = friends.some(f => f.uid === result.id);
+                  const isIncoming = requests.some(r => r.uid === result.id || r.requested_by === result.id);
+                  
+                  return (
+                    <div key={result.id} className="search-result-item">
+                      <FriendAvatar name={`${result.name} ${result.surname}`} avatarUrl={result.avatarUrl} />
+                      <div className="user-info">
+                        <span className="user-name">{result.name} {result.surname}</span>
+                        <span className="user-handle">@{result.username}</span>
+                      </div>
+                      {isFriend ? (
+                        <span className="status-sent">Amigos ✓</span>
+                      ) : isIncoming ? (
+                        <span className="status-sent">Solicitud recibida</span>
+                      ) : sentRequests[result.id] === 'sent' ? (
+                        <span className="status-sent">Enviada ✓</span>
+                      ) : sentRequests[result.id] === 'error' ? (
+                        <span className="status-error">Error</span>
+                      ) : (
+                        <button
+                          className="btn-add-result"
+                          onClick={() => handleSendRequest(result.id)}
+                        >
+                          <i className="bx bx-plus" />
+                        </button>
+                      )}
                     </div>
-                    {sentRequests[result.id] === 'sent' ? (
-                      <span className="status-sent">Enviada ✓</span>
-                    ) : sentRequests[result.id] === 'error' ? (
-                      <span className="status-error">Error</span>
-                    ) : (
-                      <button
-                        className="btn-add-result"
-                        onClick={() => handleSendRequest(result.id)}
-                      >
-                        <i className="bx bx-plus" />
-                      </button>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -296,12 +296,11 @@ export default function FriendsPage() {
               {requests.map(req => (
                 <div key={req.contactDocId} className="friend-card request-card">
                   <div className="card-avatar-zone">
-                    <RequestAvatar uid={req.requested_by} name={`${req.name} ${req.surname}`} />
+                    <FriendAvatar name={`${req.name} ${req.surname}`} avatarUrl={req.avatarUrl} />
                   </div>
                   <div className="card-info-zone">
                     <span className="friend-name">{req.name} {req.surname}</span>
                     <span className="friend-username">@{req.username}</span>
-                    <FriendGroups uid={req.requested_by} />
                   </div>
                   <div className="card-actions-zone">
                     <button className="btn-action-accept" onClick={() => handleAccept(req)} title="Aceptar">
@@ -341,7 +340,7 @@ export default function FriendsPage() {
                   <div className="card-info-zone">
                     <span className="friend-name">{f.name} {f.surname}</span>
                     <span className="friend-username">@{f.username}</span>
-                    <FriendGroups uid={f.uid} />
+                    <FriendGroups friendUid={f.uid} myGroups={myGroups} />
                   </div>
                   <div className="card-actions-zone">
                     <button className="btn-action-chat" onClick={() => handleChat(f.uid)} title="Abrir chat">

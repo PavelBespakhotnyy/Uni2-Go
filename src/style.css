@@ -92,7 +92,6 @@ html, body {
     box-sizing: border-box;
     width: 100%;
     flex-shrink: 0;
-    margin-bottom: 30px; /* Added margin below the header */
 }
 
 .header-left-zone {
