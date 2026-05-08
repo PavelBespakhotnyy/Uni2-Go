@@ -43,21 +43,6 @@ export default function ListaDeComprasPage() {
       const notes = await shoppingService.getUserNotes(user.uid);
       let firstList = Object.keys(lists)[0] || null;
       let newData = { lists, notes };
-      if (!firstList) {
-        const tempId = 'list-new-' + Date.now();
-        newData.lists[tempId] = {
-          name: 'Lista de la compra',
-          description: 'Qué hay que comprar',
-          color_tag: 'var(--color-accent)',
-          is_shared: false,
-          shared_with: [],
-          items: [
-            { name: 'Tomate', quantity: 2, unit: 'uds.', is_purchased: false },
-            { name: 'Leche', quantity: 1, unit: 'uds.', is_purchased: false },
-          ],
-        };
-        firstList = tempId;
-      }
       setData(newData);
       setSelectedListId(firstList);
       setSelectedNoteId(Object.keys(notes)[0] || null);
