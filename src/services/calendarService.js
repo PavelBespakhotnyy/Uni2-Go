@@ -27,6 +27,27 @@ export async function getUserById(uid) {
 }
 
 /**
+ * Expande una lista de IDs de grupo a la unión de los UID de sus miembros.
+ * Se guarda en el evento como `groupMemberIds` para que las reglas de Firestore
+ * puedan autorizar la lectura a los miembros del grupo.
+ * @param {string[]} groupIds
+ * @returns {Promise<string[]>}
+ */
+async function resolveGroupMemberIds(groupIds) {
+  if (!groupIds || groupIds.length === 0) return [];
+  const ids = new Set();
+  const snaps = await Promise.all(
+    groupIds.map(gid => getDoc(doc(db, "interest_groups", gid)).catch(() => null))
+  );
+  for (const snap of snaps) {
+    if (snap && snap.exists()) {
+      (snap.data().member_ids || []).forEach(uid => ids.add(uid));
+    }
+  }
+  return Array.from(ids);
+}
+
+/**
  * Adds a new event to Firestore with the updated schema.
  * @param {Object} eventData - The data of the event to be added.
  */
@@ -35,6 +56,9 @@ export async function addEvent(eventData) {
   if (!user) throw new Error("Usuario no autenticado");
 
   try {
+    const groupIds = eventData.groupIds || [];
+    const groupMemberIds = await resolveGroupMemberIds(groupIds);
+
     const docRef = await addDoc(collection(db, COLLECTION_NAME), {
       title: eventData.title || "Sin título",
       description: eventData.description || "",
@@ -44,7 +68,8 @@ export async function addEvent(eventData) {
       userId: user.uid,
       location: eventData.location || "",
       eventType: eventData.eventType || "meeting",
-      groupIds: eventData.groupIds || [],
+      groupIds,
+      groupMemberIds,
       sharedWith: eventData.sharedWith || [],
       attendees: eventData.attendees || [
         {
@@ -146,6 +171,10 @@ export async function updateEvent(id, updatedData) {
       ...updatedData,
       updatedAt: serverTimestamp()
     };
+
+    if (updatedData.groupIds !== undefined) {
+      updatePayload.groupMemberIds = await resolveGroupMemberIds(updatedData.groupIds);
+    }
 
     if (updatedData.start) {
       updatePayload.start = updatedData.start instanceof Date ? updatedData.start : new Date(updatedData.start);

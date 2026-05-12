@@ -174,22 +174,22 @@ export default function Calendar({ initialDate }) {
     };
   }, [mergeAndSet, parseEvent]);
 
-  // Suscribirse a eventos de grupos del usuario
+  // Suscribirse a eventos de grupos del usuario.
+  // El evento guarda `groupMemberIds` (unión de los miembros de sus grupos),
+  // así las reglas de Firestore autorizan la lectura a los miembros del grupo.
   useEffect(() => {
     const user = auth.currentUser;
-    if (!user || myGroups.length === 0) {
+    if (!user) {
       groupEventsMapRef.current.clear();
       mergeAndSet();
       return;
     }
 
-    const groupIds = myGroups.map(g => g.id);
     groupEventsMapRef.current.clear();
 
-    // Firestore array-contains-any soporta hasta 30 valores
     const q = query(
       collection(db, "events"),
-      where("groupIds", "array-contains-any", groupIds.slice(0, 30))
+      where("groupMemberIds", "array-contains", user.uid)
     );
 
     const unsub = onSnapshot(q, (snapshot) => {
@@ -198,9 +198,13 @@ export default function Calendar({ initialDate }) {
           groupEventsMapRef.current.delete(doc.id);
         } else if (doc.data().userId !== user.uid) {
           groupEventsMapRef.current.set(doc.id, { ...parseEvent(doc), isGroupEvent: true });
+        } else {
+          groupEventsMapRef.current.delete(doc.id);
         }
       });
       mergeAndSet();
+    }, (error) => {
+      console.error("Error escuchando eventos de grupo:", error);
     });
 
     return () => unsub();
