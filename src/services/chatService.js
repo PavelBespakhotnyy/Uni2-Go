@@ -108,6 +108,75 @@ class ChatService {
         return newChat.id;
     }
 
+    async getOrCreateGroupChat(groupId, groupName, memberIds, currentUser) {
+        console.log("[ChatService] getOrCreateGroupChat:", { groupId, groupName, memberIds });
+        // 1. Check if group chat already exists - filtering by current user to satisfy security rules
+        const q = query(
+            collection(db, "chats"),
+            where("groupId", "==", groupId),
+            where("participants", "array-contains", currentUser.uid)
+        );
+        const snapshot = await getDocs(q);
+        
+        if (!snapshot.empty) {
+            const chatDoc = snapshot.docs[0];
+            const chatData = chatDoc.data();
+            console.log("[ChatService] Group chat exists:", chatDoc.id);
+            // Update members if they changed (only if user is admin/allowed, but we try anyway)
+            if (JSON.stringify([...chatData.participants].sort()) !== JSON.stringify([...memberIds].sort())) {
+                console.log("[ChatService] Updating participants...");
+                try {
+                    await updateDoc(doc(db, "chats", chatDoc.id), {
+                        participants: memberIds,
+                        updatedAt: serverTimestamp()
+                    });
+                } catch (e) {
+                    console.warn("[ChatService] Could not update participants (permission?):", e);
+                }
+            }
+            return chatDoc.id;
+        }
+
+        console.log("[ChatService] Creating NEW group chat...");
+        // 2. Create new group chat
+        let senderName = currentUser.displayName || currentUser.email;
+        // ... rest same ...
+        try {
+            const senderDoc = await getDoc(doc(db, "users", currentUser.uid));
+            if (senderDoc.exists()) {
+                const sData = senderDoc.data();
+                senderName = `${sData.name || ''} ${sData.surname || ''}`.trim() || senderName;
+            }
+        } catch (e) {}
+
+        const initialUnreadCount = {};
+        memberIds.forEach(id => { initialUnreadCount[id] = 0; });
+
+        const newChat = await addDoc(collection(db, "chats"), {
+            groupId: groupId,
+            name: groupName,
+            isGroup: true,
+            participants: memberIds,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            lastMessage: null,
+            messageCount: 0,
+            unreadCount: initialUnreadCount,
+        });
+
+        // Notify other members
+        for (const mid of memberIds) {
+            if (mid !== currentUser.uid) {
+                await notificationService.createNotification(
+                    mid, 'new_chat', senderName, `te ha añadido al chat del grupo "${groupName}"`,
+                    { chatId: newChat.id, groupId: groupId }, currentUser.uid
+                ).catch(() => {});
+            }
+        }
+
+        return newChat.id;
+    }
+
     async getChatInfo(chatId) {
         try {
             console.log('Obteniendo informacion del chat:', chatId);

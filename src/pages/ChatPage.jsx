@@ -199,6 +199,7 @@ export default function ChatPage() {
   }, [user, searchParams, myName]);
 
   function getOtherName(chat, myName, user) {
+    if (chat.isGroup) return chat.name || 'Grupo sin nombre';
     return chat.participantNames?.find(name =>
       name !== myName && name !== user?.email && name !== user?.displayName
     ) || 'Amigo';
@@ -209,11 +210,12 @@ export default function ChatPage() {
       unsubMessagesRef.current();
       unsubMessagesRef.current = null;
     }
+    const chat = chats.find(c => c.id === chatId);
     closePickers();
     setActiveChatId(chatId);
     setActiveChatName(name);
     setActiveChatParticipants(participants);
-    setActiveChatOtherUid(participants.find(p => p !== user?.uid) || null);
+    setActiveChatOtherUid(!chat?.isGroup ? (participants.find(p => p !== user?.uid) || null) : null);
     setLoadingMessages(true);
     setMessages([]);
     chatService.markAsRead(chatId, user.uid).catch(() => {});
@@ -234,7 +236,10 @@ export default function ChatPage() {
 
   const handleSend = async () => {
     const text = messageText.trim();
-    if (!text || !activeChatId || !user || !isFriend) return;
+    if (!text || !activeChatId || !user) return;
+    const chat = chats.find(c => c.id === activeChatId);
+    if (!chat?.isGroup && !isFriend) return;
+    
     try {
       await chatService.sendMessage(activeChatId, text, user.uid, activeChatParticipants, myName);
       setMessageText('');
@@ -351,13 +356,15 @@ export default function ChatPage() {
                 <ChatAvatar name={activeChatName} avatarUrl={activeChatOtherUid ? (avatarCache[activeChatOtherUid] ?? null) : null} />
                 <div className="chat-header-info">
                   <h2>{activeChatName}</h2>
-                  <span className={`chat-header-status${otherUserStatus.isOnline ? '' : ' offline'}`}>
-                    {otherUserStatus.isOnline
-                      ? 'En línea'
-                      : otherUserStatus.lastSeenAt
-                        ? `Última vez ${formatDistanceToNow(otherUserStatus.lastSeenAt, { addSuffix: true, locale: es })}`
-                        : 'Desconectado'}
-                  </span>
+                  {!chats.find(c => c.id === activeChatId)?.isGroup && (
+                    <span className={`chat-header-status${otherUserStatus.isOnline ? '' : ' offline'}`}>
+                      {otherUserStatus.isOnline
+                        ? 'En línea'
+                        : otherUserStatus.lastSeenAt
+                          ? `Última vez ${formatDistanceToNow(otherUserStatus.lastSeenAt, { addSuffix: true, locale: es })}`
+                          : 'Desconectado'}
+                    </span>
+                  )}
                 </div>
               </>
             )}
@@ -441,7 +448,7 @@ export default function ChatPage() {
           </div>
 
           {activeChatId && (
-            isFriend ? (
+            (isFriend || chats.find(c => c.id === activeChatId)?.isGroup) ? (
               <div className="chat-input-area">
                 <div className="chat-controls">
                   <button 
