@@ -9,7 +9,8 @@ import {
   serverTimestamp,
   query,
   where,
-  getDocs
+  getDocs,
+  onSnapshot
 } from "firebase/firestore";
 import { notificationService } from './notificationService.js';
 
@@ -209,4 +210,66 @@ export async function deleteEvent(id) {
     console.error("Error al eliminar evento en Firebase:", error);
     throw error;
   }
+}
+
+/**
+ * Obtiene eventos asociados a un grupo.
+ */
+export async function getGroupEvents(groupId, userId) {
+  const uid = userId || auth.currentUser?.uid;
+  console.log("[CalendarService] getGroupEvents for:", groupId, "User:", uid);
+  if (!uid) return [];
+
+  try {
+    const q = query(
+      collection(db, COLLECTION_NAME),
+      where("groupMemberIds", "array-contains", uid)
+    );
+    const snap = await getDocs(q);
+    let events = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    
+    // Filtrar localmente por groupId ya que Firestore solo permite un 'array-contains' por consulta
+    events = events.filter(ev => ev.groupIds && ev.groupIds.includes(groupId));
+    
+    console.log("[CalendarService] Found events:", events.length);
+    events.sort((a, b) => {
+      const aStart = a.start?.toDate ? a.start.toDate().getTime() : new Date(a.start).getTime();
+      const bStart = b.start?.toDate ? b.start.toDate().getTime() : new Date(b.start).getTime();
+      return aStart - bStart;
+    });
+    return events;
+  } catch (error) {
+    console.error("[CalendarService] Error getting group events:", error);
+    return [];
+  }
+}
+
+/**
+ * Escucha eventos de un grupo en tiempo real.
+ */
+export function listenGroupEvents(groupId, userId, callback) {
+  const uid = userId || auth.currentUser?.uid;
+  console.log("[CalendarService] listenGroupEvents for:", groupId, "User:", uid);
+  if (!uid) return () => {};
+
+  const q = query(
+    collection(db, COLLECTION_NAME),
+    where("groupMemberIds", "array-contains", uid)
+  );
+  return onSnapshot(q, (snapshot) => {
+    let events = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    
+    // Filtrar localmente por groupId ya que Firestore solo permite un 'array-contains' por consulta
+    events = events.filter(ev => ev.groupIds && ev.groupIds.includes(groupId));
+    
+    console.log("[CalendarService] Snapshot events:", events.length);
+    events.sort((a, b) => {
+      const aStart = a.start?.toDate ? a.start.toDate().getTime() : new Date(a.start).getTime();
+      const bStart = b.start?.toDate ? b.start.toDate().getTime() : new Date(b.start).getTime();
+      return aStart - bStart;
+    });
+    callback(events);
+  }, (error) => {
+    console.error("[CalendarService] Error listening to group events:", error);
+  });
 }
