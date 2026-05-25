@@ -13,6 +13,7 @@ import Layout from '../components/Layout.jsx';
 import '../components/chat/style.css';
 
 const AVATAR_COLORS = ['#4f46e5','#0284c7','#059669','#d97706','#7c3aed','#db2777','#0891b2','#0056FF'];
+const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🔥'];
 
 function hashAvatarColor(str) {
   if (!str) return AVATAR_COLORS[0];
@@ -96,6 +97,11 @@ export default function ChatPage() {
   const [avatarCache, setAvatarCache] = useState({});
   const [otherUserStatus, setOtherUserStatus] = useState({ isOnline: false, lastSeenAt: null });
   const [activeChatLastReadAt, setActiveChatLastReadAt] = useState(null);
+  const [showGroupInfo, setShowGroupInfo] = useState(false);
+  const [groupMembersProfiles, setGroupMembersProfiles] = useState([]);
+  const [loadingGroupMembers, setLoadingGroupMembers] = useState(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [reactionPickerMsgId, setReactionPickerMsgId] = useState(null);
   const messagesEndRef = useRef(null);
   const unsubMessagesRef = useRef(null);
   const unsubStatusRef = useRef(null);
@@ -167,7 +173,7 @@ export default function ChatPage() {
   useEffect(() => {
     if (!user || chats.length === 0) return;
     const unknownUids = chats
-      .map(c => c.participants.find(p => p !== user.uid))
+      .flatMap(c => c.participants.filter(p => p !== user.uid))
       .filter(uid => uid && !(uid in avatarCache));
     if (unknownUids.length === 0) return;
     const unique = [...new Set(unknownUids)];
@@ -205,6 +211,46 @@ export default function ChatPage() {
     ) || 'Amigo';
   }
 
+
+  const handleToggleReaction = async (messageId, emoji) => {
+    if (!activeChatId || !user) return;
+    setReactionPickerMsgId(null);
+    try {
+      await chatService.toggleReaction(activeChatId, messageId, emoji, user.uid);
+    } catch (err) {
+      console.error('Error al reaccionar:', err);
+      alert('Error al reaccionar: ' + err.message);
+    }
+  };
+
+  const openGroupInfo = async () => {
+    setShowGroupInfo(true);
+    setLoadingGroupMembers(true);
+    const results = await Promise.allSettled(
+      activeChatParticipants.map(uid =>
+        getUserProfile(uid).then(p => ({
+          uid,
+          name: p ? `${p.name || ''} ${p.surname || ''}`.trim() || uid : uid,
+          avatarUrl: p?.avatarUrl || ''
+        }))
+      )
+    );
+    setGroupMembersProfiles(results.filter(r => r.status === 'fulfilled').map(r => r.value));
+    setLoadingGroupMembers(false);
+  };
+
+  const handleLeaveGroup = async () => {
+    if (!activeChatId || !user) return;
+    try {
+      await chatService.leaveGroup(activeChatId, user.uid);
+      setShowGroupInfo(false);
+      setShowLeaveConfirm(false);
+      setGroupMembersProfiles([]);
+    } catch (err) {
+      alert('No se pudo salir del grupo: ' + err.message);
+    }
+  };
+
   const selectChat = (chatId, name, participants) => {
     if (unsubMessagesRef.current) {
       unsubMessagesRef.current();
@@ -212,6 +258,8 @@ export default function ChatPage() {
     }
     const chat = chats.find(c => c.id === chatId);
     closePickers();
+    setShowGroupInfo(false);
+    setGroupMembersProfiles([]);
     setActiveChatId(chatId);
     setActiveChatName(name);
     setActiveChatParticipants(participants);
@@ -308,10 +356,13 @@ export default function ChatPage() {
               const otherName = getOtherName(chat, myName, user);
               const otherUid = chat.participants.find(p => p !== user?.uid);
               const otherAvatar = avatarCache[otherUid] ?? null;
-              const unread = chat.unreadCount?.[user?.uid] || 0;
-              const lastMsg = chat.lastMessage?.text
-                ? (chat.lastMessage.senderId === user?.uid ? 'Tú: ' : '') + chat.lastMessage.text
-                : 'No hay mensajes aún';
+              const hasLeft = chat.isGroup && !!chat.leftAt?.[user?.uid];
+              const unread = hasLeft ? 0 : (chat.unreadCount?.[user?.uid] || 0);
+              const lastMsg = hasLeft
+                ? 'Has salido de este grupo'
+                : (chat.lastMessage?.text
+                  ? (chat.lastMessage.senderId === user?.uid ? 'Tú: ' : '') + chat.lastMessage.text
+                  : 'No hay mensajes aún');
               return (
                 <ChatContactItem
                   key={chat.id}
@@ -319,6 +370,7 @@ export default function ChatPage() {
                   name={otherName}
                   avatarUrl={otherAvatar}
                   lastMessage={lastMsg}
+                  lastMessageLeft={hasLeft}
                   unread={unread}
                   isActive={activeChatId === chat.id}
                   onClick={() => selectChat(chat.id, otherName, chat.participants)}
@@ -365,10 +417,28 @@ export default function ChatPage() {
                           : 'Desconectado'}
                     </span>
                   )}
+                  {chats.find(c => c.id === activeChatId)?.isGroup && (
+                    <span className="chat-header-status offline">
+                      {activeChatParticipants.length} miembros
+                    </span>
+                  )}
                 </div>
+                {chats.find(c => c.id === activeChatId)?.isGroup && (
+                  <button
+                    className="chat-group-info-btn"
+                    title="Ver miembros del grupo"
+                    onClick={openGroupInfo}
+                  >
+                    <i className="bx bx-group" />
+                  </button>
+                )}
               </>
             )}
           </div>
+
+          {reactionPickerMsgId && (
+            <div className="reaction-picker-backdrop" onClick={() => setReactionPickerMsgId(null)} />
+          )}
 
           <div className="chat-messages-area" id="chat-messages">
             {loadingMessages && <div className="chat-loading">Cargando mensajes...</div>}
@@ -401,6 +471,9 @@ export default function ChatPage() {
                 return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: d.getFullYear() !== today.getFullYear() ? 'numeric' : undefined });
               };
 
+              const nextMsg = messages[i + 1];
+              const isLastInGroup = !nextMsg || nextMsg.senderId !== msg.senderId;
+
               return (
                 <React.Fragment key={i}>
                   {showDateSep && (
@@ -409,37 +482,102 @@ export default function ChatPage() {
                     </div>
                   )}
                   <div className={`chat-message-row ${isSent ? 'sent' : 'received'}`}>
+                    {!isSent && (
+                      isLastInGroup ? (
+                        <div className="chat-msg-avatar">
+                          <ChatAvatar
+                            name={msg.senderName || activeChatName}
+                            avatarUrl={avatarCache[msg.senderId] ?? null}
+                          />
+                        </div>
+                      ) : (
+                        <div className="chat-msg-avatar-spacer" />
+                      )
+                    )}
                     {isSent && (
+                      <>
+                        <button
+                          className="chat-reaction-trigger"
+                          title="Reaccionar"
+                          onClick={(e) => { e.stopPropagation(); setReactionPickerMsgId(reactionPickerMsgId === msg.id ? null : msg.id); }}
+                        >
+                          <i className="bx bx-smile" />
+                        </button>
+                        <button
+                          className="chat-message-delete-btn"
+                          title="Eliminar mensaje"
+                          onClick={() => {
+                            setMessages(prev => prev.filter(m => m.id !== msg.id));
+                            chatService.deleteMessage(activeChatId, msg.id, user.uid, activeChatParticipants).catch(() => {
+                              setMessages(prev => [...prev, msg]);
+                            });
+                          }}
+                        >
+                          <i className="bx bx-trash" />
+                        </button>
+                      </>
+                    )}
+                    <div className="chat-bubble-wrap">
+                      <div className={`chat-message ${isSent ? 'sent' : 'received'}`}>
+                        <div className="chat-message-content">
+                          {msg.messageType === 'gif' ? (
+                            <img src={msg.gifUrl} alt="GIF" className="chat-gif-msg" />
+                          ) : (
+                            msg.text || msg.messageText || ''
+                          )}
+                        </div>
+                        <div className="chat-message-meta">
+                          <span className="chat-message-time">{time}</span>
+                          {isSent && (
+                            <span className={`chat-msg-status${isRead ? ' read' : ''}`}>
+                              <i className={`bx ${isRead || msg.isDelivered ? 'bx-check-double' : 'bx-check'}`} />
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {Object.keys(msg.reactions || {}).length > 0 && (
+                        <div className={`chat-reactions${isSent ? ' sent' : ''}`}>
+                          {Object.entries(msg.reactions || {}).map(([emoji, users]) =>
+                            users.length > 0 && (
+                              <button
+                                key={emoji}
+                                className={`chat-reaction-badge${users.includes(user?.uid) ? ' mine' : ''}`}
+                                onClick={(e) => { e.stopPropagation(); handleToggleReaction(msg.id, emoji); }}
+                              >
+                                {emoji} <span>{users.length}</span>
+                              </button>
+                            )
+                          )}
+                        </div>
+                      )}
+                      {reactionPickerMsgId === msg.id && (
+                        <div className={`chat-reaction-picker${isSent ? ' sent' : ' received'}`} onClick={(e) => e.stopPropagation()}>
+                          {QUICK_REACTIONS.map(emoji => (
+                            <button key={emoji} className="chat-reaction-option" onClick={() => handleToggleReaction(msg.id, emoji)}>
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {!isSent && (
                       <button
-                        className="chat-message-delete-btn"
-                        title="Eliminar mensaje"
-                        onClick={() => {
-                          setMessages(prev => prev.filter(m => m.id !== msg.id));
-                          chatService.deleteMessage(activeChatId, msg.id, user.uid, activeChatParticipants).catch(() => {
-                            setMessages(prev => [...prev, msg]);
-                          });
-                        }}
+                        className="chat-reaction-trigger"
+                        title="Reaccionar"
+                        onClick={(e) => { e.stopPropagation(); setReactionPickerMsgId(reactionPickerMsgId === msg.id ? null : msg.id); }}
                       >
-                        <i className="bx bx-trash" />
+                        <i className="bx bx-smile" />
                       </button>
                     )}
-                    <div className={`chat-message ${isSent ? 'sent' : 'received'}`}>
-                      <div className="chat-message-content">
-                        {msg.messageType === 'gif' ? (
-                          <img src={msg.gifUrl} alt="GIF" className="chat-gif-msg" />
-                        ) : (
-                          msg.text || msg.messageText || ''
-                        )}
-                      </div>
-                      <div className="chat-message-meta">
-                        <span className="chat-message-time">{time}</span>
-                        {isSent && (
-                          <span className={`chat-msg-status${isRead ? ' read' : ''}`}>
-                            <i className={`bx ${isRead || msg.isDelivered ? 'bx-check-double' : 'bx-check'}`} />
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                    {isSent && (
+                      isLastInGroup ? (
+                        <div className="chat-msg-avatar">
+                          <ChatAvatar name={myName} avatarUrl={profile?.avatarUrl ?? null} />
+                        </div>
+                      ) : (
+                        <div className="chat-msg-avatar-spacer" />
+                      )
+                    )}
                   </div>
                 </React.Fragment>
               );
@@ -447,8 +585,83 @@ export default function ChatPage() {
             <div ref={messagesEndRef} />
           </div>
 
-          {activeChatId && (
-            (isFriend || chats.find(c => c.id === activeChatId)?.isGroup) ? (
+          {showGroupInfo && (
+            <div className="group-info-overlay" onClick={() => setShowGroupInfo(false)}>
+              <div className="group-info-panel" onClick={(e) => e.stopPropagation()}>
+                <div className="group-info-header">
+                  <h3>Miembros del grupo</h3>
+                  <button className="group-info-close" onClick={() => setShowGroupInfo(false)}>
+                    <i className="bx bx-x" />
+                  </button>
+                </div>
+                <div className="group-info-members">
+                  {loadingGroupMembers ? (
+                    <div className="group-info-loading">Cargando...</div>
+                  ) : (() => {
+                    const activeChat = chats.find(c => c.id === activeChatId);
+                    const hasLeft = activeChat?.isGroup && !!activeChat?.leftAt?.[user?.uid];
+                    const visibleMembers = hasLeft
+                      ? groupMembersProfiles.filter(m => m.uid !== user?.uid)
+                      : groupMembersProfiles;
+                    return visibleMembers.map(member => (
+                      <div key={member.uid} className="group-info-member-item">
+                        <ChatAvatar name={member.name} avatarUrl={member.avatarUrl || null} />
+                        <span className="group-info-member-name">
+                          {member.name}
+                          {member.uid === user?.uid && <span className="group-info-you"> (tú)</span>}
+                        </span>
+                      </div>
+                    ));
+                  })()}
+                </div>
+                <div className="group-info-footer">
+                  {(() => {
+                    const activeChat = chats.find(c => c.id === activeChatId);
+                    const hasLeft = activeChat?.isGroup && !!activeChat?.leftAt?.[user?.uid];
+                    return hasLeft ? (
+                      <button className="group-leave-btn" disabled>
+                        <i className="bx bx-check" /> Ya has salido
+                      </button>
+                    ) : (
+                      <button className="group-leave-btn" onClick={() => setShowLeaveConfirm(true)}>
+                        <i className="bx bx-log-out" /> Salir del grupo
+                      </button>
+                    );
+                  })()}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showLeaveConfirm && (
+            <div className="chat-confirm-overlay" onClick={() => setShowLeaveConfirm(false)}>
+              <div className="chat-confirm-dialog" onClick={(e) => e.stopPropagation()}>
+                <div className="chat-confirm-icon">
+                  <i className="bx bx-door-open" />
+                </div>
+                <h3 className="chat-confirm-title">¿Salir del grupo?</h3>
+                <p className="chat-confirm-desc">Ya no recibirás mensajes ni podrás participar en este grupo.</p>
+                <div className="chat-confirm-actions">
+                  <button className="chat-confirm-cancel" onClick={() => setShowLeaveConfirm(false)}>
+                    Cancelar
+                  </button>
+                  <button className="chat-confirm-danger" onClick={handleLeaveGroup}>
+                    Salir
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeChatId && (() => {
+            const activeChat = chats.find(c => c.id === activeChatId);
+            const hasLeftGroup = activeChat?.isGroup && !!activeChat?.leftAt?.[user?.uid];
+            return hasLeftGroup ? (
+              <div className="chat-input-area chat-input-blocked chat-input-left">
+                <i className="bx bx-door-open" style={{ fontSize: '18px' }} />
+                <span>Has salido de este grupo</span>
+              </div>
+            ) : (isFriend || activeChat?.isGroup) ? (
               <div className="chat-input-area">
                 <div className="chat-controls">
                   <button 
@@ -510,22 +723,22 @@ export default function ChatPage() {
               <div className="chat-input-area chat-input-blocked">
                 <span>No puedes enviar mensajes a esta persona porque ya no sois amigos.</span>
               </div>
-            )
-          )}
+            );
+          })()}
         </div>
       </div>
     </Layout>
   );
 }
 
-function ChatContactItem({ chatId, name, avatarUrl, lastMessage, unread, isActive, onClick, onDelete }) {
+function ChatContactItem({ chatId, name, avatarUrl, lastMessage, lastMessageLeft, unread, isActive, onClick, onDelete }) {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
     <li className={`chat-contact-item${isActive ? ' active' : ''}`} data-chat-id={chatId} onClick={onClick}>
       <ChatAvatar name={name} avatarUrl={avatarUrl} />
       <div className="chat-contact-info">
         <div className="chat-contact-name">{name}</div>
-        <div className="chat-last-message">{lastMessage}</div>
+        <div className={`chat-last-message${lastMessageLeft ? ' chat-last-message--left' : ''}`}>{lastMessage}</div>
       </div>
       <div className="chat-contact-actions">
         {unread > 0 && <span className="chat-unread-badge">{unread}</span>}

@@ -1,7 +1,7 @@
 import { db } from '../firebase/firebase.js';
 import {
     collection, query, where, getDocs, addDoc,
-    onSnapshot, orderBy, serverTimestamp, doc, updateDoc, increment, getDoc, deleteDoc, limit
+    onSnapshot, orderBy, serverTimestamp, doc, updateDoc, increment, getDoc, deleteDoc, limit, arrayRemove, arrayUnion, deleteField
 } from "firebase/firestore";
 import { notificationService } from './notificationService.js';
 
@@ -241,6 +241,7 @@ class ChatService {
 
         const newMessage = {
             senderId: senderId,
+            senderName: senderName || '',
             text: text,
             messageText: text,
             timestamp: timestamp,
@@ -370,6 +371,31 @@ class ChatService {
                 await Promise.all(toDelete.map(d => deleteDoc(d.ref)));
             } catch (_) {}
         }
+    }
+
+    async toggleReaction(chatId, messageId, emoji, userId) {
+        const msgRef = doc(db, "chats", chatId, "messages", messageId);
+        const snap = await getDoc(msgRef);
+        const reactions = snap.data()?.reactions || {};
+        const users = reactions[emoji] || [];
+
+        if (users.includes(userId)) {
+            const newUsers = users.filter(u => u !== userId);
+            await updateDoc(msgRef, {
+                [`reactions.${emoji}`]: newUsers.length === 0 ? deleteField() : arrayRemove(userId)
+            });
+        } else {
+            await updateDoc(msgRef, {
+                [`reactions.${emoji}`]: arrayUnion(userId)
+            });
+        }
+    }
+
+    async leaveGroup(chatId, userId) {
+        const chatRef = doc(db, "chats", chatId);
+        await updateDoc(chatRef, {
+            [`leftAt.${userId}`]: serverTimestamp()
+        });
     }
 
     async deleteChat(chatId) {

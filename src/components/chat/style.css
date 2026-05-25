@@ -136,6 +136,7 @@
     display: flex;
     flex-direction: column;
     background-color: var(--color-bg);
+    position: relative;
 }
 
 .chat-window-header {
@@ -222,7 +223,158 @@
 
 .chat-message-row.received {
     align-self: flex-start;
-    flex-direction: row-reverse;
+    flex-direction: row;
+}
+
+/* Message bubble wrapper (message + reactions + picker) */
+.chat-bubble-wrap {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* Reaction trigger button (smile icon, visible on row hover) */
+.chat-reaction-trigger {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: var(--color-muted);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    align-self: flex-end;
+    opacity: 0;
+    pointer-events: none;
+    /* delay hiding so mouse can reach the button without it disappearing */
+    transition: opacity 0.1s 0.4s, background 0.15s, color 0.15s;
+}
+
+.chat-message-row:hover .chat-reaction-trigger {
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 0.1s, background 0.15s, color 0.15s;
+}
+
+.chat-reaction-trigger:hover {
+    background: var(--color-surface-3);
+    color: var(--color-accent);
+}
+
+/* Invisible backdrop that closes the reaction picker on outside click */
+.reaction-picker-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 49;
+}
+
+/* Quick reaction picker popover */
+.chat-reaction-picker {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    display: flex;
+    gap: 2px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 24px;
+    padding: 5px 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    z-index: 50;
+    animation: fadeIn 0.12s ease;
+    white-space: nowrap;
+}
+
+.chat-reaction-picker.sent  { right: 0; }
+.chat-reaction-picker.received { left: 0; }
+
+.chat-reaction-option {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 8px;
+    line-height: 1;
+    transition: transform 0.1s, background 0.1s;
+}
+
+.chat-reaction-option:hover {
+    transform: scale(1.35);
+    background: var(--color-surface-3);
+}
+
+/* Reaction badges below the bubble */
+.chat-reactions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.chat-reactions.sent {
+    justify-content: flex-end;
+}
+
+.chat-reaction-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface-2);
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    line-height: 1.4;
+}
+
+.chat-reaction-badge span {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-muted);
+}
+
+.chat-reaction-badge.mine {
+    border-color: var(--color-accent);
+    background: rgba(0, 86, 255, 0.08);
+}
+
+.chat-reaction-badge.mine span {
+    color: var(--color-accent);
+}
+
+.chat-reaction-badge:hover {
+    background: var(--color-surface-3);
+}
+
+/* Telegram-style message avatars */
+.chat-msg-avatar {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    align-self: flex-end;
+    margin-right: 8px;
+}
+
+.chat-msg-avatar .chat-contact-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+    margin-right: 0;
+}
+
+.chat-msg-avatar-spacer {
+    width: 32px;
+    flex-shrink: 0;
+    margin-right: 8px;
 }
 
 .chat-message {
@@ -343,6 +495,16 @@
     color: var(--color-muted);
     font-size: 14px;
     opacity: 0.8;
+}
+
+.chat-input-left {
+    gap: 8px;
+    font-style: italic;
+}
+
+.chat-last-message--left {
+    color: var(--color-accent) !important;
+    font-style: italic;
 }
 
 .chat-add-btn, .chat-send-btn {
@@ -554,6 +716,252 @@
     text-align: center;
     color: var(--color-muted);
     font-style: italic;
+}
+
+/* Group info button in header */
+.chat-group-info-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: var(--color-muted);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s;
+}
+
+.chat-group-info-btn:hover {
+    background: var(--color-surface-3);
+    color: var(--color-accent);
+}
+
+/* Group info overlay + panel */
+.group-info-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.25);
+    z-index: 200;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.group-info-panel {
+    width: 280px;
+    height: 100%;
+    background: var(--color-bg);
+    border-left: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    animation: slideInRight 0.2s ease;
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to   { transform: translateX(0);    opacity: 1; }
+}
+
+.group-info-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.group-info-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.group-info-close {
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: var(--color-muted);
+    cursor: pointer;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.group-info-close:hover {
+    background: var(--color-surface-3);
+}
+
+.group-info-members {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 0;
+}
+
+.group-info-member-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    transition: background 0.15s;
+}
+
+.group-info-member-item:hover {
+    background: var(--color-surface-3);
+}
+
+.group-info-member-name {
+    font-size: 14px;
+    color: var(--color-text);
+    font-weight: 500;
+}
+
+.group-info-you {
+    font-weight: 400;
+    color: var(--color-muted);
+    font-size: 12px;
+}
+
+.group-info-loading {
+    padding: 20px;
+    text-align: center;
+    color: var(--color-muted);
+    font-size: 14px;
+}
+
+.group-info-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--color-border);
+}
+
+.group-leave-btn {
+    width: 100%;
+    padding: 10px 16px;
+    background: none;
+    border: 1px solid #e74c3c;
+    border-radius: 10px;
+    color: #e74c3c;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.2s, color 0.2s;
+}
+
+.group-leave-btn:hover:not(:disabled) {
+    background: #e74c3c;
+    color: #fff;
+}
+
+.group-leave-btn:disabled {
+    border-color: var(--color-border);
+    color: var(--color-muted);
+    cursor: default;
+    opacity: 0.6;
+}
+
+/* Leave group confirmation dialog */
+.chat-confirm-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-confirm-dialog {
+    background: var(--color-bg);
+    border-radius: 18px;
+    padding: 32px 28px 24px;
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    animation: confirmPop 0.2s ease;
+}
+
+@keyframes confirmPop {
+    from { transform: scale(0.88); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+}
+
+.chat-confirm-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #fee2e2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: #e74c3c;
+    margin-bottom: 16px;
+}
+
+.chat-confirm-title {
+    margin: 0 0 8px;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.chat-confirm-desc {
+    margin: 0 0 24px;
+    font-size: 14px;
+    color: var(--color-muted);
+    line-height: 1.5;
+}
+
+.chat-confirm-actions {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.chat-confirm-cancel,
+.chat-confirm-danger {
+    flex: 1;
+    padding: 11px 0;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s, color 0.2s, transform 0.1s;
+}
+
+.chat-confirm-cancel {
+    background: var(--color-surface-3);
+    color: var(--color-text);
+}
+
+.chat-confirm-cancel:hover {
+    background: var(--color-border);
+}
+
+.chat-confirm-danger {
+    background: #e74c3c;
+    color: #fff;
+}
+
+.chat-confirm-danger:hover {
+    background: #c0392b;
+}
+
+.chat-confirm-cancel:active,
+.chat-confirm-danger:active {
+    transform: scale(0.97);
 }
 
 /* GIF and Emoji Pickers */
